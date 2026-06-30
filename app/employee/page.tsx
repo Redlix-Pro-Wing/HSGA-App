@@ -244,16 +244,17 @@ export default function EmployeeDashboard() {
     <div className="h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased overflow-hidden">
 
       {/* ── Top Bar ── */}
-      <header className="sticky top-0 z-40 bg-[#b9bee5] border-b border-zinc-300 py-1.5 px-4 flex justify-between items-center shadow-sm shrink-0">
-        <div className="flex items-center gap-2.5">
+      <header className="sticky top-0 z-40 bg-[#4a55a2] border-b border-indigo-300/30 py-1.5 px-4 flex justify-between items-center shadow-sm shrink-0">
+        <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png" alt="HSGA Logo" className="h-10 md:h-11 w-auto object-contain select-none" />
-          <span className="text-xs md:text-sm font-semibold text-zinc-800">
-            Namaste, <strong className="text-zinc-950 font-bold">{employee.name}</strong>
-          </span>
+          <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png" alt="HSGA Logo" className="h-10 md:h-12 w-auto object-contain select-none bg-white p-0.5 rounded-full" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-[10px] md:text-xs text-indigo-200">Namaste,</span>
+            <span className="text-xs md:text-sm font-bold text-white truncate max-w-[150px] sm:max-w-none">{employee.name}</span>
+          </div>
         </div>
         <div className="flex items-center">
-          <button onClick={handleSignOut} title="Sign Out" className="p-2 text-zinc-700 hover:text-[#800020] hover:bg-black/5 rounded-full transition-colors focus:outline-none flex items-center justify-center">
+          <button onClick={handleSignOut} title="Sign Out" className="p-2 text-white hover:text-indigo-150 hover:bg-white/10 rounded-full transition-colors focus:outline-none flex items-center justify-center">
             <span className="material-icons text-xl select-none">exit_to_app</span>
           </button>
         </div>
