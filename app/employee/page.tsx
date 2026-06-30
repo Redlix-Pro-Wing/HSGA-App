@@ -244,17 +244,17 @@ export default function EmployeeDashboard() {
     <div className="h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased overflow-hidden">
 
       {/* ── Top Bar ── */}
-      <header className="sticky top-0 z-40 bg-[#4a55a2] border-b border-indigo-300/30 py-1.5 px-4 flex justify-between items-center shadow-sm shrink-0">
+      <header className="sticky top-0 z-40 bg-[#f3f4f6] border-b border-zinc-200 py-1 px-4 flex justify-between items-center shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png" alt="HSGA Logo" className="h-10 md:h-12 w-auto object-contain select-none bg-white p-0.5 rounded-full" />
+          <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png" alt="HSGA Logo" className="h-11 md:h-13 w-auto object-contain select-none" />
           <div className="flex flex-col leading-tight">
-            <span className="text-[10px] md:text-xs text-indigo-200">Namaste,</span>
-            <span className="text-xs md:text-sm font-bold text-white truncate max-w-[150px] sm:max-w-none">{employee.name}</span>
+            <span className="text-[10px] md:text-xs text-zinc-500">Namaste,</span>
+            <span className="text-xs md:text-sm font-bold text-zinc-950 truncate max-w-[150px] sm:max-w-none">{employee.name}</span>
           </div>
         </div>
         <div className="flex items-center">
-          <button onClick={handleSignOut} title="Sign Out" className="p-2 text-white hover:text-indigo-150 hover:bg-white/10 rounded-full transition-colors focus:outline-none flex items-center justify-center">
+          <button onClick={handleSignOut} title="Sign Out" className="p-2 text-zinc-600 hover:text-[#800020] hover:bg-zinc-200/50 rounded-full transition-colors focus:outline-none flex items-center justify-center">
             <span className="material-icons text-xl select-none">exit_to_app</span>
           </button>
         </div>
@@ -861,7 +861,7 @@ export default function EmployeeDashboard() {
         </main>
       </div>
       {/* ── Mobile Bottom Navigation Bar ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#e8eaf6] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#bae6fd]/60 backdrop-blur-md border-t border-sky-300/30 flex items-center justify-around z-30 shadow-lg px-2">
         {[
           { key: "overview", icon: "dashboard", label: "Overview" },
           { key: "id-card", icon: "badge", label: "ID Card" },
@@ -878,7 +878,7 @@ export default function EmployeeDashboard() {
             className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors cursor-pointer ${
               activeTab === key
                 ? "text-[#002f6c]"
-                : "text-zinc-500 hover:text-zinc-950"
+                : "text-sky-850 hover:text-sky-950"
             }`}
           >
             <span className="material-icons text-xl select-none">{icon}</span>

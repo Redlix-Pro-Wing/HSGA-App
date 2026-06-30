@@ -1005,23 +1005,24 @@ export default function AdminPage() {
   return (
     <div className="h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased overflow-hidden">
       {/* Compact Top Bar */}
-      <header className="sticky top-0 z-40 bg-[#b9bee5] border-b border-zinc-300 py-1.5 px-4 flex justify-between items-center shadow-sm shrink-0">
-        <div className="flex items-center gap-2.5">
+      <header className="sticky top-0 z-40 bg-[#f3f4f6] border-b border-zinc-200 py-1 px-4 flex justify-between items-center shadow-sm shrink-0">
+        <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
             alt="HSGA Logo"
-            className="h-10 md:h-11 w-auto object-contain select-none"
+            className="h-11 md:h-13 w-auto object-contain select-none"
           />
-          <span className="text-xs md:text-sm font-semibold text-zinc-800">
-            Namaste, <strong className="text-zinc-950 font-bold">{adminName || email}</strong>
-          </span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-[10px] md:text-xs text-zinc-500">Namaste,</span>
+            <span className="text-xs md:text-sm font-bold text-zinc-950 truncate max-w-[150px] sm:max-w-none">{adminName || email}</span>
+          </div>
         </div>
         <div className="flex items-center">
           <button
             onClick={handleSignOut}
             title="Sign Out"
-            className="p-2 text-zinc-700 hover:text-[#800020] hover:bg-black/5 rounded-full transition-colors focus:outline-none flex items-center justify-center"
+            className="p-2 text-zinc-600 hover:text-[#800020] hover:bg-zinc-200/50 rounded-full transition-colors focus:outline-none flex items-center justify-center"
           >
             <span className="material-icons text-xl select-none">exit_to_app</span>
           </button>
@@ -1625,7 +1626,7 @@ export default function AdminPage() {
         </main>
       </div>
       {/* ── Mobile Bottom Navigation Bar ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#e8eaf6] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#bae6fd]/60 backdrop-blur-md border-t border-sky-300/30 flex items-center justify-around z-30 shadow-lg px-2">
         {[
           { key: "overview", icon: "dashboard", label: "Overview" },
           { key: "add-employee", icon: "person_add", label: "Add Master" },
@@ -1641,7 +1642,7 @@ export default function AdminPage() {
             className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors cursor-pointer ${
               activeTab === key
                 ? "text-[#002f6c]"
-                : "text-zinc-500 hover:text-zinc-950"
+                : "text-sky-850 hover:text-sky-950"
             }`}
           >
             <span className="material-icons text-xl select-none">{icon}</span>
