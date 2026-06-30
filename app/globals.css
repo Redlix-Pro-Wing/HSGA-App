@@ -1,26 +1,35 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f0f4f8;
+  --foreground: #1e293b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-inter);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Custom autofill highlighting with high-contrast accessibility focus states */
+input:-webkit-autofill,
+input:autofill {
+  border: 1px solid #005a9c !important; /* Government Blue */
+  box-shadow: 0 0 0 1000px #f0f6fa inset !important; /* Soft Blue-Gray background */
+  -webkit-text-fill-color: #111827 !important; /* Zinc 900 */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Mandatory explicit focus-visible states for autofilled elements */
+input:-webkit-autofill:focus-visible,
+input:autofill:focus-visible {
+  outline: 2px solid #005a9c !important;
+  outline-offset: 2px;
 }

@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model Admin {
+  id          Int      @id @default(1)
+  email       String   @unique
+  password    String
+  name        String
+  designation String
+  phone       String
+  otp         String?
+}
+
+model Employee {
+  id             String   @id // holds custom generated IDs like HSGA/TG/SM00053 or HSGA/TG/GC/00053
+  name           String
+  email          String   @unique
+  gender         String
+  password       String
+  otp            String?
+  createdAt      DateTime @default(now())
+  // Extended profile fields
+  designation    String?
+  district       String?
+  phone          String?
+  assignedSchool String?
+  address        String?
+  imageUrl       String?
+}
