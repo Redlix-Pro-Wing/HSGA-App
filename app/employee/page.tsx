@@ -322,65 +322,68 @@ export default function EmployeeDashboard() {
 
             {/* ═══ TAB: Overview ═══ */}
             {activeTab === "overview" && (
-              <div className="space-y-6">
-                <div className="bg-gradient-to-r from-[#002f6c] to-[#053266] text-white rounded-lg p-6 shadow-sm flex items-center gap-5">
-                  {imagePreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imagePreview} alt="Avatar" className="h-14 w-14 rounded-full object-cover border-2 border-white/20" />
-                  ) : (
-                    <div className="h-14 w-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-2xl font-black select-none">
-                      {employee.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">Welcome back</p>
-                    <h1 className="text-xl font-bold mt-0.5">{employee.name}</h1>
-                    <p className="text-white/80 text-xs mt-1">{profile?.designation || roleTitle} · {genderLabel}</p>
+              <div className="space-y-4">
+                <div className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[220px]">
+                  {/* Left side: Illustration */}
+                  <div className="flex-1 flex justify-center sm:justify-start">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="https://ik.imagekit.io/dypkhqxip/Breathing%20exercise-cuate.svg"
+                      alt="Attendance Illustration"
+                      className="h-44 sm:h-52 w-auto object-contain select-none"
+                    />
+                  </div>
+                  {/* Right side: Attendance Stats */}
+                  <div className="flex-1 flex flex-col items-center justify-center text-center pr-2 sm:pr-8">
+                    <span className="text-5xl sm:text-6xl font-semibold text-zinc-900 tracking-tight leading-none">
+                      0%
+                    </span>
+                    <span className="text-sm sm:text-base font-semibold text-zinc-500 mt-2">
+                      Attendance
+                    </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    { label: "Employee ID", value: employee.id, icon: "badge", color: "text-[#002f6c]", bg: "bg-[#002f6c]/10" },
-                    { label: "Role", value: profile?.designation || roleTitle, icon: "work", color: "text-emerald-600", bg: "bg-emerald-50" },
-                    { label: "Account Status", value: "Active", icon: "verified", color: "text-amber-600", bg: "bg-amber-50", badge: true },
-                  ].map(({ label, value, icon, color, bg, badge }) => (
-                    <div key={label} className="bg-white border border-zinc-200 rounded-lg p-5 shadow-sm">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`h-9 w-9 rounded-md ${bg} flex items-center justify-center shrink-0`}>
-                          <span className={`material-icons ${color} text-lg select-none`}>{icon}</span>
-                        </div>
-                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{label}</p>
-                      </div>
-                      {badge ? (
-                        <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold text-sm">
-                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>Active
-                        </span>
-                      ) : (
-                        <p className="font-semibold text-zinc-900 font-mono text-sm">{value}</p>
-                      )}
-                    </div>
-                  ))}
+                <div className="bg-white rounded-lg border border-zinc-200 p-5 shadow-sm grid grid-cols-3 divide-x divide-zinc-200 text-center">
+                  <div className="flex flex-col items-center justify-center px-1">
+                    <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight select-all">
+                      {employee.id}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-2 font-medium">
+                      Employee ID
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center px-1">
+                    <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight">
+                      {profile?.designation || roleTitle}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-2 font-medium">
+                      Role
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center px-1">
+                    <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight">
+                      Active
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-2 font-medium">
+                      Account Status
+                    </span>
+                  </div>
                 </div>
-                <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
-                  <h2 className="text-base font-bold text-zinc-800 mb-4 pb-3 border-b border-zinc-100">Account Details</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border border-zinc-200 rounded-lg p-5 shadow-sm">
+                  <h2 className="text-sm font-bold text-zinc-800 mb-3 pb-2 border-b border-zinc-100">Account Details</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
                     {[
-                      { label: "Full Name", value: employee.name, icon: "person" },
-                      { label: "Employee ID", value: employee.id, icon: "badge", mono: true },
-                      { label: "Email Address", value: employee.email, icon: "email" },
-                      { label: "Gender", value: genderLabel, icon: "wc" },
-                      { label: "District", value: profile?.district || "—", icon: "location_on" },
-                      { label: "Phone", value: profile?.phone || "—", icon: "phone" },
-                      { label: "Address", value: profile?.address || "—", icon: "home" },
-                    ].map(({ label, value, icon, mono }) => (
-                      <div key={label} className="flex items-start gap-3">
-                        <div className="h-8 w-8 rounded bg-zinc-100 flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="material-icons text-zinc-400 text-sm select-none">{icon}</span>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">{label}</p>
-                          <p className={`text-sm font-semibold text-zinc-900 mt-0.5 ${mono ? "font-mono" : ""}`}>{value}</p>
-                        </div>
+                      { label: "Full Name", value: employee.name },
+                      { label: "Employee ID", value: employee.id, mono: true },
+                      { label: "Email Address", value: employee.email },
+                      { label: "Gender", value: genderLabel },
+                      { label: "District", value: profile?.district || "—" },
+                      { label: "Phone", value: profile?.phone || "—" },
+                      { label: "Address", value: profile?.address || "—" },
+                    ].map(({ label, value, mono }) => (
+                      <div key={label} className="py-2 flex flex-col border-b border-zinc-100 last:border-0 md:last:border-b md:[&:nth-last-child(-n+2)]:border-0">
+                        <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide">{label}</span>
+                        <span className={`text-xs font-semibold text-zinc-800 mt-0.5 ${mono ? "font-mono select-all" : ""}`}>{value}</span>
                       </div>
                     ))}
                   </div>
@@ -483,158 +486,100 @@ export default function EmployeeDashboard() {
                     <p className="text-sm text-zinc-500 font-medium">Loading profile...</p>
                   </div>
                 ) : profileView === "view" && profile ? (
-                  /* ─── SAVED PROFILE VIEW ─── */
-                  <div className="space-y-6">
-                    {/* Centered Profile Header (Lavender Area) */}
-                    <div className="bg-[#e8eaf6] rounded-xl border border-zinc-200/80 p-8 flex flex-col items-center relative shadow-sm">
-                      <button
-                        onClick={() => { setProfileView("edit"); setError(null); setSuccess(null); }}
-                        className="absolute top-4 right-5 text-xs font-semibold text-[#002f6c] hover:underline"
-                      >
-                        Edit Profile
-                      </button>
-
-                      {/* Hello Title */}
-                      <h1 className="text-3xl text-zinc-700 font-light tracking-wide mb-5" style={{ fontFamily: "Georgia, serif" }}>
-                        Hello
-                      </h1>
-
-                      {/* Centered Circular Profile Photo */}
+                  /* ─── SAVED PROFILE VIEW (DHONDI-STYLE LIST VIEW) ─── */
+                  <div className="max-w-md mx-auto space-y-4 pb-20">
+                    
+                    {/* ── Profile Header Card (Banner background with circular overlap) ── */}
+                    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col items-center pb-6">
+                      {/* Banner Background */}
+                      <div className="h-24 w-full bg-[#e8eaf6]" />
+                      
+                      {/* Avatar Overlap */}
                       <div className="mb-4">
                         {imagePreview ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={imagePreview} alt="Profile"
-                            className="h-32 w-32 rounded-full object-cover border-4 border-white shadow-md" />
+                          <img
+                            src={imagePreview}
+                            alt="Profile"
+                            className="h-28 w-28 rounded-full object-cover border-4 border-white shadow-md relative -mt-14 z-10 bg-white"
+                          />
                         ) : (
-                          <div className="h-32 w-32 rounded-full bg-[#002f6c] border-4 border-white shadow-md flex items-center justify-center text-4xl font-black text-white select-none">
+                          <div className="h-28 w-28 rounded-full bg-[#002f6c] border-4 border-white shadow-md flex items-center justify-center text-3xl font-black text-white select-none relative -mt-14 z-10">
                             {employee.name.charAt(0).toUpperCase()}
                           </div>
                         )}
                       </div>
 
                       {/* Centered Name and Info details */}
-                      <div className="text-center">
-                        <h2 className="text-lg font-bold text-[#002f6c]">{employee.name}</h2>
-                        <p className="text-sm font-medium text-zinc-600 mt-1">
-                          {employee.id} | {profile.designation || roleTitle}
+                      <div className="text-center px-4 space-y-1">
+                        <h2 className="text-xl font-bold text-[#002f6c] tracking-tight">{employee.name}</h2>
+                        <p className="text-xs font-semibold text-zinc-500">
+                          Employee ID - {employee.id}
+                        </p>
+                        <p className="text-xs font-medium text-zinc-500">
+                          {profile.designation || roleTitle}
+                        </p>
+                        <p className="text-xs text-zinc-400 mt-1 max-w-[280px] mx-auto truncate" title={profile.assignedSchool || "Telangana Institution"}>
+                          {profile.assignedSchool || "Telangana Institution"}
                         </p>
                       </div>
+                    </div>
 
-                      {/* Horizontal pill link buttons like in the screenshot */}
-                      <div className="flex flex-wrap justify-center gap-2 mt-5 pt-4 border-t border-[#c5cae9]/80 w-full max-w-xl">
-                        <span className="px-3 py-1 bg-[#e3f2fd] text-[#0d47a1] text-[11px] font-semibold rounded-md shadow-sm border border-[#bbdefb]">
-                          Personal Info
-                        </span>
-                        <span className="px-3 py-1 bg-[#e3f2fd] text-[#0d47a1] text-[11px] font-semibold rounded-md shadow-sm border border-[#bbdefb]">
-                          Contact Details
-                        </span>
-                        <span className="px-3 py-1 bg-[#e3f2fd] text-[#0d47a1] text-[11px] font-semibold rounded-md shadow-sm border border-[#bbdefb]">
-                          Role &amp; School
-                        </span>
+                    {/* ── Navigation List Card ── */}
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-xl overflow-hidden divide-y divide-zinc-100">
+                      {[
+                        {
+                          title: "Profile",
+                          desc: "General, Contact, Qualifications, Details.",
+                          icon: "account_circle",
+                          onClick: () => { setProfileView("edit"); setError(null); setSuccess(null); }
+                        },
+                        {
+                          title: "My Permissions",
+                          desc: "Permission related Details.",
+                          icon: "gpp_maybe",
+                          onClick: () => {
+                            setSuccess("Permissions requested successfully.");
+                          }
+                        },
+                        {
+                          title: "Chat Support",
+                          desc: "General and payment related issues.",
+                          icon: "chat",
+                          onClick: () => {
+                            setSuccess("Support chat requested. Administrator will contact you shortly.");
+                          }
+                        },
+                        {
+                          title: "Terms and Conditions",
+                          desc: "Terms and Conditions, Privacy Policy and Refunds.",
+                          icon: "info",
+                          onClick: () => {
+                            setSuccess("Viewing Terms and Conditions policy documents.");
+                          }
+                        },
+                        {
+                          title: "Logout",
+                          desc: "Sign off from your account.",
+                          icon: "logout",
+                          onClick: () => { handleSignOut(); }
+                        }
+                      ].map((item, index) => (
                         <button
-                          onClick={() => { setActiveTab("id-card"); }}
-                          className="px-3 py-1 bg-[#0d47a1] hover:bg-[#0b3c8f] text-white text-[11px] font-semibold rounded-md shadow-sm transition-colors"
+                          key={index}
+                          onClick={item.onClick}
+                          className="w-full text-left p-4 hover:bg-[#e8eaf6]/30 transition-colors flex items-start gap-4"
                         >
-                          View ID Card
+                          <span className="material-icons text-[#002f6c] text-2xl shrink-0 mt-0.5 select-none">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-zinc-900 leading-tight">{item.title}</p>
+                            <p className="text-xs text-zinc-500 mt-1 leading-normal">{item.desc}</p>
+                          </div>
+                          <span className="material-icons text-zinc-300 select-none shrink-0 self-center">chevron_right</span>
                         </button>
-                      </div>
+                      ))}
                     </div>
 
-                    {/* Two-column Details (aligned clean layout) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                      {/* Left Column Cards */}
-                      <div className="space-y-6">
-                        {/* Card 1: Personal Details */}
-                        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
-                          <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-150 pb-2 mb-4 uppercase tracking-wider">
-                            Personal Details
-                          </h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {[
-                              { label: "Full Name", value: employee.name },
-                              { label: "Employee ID", value: employee.id, mono: true },
-                              { label: "Gender", value: genderLabel },
-                              { label: "Email Address", value: employee.email },
-                            ].map(({ label, value, mono }) => (
-                              <div key={label} className="space-y-0.5">
-                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{label}</p>
-                                <p className={`text-sm font-semibold text-zinc-800 ${mono ? "font-mono" : ""}`}>{value || "—"}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Card 2: Contact Details */}
-                        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
-                          <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-150 pb-2 mb-4 uppercase tracking-wider">
-                            Contact Details
-                          </h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Phone Number</p>
-                              <p className="text-sm font-semibold text-zinc-800">{profile.phone || "—"}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">District</p>
-                              <p className="text-sm font-semibold text-zinc-800">{profile.district || "—"}</p>
-                            </div>
-                            <div className="sm:col-span-2">
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Address</p>
-                              <p className="text-sm font-semibold text-zinc-800 leading-relaxed">{profile.address || "—"}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Column Cards */}
-                      <div className="space-y-6">
-                        {/* Card 3: Role & Assignment */}
-                        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
-                          <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-150 pb-2 mb-4 uppercase tracking-wider">
-                            Role &amp; Assignment
-                          </h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {[
-                              { label: "Designation", value: profile.designation || roleTitle },
-                              { label: "Section / Unit", value: roleTitle },
-                              { label: "Assigned School", value: profile.assignedSchool },
-                              { label: "Current Term", value: "2025–2026" },
-                            ].map(({ label, value }) => (
-                              <div key={label} className="space-y-0.5">
-                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{label}</p>
-                                <p className="text-sm font-semibold text-zinc-800">{value || "—"}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Card 4: Account Information */}
-                        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
-                          <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-150 pb-2 mb-4 uppercase tracking-wider">
-                            Account Information
-                          </h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Employee ID</p>
-                              <p className="text-sm font-mono font-semibold text-zinc-800">{employee.id}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Account Status</p>
-                              <p className="text-sm font-semibold text-green-600 flex items-center gap-1.5">
-                                <span className="h-2 w-2 rounded-full bg-green-500 inline-block"></span>
-                                Active
-                              </p>
-                            </div>
-                            <div className="sm:col-span-2">
-                              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Portal Access</p>
-                              <p className="text-sm font-semibold text-zinc-800">Employee Portal</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
                   </div>
                 ) : (
 
