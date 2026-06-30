@@ -1626,7 +1626,7 @@ export default function AdminPage() {
         </main>
       </div>
       {/* ── Mobile Bottom Navigation Bar ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#bae6fd]/60 backdrop-blur-md border-t border-sky-300/30 flex items-center justify-around z-30 shadow-lg px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#F7F6F3] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
         {[
           { key: "overview", icon: "dashboard", label: "Overview" },
           { key: "add-employee", icon: "person_add", label: "Add Master" },
@@ -1642,7 +1642,7 @@ export default function AdminPage() {
             className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors cursor-pointer ${
               activeTab === key
                 ? "text-[#002f6c]"
-                : "text-sky-850 hover:text-sky-950"
+                : "text-zinc-500 hover:text-zinc-900"
             }`}
           >
             <span className="material-icons text-xl select-none">{icon}</span>
