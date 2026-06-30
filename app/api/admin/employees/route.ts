@@ -8,7 +8,7 @@ export async function GET() {
     });
     
     // Return employees with passwords omitted for overview security
-    const safeEmployees = employees.map((emp) => ({
+    const safeEmployees = employees.map((emp: any) => ({
       id: emp.id,
       name: emp.name,
       email: emp.email,
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
     // Find max counter
     let maxCounter = 52; // default starting point (next will be 53)
-    matchingEmployees.forEach((emp) => {
+    matchingEmployees.forEach((emp: any) => {
       const numPart = emp.id.substring(prefix.length);
       const num = parseInt(numPart, 10);
       if (!isNaN(num) && num > maxCounter) {
