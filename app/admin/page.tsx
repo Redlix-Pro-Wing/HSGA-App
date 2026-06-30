@@ -1003,28 +1003,25 @@ export default function AdminPage() {
 
   // Case 3: Admin account is webstrixx@gmail.com
   return (
-    <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
+    <div className="h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased overflow-hidden">
       {/* Compact Top Bar */}
-      <header className="bg-white border-b border-zinc-200 py-3 px-6 flex justify-between items-center shadow-sm shrink-0">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 bg-[#b9bee5] border-b border-zinc-300 py-1.5 px-4 flex justify-between items-center shadow-sm shrink-0">
+        <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
-            alt="HSGA Telangana Logo"
-            className="h-8 w-auto object-contain select-none"
+            alt="HSGA Logo"
+            className="h-10 md:h-11 w-auto object-contain select-none"
           />
-          <span className="font-bold tracking-wider text-[#002f6c] text-sm md:text-base">
-            HSGA Telangana Admin Control Center
+          <span className="text-xs md:text-sm font-semibold text-zinc-800">
+            Namaste, <strong className="text-zinc-950 font-bold">{adminName || email}</strong>
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-xs md:text-sm font-medium text-zinc-600">
-            Namaste, <strong className="text-zinc-800">{adminName || email}</strong>
-          </span>
+        <div className="flex items-center">
           <button
             onClick={handleSignOut}
             title="Sign Out"
-            className="p-2 text-zinc-500 hover:text-[#800020] hover:bg-zinc-100 rounded-full transition-colors focus:outline-none"
+            className="p-2 text-zinc-700 hover:text-[#800020] hover:bg-black/5 rounded-full transition-colors focus:outline-none flex items-center justify-center"
           >
             <span className="material-icons text-xl select-none">exit_to_app</span>
           </button>
