@@ -589,7 +589,7 @@ export default function AdminPage() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0f4f8]">
+      <div className="min-h-screen flex items-center justify-center bg-[#e8eaf6]">
         <div className="flex flex-col items-center gap-2">
           <span className="material-icons animate-spin text-3xl text-[#002f6c]">sync</span>
           <p className="text-sm font-semibold text-zinc-500">Checking credentials...</p>
@@ -601,9 +601,9 @@ export default function AdminPage() {
   // Case 1: No admin session exists -> Display the Admin Login Form
   if (!email) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-zinc-900 font-sans antialiased">
+      <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
         {/* Navbar at the top matching main page background */}
-        <nav className="w-full bg-[#f0f4f8] py-4 px-6 flex items-center justify-between shrink-0">
+        <nav className="w-full bg-[#e8eaf6] py-4 px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -961,9 +961,9 @@ export default function AdminPage() {
   // Case 2: Signed in, but NOT the admin email (webstrixx@gmail.com)
   if (email.toLowerCase() !== "webstrixx@gmail.com") {
     return (
-      <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-zinc-900 font-sans antialiased">
+      <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
         {/* Navbar at the top matching main page background */}
-        <nav className="w-full bg-[#f0f4f8] py-4 px-6 flex items-center justify-between shrink-0">
+        <nav className="w-full bg-[#e8eaf6] py-4 px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -1003,7 +1003,7 @@ export default function AdminPage() {
 
   // Case 3: Admin account is webstrixx@gmail.com
   return (
-    <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-zinc-900 font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
       {/* Compact Top Bar */}
       <header className="bg-white border-b border-zinc-200 py-3 px-6 flex justify-between items-center shadow-sm shrink-0">
         <div className="flex items-center gap-3">
@@ -1034,7 +1034,7 @@ export default function AdminPage() {
       {/* Dashboard Workspace */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar */}
-        <aside className="w-16 hover:w-60 bg-white border-r border-zinc-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out group z-20 overflow-hidden">
+        <aside className="hidden md:flex w-16 hover:w-60 bg-white border-r border-zinc-200 flex-col shrink-0 transition-all duration-300 ease-in-out group z-20 overflow-hidden">
           <div className="p-4 border-b border-zinc-100 flex items-center justify-center group-hover:justify-between min-h-[57px] shrink-0">
             <p className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase hidden group-hover:block transition-all duration-300 whitespace-nowrap select-none">
               Navigation
@@ -1109,7 +1109,7 @@ export default function AdminPage() {
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 bg-[#f0f4f8] overflow-y-auto p-8">
+        <main className="flex-1 bg-[#e8eaf6] overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
           <div className="w-full space-y-6">
             {/* Status alerts */}
             {error && (
@@ -1627,6 +1627,31 @@ export default function AdminPage() {
           </div>
         </main>
       </div>
+      {/* ── Mobile Bottom Navigation Bar ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#e8eaf6] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
+        {[
+          { key: "overview", icon: "dashboard", label: "Overview" },
+          { key: "add-employee", icon: "person_add", label: "Add Master" },
+          { key: "settings", icon: "settings", label: "Settings" },
+        ].map(({ key, icon, label }) => (
+          <button
+            key={key}
+            onClick={() => {
+              setActiveTab(key as typeof activeTab);
+              setError(null);
+              setSuccess(null);
+            }}
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors cursor-pointer ${
+              activeTab === key
+                ? "text-[#002f6c]"
+                : "text-zinc-500 hover:text-zinc-950"
+            }`}
+          >
+            <span className="material-icons text-xl select-none">{icon}</span>
+            <span className="text-[10px] font-bold mt-0.5">{label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

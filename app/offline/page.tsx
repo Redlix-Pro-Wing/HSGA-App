@@ -32,9 +32,9 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-zinc-900 font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
       {/* Navbar with brand logo */}
-      <nav className="w-full bg-[#f0f4f8] py-4 px-6 flex items-center justify-between shrink-0">
+      <nav className="w-full bg-[#e8eaf6] py-4 px-6 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

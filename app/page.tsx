@@ -184,7 +184,7 @@ export default function Home() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0f4f8]">
+      <div className="min-h-screen flex items-center justify-center bg-[#e8eaf6]">
         <div className="flex flex-col items-center gap-2">
           <span className="material-icons animate-spin text-3xl text-[#002f6c] select-none">sync</span>
           <p className="text-sm font-semibold text-zinc-500">Loading portal credentials...</p>
@@ -195,9 +195,9 @@ export default function Home() {
 
   // Case B: Logged out -> Render normal portal login card
   return (
-    <div className="min-h-screen flex flex-col bg-[#f0f4f8] text-zinc-900 font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
       {/* Navbar at the top matching main page background */}
-      <nav className="w-full bg-[#f0f4f8] py-4 px-6 flex items-center justify-between shrink-0">
+      <nav className="w-full bg-[#e8eaf6] py-4 px-6 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
