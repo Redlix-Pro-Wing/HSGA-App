@@ -96,7 +96,7 @@ export default function Guidelines() {
       <main className="flex-1 max-w-4xl mx-auto w-full px-5 py-8 sm:py-12 flex flex-col items-start z-10">
         {/* Page title */}
         <div className="text-left w-full max-w-2xl mb-8">
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#800020] uppercase bg-[#800020]/10 px-3.5 py-1 rounded-full inline-block">
+          <span className="text-[10px] font-bold tracking-[0.05em] text-[#800020] bg-[#800020]/10 px-3.5 py-1 rounded-full inline-block">
             Official Installation Guide
           </span>
           <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 mt-5 tracking-tight leading-tight">
@@ -109,22 +109,15 @@ export default function Guidelines() {
 
         {/* Dynamic Installation Dashboard Card */}
         <div className="w-full bg-white border border-zinc-200/80 shadow-md shadow-zinc-100/50 rounded-2xl p-6 sm:p-8 mb-8 relative overflow-hidden">
-          {/* Accent border top */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#002f6c] to-amber-500" />
 
           <div className="flex flex-col items-start text-left">
             {isInstalled ? (
               <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-emerald-500/5">
-                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <span className="material-symbols-outlined text-2xl text-emerald-600 select-none">check_circle</span>
               </div>
             ) : (
               <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-[#002f6c]/5">
-                <svg className="w-6 h-6 text-[#002f6c]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-11.99 0A3.75 3.75 0 0112 18z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 12v9m-3-3l3 3 3-3" />
-                </svg>
+                <span className="material-symbols-outlined text-2xl text-[#002f6c] select-none">download_for_offline</span>
               </div>
             )}
 
@@ -140,11 +133,9 @@ export default function Guidelines() {
             {!isInstalled && (
               <button
                 onClick={handleInstallClick}
-                className="w-full sm:w-auto flex items-center justify-center gap-2.5 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4 cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4 cursor-pointer"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
+                <span className="material-symbols-outlined text-base select-none">download</span>
                 {isInstallable ? "Install App Directly" : "Install App (Android)"}
               </button>
             )}
@@ -152,19 +143,15 @@ export default function Guidelines() {
             {isInstalled && (
               <Link
                 href="/"
-                className="w-full sm:w-auto flex items-center justify-center gap-2.5 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H8.25" />
-                </svg>
+                <span className="material-symbols-outlined text-base select-none">login</span>
                 Proceed to Staff Login
               </Link>
             )}
 
             <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium mt-1">
-              <svg className="w-3.5 h-3.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
+              <span className="material-symbols-outlined text-sm text-zinc-400 select-none">verified_user</span>
               Supports secure PWA technology with integrated offline mode.
             </div>
           </div>
