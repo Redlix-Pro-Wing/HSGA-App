@@ -444,6 +444,17 @@ export default function LoginPage() {
         </div>
         {/* End card */}
       </div>
+
+      {/* ── POWERED BY FOOTER ── */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 select-none z-10">
+        <span className="text-[9px] uppercase tracking-widest font-bold text-zinc-500/80">Powered By</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
+          alt="Redlix Logo"
+          className="h-6 w-auto object-contain opacity-70"
+        />
+      </div>
     </div>
   );
 }
