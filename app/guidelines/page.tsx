@@ -93,7 +93,7 @@ export default function Guidelines() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-5 py-8 sm:py-12 flex flex-col items-start z-10">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-5 py-8 sm:py-12 flex flex-col items-start z-10">
         {/* Page title */}
         <div className="text-left w-full max-w-2xl mb-8">
           <span className="text-[10px] font-bold tracking-[0.05em] text-[#800020] bg-[#800020]/10 px-3.5 py-1 rounded-full inline-block">
@@ -187,11 +187,11 @@ export default function Guidelines() {
               <ol className="space-y-4 text-xs text-zinc-600">
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
-                  <span className="leading-relaxed">Launch **Google Chrome** and visit this portal on your device.</span>
+                  <span className="leading-relaxed">Launch <strong>Google Chrome</strong> and visit this portal on your device.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
-                  <span className="leading-relaxed">Tap the **&quot;Install App Directly&quot;** button above, or open Chrome settings (<span className="font-bold text-zinc-800">⋮</span>) and select **&quot;Add to Home screen&quot;**.</span>
+                  <span className="leading-relaxed">Tap the <strong>&quot;Install App Directly&quot;</strong> button above, or open Chrome settings (<span className="font-bold text-zinc-800">⋮</span>) and select <strong>&quot;Add to Home screen&quot;</strong>.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
@@ -220,15 +220,15 @@ export default function Guidelines() {
               <ol className="space-y-4 text-xs text-zinc-600">
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
-                  <span className="leading-relaxed">Open this link inside the built-in **Apple Safari** browser on your iPhone or iPad.</span>
+                  <span className="leading-relaxed">Open this link inside the built-in <strong>Apple Safari</strong> browser on your iPhone or iPad.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
-                  <span className="leading-relaxed">Tap the native **Share** button (<span className="material-symbols-outlined text-[14px] align-middle inline-block">ios_share</span>) located in the browser navigation bar.</span>
+                  <span className="leading-relaxed">Tap the native <strong>Share</strong> button (<span className="material-symbols-outlined text-[14px] align-middle inline-block">ios_share</span>) located in the browser navigation bar.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
-                  <span className="leading-relaxed">Scroll down, tap **&quot;Add to Home Screen&quot;**, and click **&quot;Add&quot;** in the top-right corner to complete.</span>
+                  <span className="leading-relaxed">Scroll down, tap <strong>&quot;Add to Home Screen&quot;</strong>, and click <strong>&quot;Add&quot;</strong> in the top-right corner to complete.</span>
                 </li>
               </ol>
             </div>
@@ -253,15 +253,15 @@ export default function Guidelines() {
               <ol className="space-y-4 text-xs text-zinc-600">
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
-                  <span className="leading-relaxed">Launch **Google Chrome** or **Microsoft Edge** on your computer.</span>
+                  <span className="leading-relaxed">Launch <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong> on your computer.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
-                  <span className="leading-relaxed">Click the **Install** icon (<span className="material-symbols-outlined text-[14px] align-middle inline-block">install_desktop</span>) on the right side of the URL address bar.</span>
+                  <span className="leading-relaxed">Click the <strong>Install</strong> icon (<span className="material-symbols-outlined text-[14px] align-middle inline-block">install_desktop</span>) on the right side of the URL address bar.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
-                  <span className="leading-relaxed">Click **&quot;Install&quot;** to place a standalone app window shortcut directly on your PC desktop.</span>
+                  <span className="leading-relaxed">Click <strong>&quot;Install&quot;</strong> to place a standalone app window shortcut directly on your PC desktop.</span>
                 </li>
               </ol>
             </div>
