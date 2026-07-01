@@ -223,16 +223,6 @@ export default function LoginPage() {
         </svg>
       </div>
 
-      {/* ── Brand text watermark inside semi-circle ── */}
-      <div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center pointer-events-none select-none z-10"
-        aria-hidden="true"
-      >
-        <p className="text-white/20 font-black text-[10px] sm:text-xs uppercase tracking-[0.35em]">
-          Hindustan Scouts &amp; Guides · Telangana
-        </p>
-      </div>
-
       {/* ── Main content: logo + card ── */}
       <div className="relative z-20 flex flex-col items-center w-full px-5 pt-10 sm:pt-14">
 
@@ -245,9 +235,9 @@ export default function LoginPage() {
             className="h-16 sm:h-20 w-auto object-contain drop-shadow-md select-none"
           />
           <h1 className="mt-2 text-[#002f6c] font-extrabold text-base sm:text-lg text-center leading-tight">
-            Hindustan Scouts &amp; Guides
+            Hindustan Scouts and Guides Association
           </h1>
-          <span className="text-[#800020] font-bold text-xs sm:text-sm tracking-widest uppercase">
+          <span className="text-[#800020] font-bold text-xs sm:text-sm tracking-widest">
             Telangana
           </span>
         </div>
