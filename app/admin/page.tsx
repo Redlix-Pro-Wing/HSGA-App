@@ -1083,9 +1083,21 @@ export default function AdminPage() {
   if (isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#e8eaf6]">
-        <div className="flex flex-col items-center gap-2">
-          <span className="material-icons animate-spin text-3xl text-[#002f6c]">sync</span>
-          <p className="text-sm font-semibold text-zinc-500">Checking credentials...</p>
+        <div className="flex flex-col items-center gap-4">
+          <style>{`
+            @keyframes lineProgress {
+              0% { transform: translateX(-100%); }
+              50% { transform: translateX(0%); }
+              100% { transform: translateX(100%); }
+            }
+            .animate-line-loader {
+              animation: lineProgress 1.4s infinite ease-in-out;
+            }
+          `}</style>
+          <div className="w-40 h-1 bg-zinc-300 rounded-full overflow-hidden relative">
+            <div className="absolute top-0 bottom-0 left-0 w-1/2 bg-[#002f6c] rounded-full animate-line-loader" />
+          </div>
+          <p className="text-xs font-bold text-[#002f6c] tracking-wide select-none">Checking credentials...</p>
         </div>
       </div>
     );
