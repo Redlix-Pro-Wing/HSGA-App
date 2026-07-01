@@ -31,17 +31,25 @@ export default function EmployeeDashboard() {
   // Tab state
   const [activeTab, setActiveTab] = useState<"overview" | "settings">("overview");
 
-  // Profile view state — "view" | "edit" | "id-card" | "details"
-  const [profileView, setProfileView] = useState<"view" | "edit" | "id-card" | "details">("view");
+  // Profile view state — "view" | "edit" | "id-card" | "details" | "schedule"
+  const [profileView, setProfileView] = useState<"view" | "edit" | "id-card" | "details" | "schedule">("view");
+
+  // Selected day index in Daily Schedule view (defaults to today's index in IST)
+  const [selectedDayIdx, setSelectedDayIdx] = useState<number>(() => {
+    const d = new Date();
+    const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    const nowIST = new Date(utc + (3600000 * 5.5));
+    return nowIST.getDay();
+  });
+
+  // Timetable State
+  const [timetableEntry, setTimetableEntry] = useState<any>(null);
+  const [isFetchingTimetable, setIsFetchingTimetable] = useState(false);
 
   // Extended profile state
   const [profile, setProfile] = useState<EmployeeProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-
-  // Timetable State
-  const [timetableEntry, setTimetableEntry] = useState<any>(null);
-  const [isFetchingTimetable, setIsFetchingTimetable] = useState(false);
 
   // Form fields
   const [designation, setDesignation] = useState("");
@@ -332,6 +340,156 @@ export default function EmployeeDashboard() {
   const roleTitle = isMale ? "Scout Master" : "Guide Captain";
   const genderLabel = isMale ? "Male" : "Female";
 
+  if (profileView === "schedule") {
+    // Generate dates for current week (Sun-Sat) dynamically
+    const getWeekDays = () => {
+      const d = new Date();
+      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+      const nowIST = new Date(utc + (3600000 * 5.5));
+      const currentDay = nowIST.getDay();
+      
+      const startOfWeek = new Date(nowIST);
+      startOfWeek.setDate(nowIST.getDate() - currentDay); // Go to Sunday
+      
+      const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const dateObj = new Date(startOfWeek);
+        dateObj.setDate(startOfWeek.getDate() + i);
+        days.push({
+          dayName: weekdays[i],
+          dayNameLong: weekdays[i].toLowerCase(), // 'sunday', 'monday', etc.
+          dayNumber: dateObj.getDate(),
+          dayIndex: i,
+          isToday: dateObj.toDateString() === nowIST.toDateString(),
+        });
+      }
+      return days;
+    };
+
+    const days = getWeekDays();
+    const selectedDay = days[selectedDayIdx];
+    const dayKey = selectedDay.dayNameLong;
+
+    // Fetch classes for the selected day from the employee's timetableEntry
+    const dayClasses = (() => {
+      if (!timetableEntry || dayKey === "sunday") return [];
+      const slotsConfig = [
+        { num: "1", label: "8:30 AM - 10:30 AM" },
+        { num: "2", label: "10:30 AM - 12:30 PM" },
+        { num: "3", label: "1:30 PM - 3:30 PM" },
+        { num: "4", label: "3:30 PM - 5:30 PM" }
+      ];
+      
+      const list = [];
+      for (let slot of slotsConfig) {
+        const val = timetableEntry[`${dayKey}_${slot.num}`];
+        if (val && val.toLowerCase() !== "free" && val.trim() !== "") {
+          list.push({
+            slotLabel: slot.label,
+            slotNum: slot.num,
+            schoolName: val,
+          });
+        }
+      }
+      return list;
+    })();
+
+    return (
+      <div className="h-screen w-full flex flex-col bg-[#F5F7FA] font-sans antialiased overflow-hidden select-none">
+        {/* Header */}
+        <header className="bg-white border-b border-zinc-200 px-4 py-4 flex items-center gap-3 shrink-0">
+          <button 
+            onClick={() => setProfileView("view")}
+            className="p-1 text-zinc-650 hover:bg-zinc-100 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+          >
+            <span className="material-icons text-xl select-none">arrow_back</span>
+          </button>
+          <img 
+            src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png" 
+            alt="HSGA Logo" 
+            className="h-10 w-10 object-contain select-none" 
+          />
+          <h2 className="text-lg font-bold text-zinc-950">Daily Schedule</h2>
+        </header>
+
+        {/* Calendar Horizontal Bar */}
+        <div className="bg-white border-b border-zinc-200/50 px-3 py-4 flex justify-between items-center shrink-0">
+          {days.map((day) => {
+            const isSelected = selectedDayIdx === day.dayIndex;
+            return (
+              <div 
+                key={day.dayIndex}
+                onClick={() => setSelectedDayIdx(day.dayIndex)}
+                className="flex-1 flex flex-col items-center gap-2 cursor-pointer group"
+              >
+                <span className={`text-[11px] font-bold tracking-wide transition-colors ${
+                  isSelected ? "text-[#002f6c]" : "text-zinc-400 group-hover:text-zinc-655"
+                }`}>
+                  {day.dayName}
+                </span>
+                
+                <div className="relative flex items-center justify-center h-8 w-8 select-none">
+                  {isSelected ? (
+                    <div className="absolute inset-0 bg-[#002f6c] rounded-full flex items-center justify-center shadow-md">
+                      <span className="text-xs font-black text-white leading-none">
+                        {day.dayNumber}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className={`text-xs font-bold ${day.isToday ? "text-[#002f6c] font-black" : "text-zinc-700"} group-hover:text-zinc-950`}>
+                      {day.dayNumber}
+                    </span>
+                  )}
+                </div>
+
+                {/* Indication bar under selected */}
+                <div className={`h-1 w-6 rounded-full transition-all duration-150 ${
+                  isSelected ? "bg-[#002f6c]" : "bg-transparent"
+                }`} />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Schedule List area */}
+        <main className="flex-1 overflow-y-auto p-5">
+          {dayClasses.length === 0 ? (
+            <div className="bg-white border border-zinc-200 text-zinc-700 rounded-xl p-4 text-center text-sm font-bold shadow-sm select-none max-w-md mx-auto">
+              No Schedule Available!
+            </div>
+          ) : (
+            <div className="space-y-4 max-w-md mx-auto pb-10">
+              {dayClasses.map((item) => (
+                <div 
+                  key={item.slotNum} 
+                  className="bg-white border border-zinc-200 shadow-sm rounded-xl p-4 flex flex-col gap-2 hover:shadow transition-shadow relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-[#002f6c]" />
+                  <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
+                    <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase">
+                      {item.slotLabel}
+                    </span>
+                    <span className="text-[9px] font-extrabold text-[#800020] bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded">
+                      Slot {item.slotNum}
+                    </span>
+                  </div>
+                  <h4 className="text-sm sm:text-base font-bold text-zinc-900 leading-tight">
+                    {item.schoolName}
+                  </h4>
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-semibold mt-1">
+                    <span className="material-icons text-sm text-zinc-400 select-none">location_on</span>
+                    <span>Classroom / School Campus</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased overflow-hidden">
 
@@ -468,7 +626,16 @@ export default function EmployeeDashboard() {
                     <span className="text-xs text-zinc-500 font-semibold">Loading schedule...</span>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 flex flex-row items-stretch select-none">
+                  <div 
+                    onClick={() => {
+                      const d = new Date();
+                      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                      const nowIST = new Date(utc + (3600000 * 5.5));
+                      setSelectedDayIdx(nowIST.getDay());
+                      setProfileView("schedule");
+                    }}
+                    className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 flex flex-row items-stretch select-none cursor-pointer hover:border-[#002f6c]/55 hover:shadow transition-all"
+                  >
                     {/* Left portion: Date and Up Next info */}
                     <div className="w-24 sm:w-28 flex-none flex flex-col items-center justify-center border-r border-zinc-100 pr-4 text-center">
                       <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Up Next</span>
