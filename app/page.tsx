@@ -2,15 +2,26 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Check if already running in standalone mode
+      // Check if already running in standalone mode (PWA window)
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches 
+        || (navigator as any).standalone 
+        || document.referrer.includes("android-app://");
+
+      if (isStandalone) {
+        router.replace("/login");
+        return;
+      }
+
       if (window.matchMedia("(display-mode: standalone)").matches) {
         setIsInstalled(true);
       }
@@ -35,7 +46,7 @@ export default function Home() {
         window.removeEventListener("appinstalled", handleAppInstalled);
       };
     }
-  }, []);
+  }, [router]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {

@@ -2,7 +2,7 @@
   "name": "HSGA",
   "short_name": "HSGA",
   "description": "Secure Access Portal System for HSGA Telangana State Association",
-  "start_url": "/",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#e8eaf6",
   "theme_color": "#002f6c",

@@ -202,24 +202,16 @@ export default function LoginPage() {
      */
     <div className="h-dvh w-full overflow-hidden relative flex flex-col items-center bg-[#f0f2ff] font-sans antialiased">
 
-      {/* ── Decorative large semi-circle at the bottom ── */}
-      <div
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none select-none"
-        style={{
-          width: "160vw",
-          maxWidth: "1200px",
-          aspectRatio: "1/0.75",
-        }}
-        aria-hidden="true"
-      >
+      {/* ── Decorative single curve at the bottom ── */}
+      <div className="absolute bottom-0 left-0 w-full h-[55dvh] pointer-events-none select-none z-0">
         <svg
-          viewBox="0 0 900 675"
-          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 100 100"
           className="w-full h-full"
           preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Single clean navy semi-circle rising from the bottom with increased height */}
-          <ellipse cx="450" cy="675" rx="450" ry="480" fill="#002f6c" />
+          {/* Smooth quadratic curve spanning from bottom-left (0,100) to bottom-right (100,100) */}
+          <path d="M0,100 Q50,15 100,100 Z" fill="#002f6c" />
         </svg>
       </div>
 
