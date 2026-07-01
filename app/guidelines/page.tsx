@@ -76,7 +76,7 @@ export default function Guidelines() {
             alt="HSGA Logo"
             className="h-8 w-auto object-contain bg-white"
           />
-          <h1 className="font-medium text-[#002f6c] text-sm tracking-wide">
+          <h1 className="font-semibold text-[#002f6c] text-sm tracking-wide">
             Guidelines
           </h1>
           <div className="h-4 w-[1px] bg-zinc-300 mx-1.5" />
