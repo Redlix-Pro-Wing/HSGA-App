@@ -1,568 +1,202 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
-  // Forgot password reset states
-  const [resetStep, setResetStep] = useState<"login" | "forgot" | "otp" | "reset">("login");
-  const [otpCode, setOtpCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [maskedEmail, setMaskedEmail] = useState("");
-  const [isChecking, setIsChecking] = useState(true);
-  const router = useRouter();
-
-  // On mount: if employee session already exists redirect to dashboard
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("employeeSession");
-      if (stored) {
-        router.replace("/employee");
-        return;
-      }
-    }
-    setIsChecking(false);
-  }, [router]);
-
-  const handleRequestOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setIsLoading(true);
-
-    try {
-      const res = await fetch("/api/employee/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to dispatch verification code.");
+      // Check if already running in standalone mode
+      if (window.matchMedia("(display-mode: standalone)").matches) {
+        setIsInstalled(true);
       }
 
-      setMaskedEmail(data.maskedEmail || data.email);
-      setSuccess(`Verification code dispatched to ${data.maskedEmail || data.email}`);
-      setResetStep("otp");
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(errMsg);
-    } finally {
-      setIsLoading(false);
+      const handleBeforeInstallPrompt = (e: Event) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        setIsInstallable(true);
+      };
+
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+      const handleAppInstalled = () => {
+        setIsInstalled(true);
+        setIsInstallable(false);
+        setDeferredPrompt(null);
+      };
+      window.addEventListener("appinstalled", handleAppInstalled);
+
+      return () => {
+        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        window.removeEventListener("appinstalled", handleAppInstalled);
+      };
     }
-  };
+  }, []);
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setIsLoading(true);
-
-    try {
-      const res = await fetch("/api/employee/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, otp: otpCode }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "OTP verification failed.");
-      }
-
-      setSuccess("Identity verified successfully. Please enter your new password below.");
-      setResetStep("reset");
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(errMsg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match. Please verify.");
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      alert("Installation prompt is not ready. If you are on Android Chrome, make sure you aren't already running the app, or tap the three dots in Chrome and select 'Add to Home Screen'.");
       return;
     }
-
-    if (newPassword.length < 6) {
-      setError("Password must contain at least 6 characters.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const res = await fetch("/api/employee/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: email,
-          otp: otpCode,
-          newPassword
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to reset password.");
-      }
-
-      setSuccess("Password updated successfully. Please log in with your new credentials.");
-      setResetStep("login");
-      setOtpCode("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(errMsg);
-    } finally {
-      setIsLoading(false);
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setIsInstalled(true);
+      setIsInstallable(false);
+      setDeferredPrompt(null);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setIsLoading(true);
-
-    const username = email.trim();
-
-    // Check if they enter the admin email
-    if (username.toLowerCase() === "webstrixx@gmail.com") {
-      setIsLoading(false);
-      setSuccess("Administrator account detected. Redirecting to admin portal...");
-      setTimeout(() => {
-        router.push("/admin");
-      }, 1000);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/employee/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Authentication failed.");
-      }
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("employeeSession", JSON.stringify(data.employee));
-      }
-      setSuccess("Authentication successful. Opening portal...");
-      setEmail("");
-      setPassword("");
-      setTimeout(() => { router.push("/employee"); }, 800);
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(errMsg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#e8eaf6]">
-        <div className="flex flex-col items-center gap-2">
-          <span className="material-icons animate-spin text-3xl text-[#002f6c] select-none">sync</span>
-          <p className="text-sm font-semibold text-zinc-500">Loading portal credentials...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Case B: Logged out -> Render normal portal login card
   return (
-    <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
-      {/* Navbar at the top matching main page background */}
-      <nav className="w-full bg-[#e8eaf6] py-4 px-6 flex items-center justify-between shrink-0">
+    <div className="min-h-screen bg-[#FAF8F5] text-zinc-950 flex flex-col font-sans select-none antialiased">
+      {/* Top Banner / Header */}
+      <header className="w-full bg-[#FAF8F5] border-b border-zinc-200/60 py-5 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
-            alt="Hindustan Scouts & Guides Association — Telangana Logo"
-            className="h-20 w-auto object-contain select-none shrink-0"
+            alt="HSGA Logo"
+            className="h-12 w-auto object-contain bg-white p-0.5 rounded-full shadow-sm"
           />
-          <div className="flex flex-col justify-center leading-tight self-center">
-            <span className="font-bold text-[#002f6c] text-sm sm:text-base md:text-lg lg:text-xl">
-              Hindustan Scouts & Guides Association
-            </span>
-            <span className="font-extrabold text-[#800020] text-xs sm:text-sm md:text-base lg:text-lg tracking-wider">
-              Telangana
-            </span>
+          <div className="leading-tight">
+            <span className="font-extrabold text-[#002f6c] text-xs sm:text-sm tracking-wide uppercase block">Hindustan Scouts &amp; Guides</span>
+            <span className="font-bold text-amber-600 text-[10px] tracking-widest uppercase block">Telangana Association</span>
           </div>
         </div>
-      </nav>
+        <Link
+          href="/login"
+          className="text-xs font-semibold bg-[#002f6c] hover:bg-[#003d8f] text-white py-2 px-4 rounded-md transition-colors"
+        >
+          Staff Login
+        </Link>
+      </header>
 
-      {/* Main Login Card Body */}
-      <div className="flex-1 flex flex-col justify-center items-center px-4 py-12">
-        <main className="w-full max-w-md">
-          {/* Secure Login Card */}
-          <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-8">
-            {/* Dynamic Headers based on resetStep */}
-            {resetStep === "login" && (
-              <>
-                <h2 className="text-xl font-bold text-zinc-800 mb-1 text-center">
-                  Sign In
-                </h2>
-                <p className="text-xs text-zinc-500 mb-6 text-center">
-                  HSGA Telangana Portal
-                </p>
-              </>
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-10 flex flex-col items-center">
+        {/* Page title */}
+        <div className="text-center max-w-2xl mb-12">
+          <span className="text-[10px] font-bold tracking-[0.2em] text-[#800020] uppercase bg-[#800020]/10 px-3 py-1 rounded-full">
+            Official Installation Guide
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 mt-4 tracking-tight">
+            Download &amp; Install the HSGA PWA App
+          </h1>
+          <p className="text-sm text-zinc-600 mt-3 leading-relaxed">
+            Access your state-wide Scout &amp; Guide profile, digital identity badge, and state associations timetable directly from your home screen as a light-weight Progressive Web App (PWA).
+          </p>
+        </div>
+
+        {/* Dynamic Installation Dashboard Card */}
+        <div className="w-full bg-white border border-zinc-200 shadow-sm rounded-xl p-6 sm:p-8 mb-8 text-center">
+          <div className="max-w-md mx-auto flex flex-col items-center">
+            <span className="material-icons text-5xl text-[#002f6c] mb-3">
+              {isInstalled ? "check_circle" : "install_mobile"}
+            </span>
+            <h2 className="text-lg font-bold text-zinc-800">
+              {isInstalled ? "Application Already Installed" : "Instant PWA Installation"}
+            </h2>
+            <p className="text-xs text-zinc-500 mt-1 mb-5">
+              {isInstalled 
+                ? "The application is successfully added to your device. You can open it from your app drawer or home screen."
+                : "No need for Google Play Store or Apple App Store. Install directly onto your device in seconds."}
+            </p>
+
+            {!isInstalled && (
+              <button
+                onClick={handleInstallClick}
+                className="w-full flex items-center justify-center gap-2.5 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-98 text-white font-bold rounded-lg text-sm shadow-md transition-all mb-4"
+              >
+                <span className="material-icons text-base">download</span>
+                {isInstallable ? "Install App Directly" : "Install App (Android)"}
+              </button>
             )}
 
-            {resetStep === "forgot" && (
-              <>
-                <h2 className="text-xl font-bold text-zinc-800 mb-1 text-center">
-                  Forgot Password
-                </h2>
-                <p className="text-xs text-zinc-500 mb-6 text-center">
-                  Enter your credentials to receive a verification OTP code
-                </p>
-              </>
+            {isInstalled && (
+              <Link
+                href="/login"
+                className="w-full flex items-center justify-center gap-2.5 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm shadow-md transition-all mb-4"
+              >
+                <span className="material-icons text-base">login</span>
+                Proceed to Staff Login
+              </Link>
             )}
 
-            {resetStep === "otp" && (
-              <>
-                <h2 className="text-xl font-bold text-zinc-800 mb-1 text-center">
-                  Verify OTP Code
-                </h2>
-                <p className="text-xs text-zinc-500 mb-6 text-center">
-                  A 6-digit verification code has been dispatched to {maskedEmail}
-                </p>
-              </>
-            )}
-
-            {resetStep === "reset" && (
-              <>
-                <h2 className="text-xl font-bold text-zinc-800 mb-1 text-center">
-                  Create New Password
-                </h2>
-                <p className="text-xs text-zinc-500 mb-6 text-center">
-                  Create a new secure set of password credentials for your account
-                </p>
-              </>
-            )}
-
-            {/* Status Messages */}
-            {error && (
-              <div className="mb-5 p-3.5 border-l-4 border-rose-600 bg-rose-50 text-rose-950 text-xs font-semibold flex items-start gap-2.5 rounded-r">
-                <span className="material-icons text-base text-rose-600 shrink-0 select-none">error_outline</span>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {success && (
-              <div className="mb-5 p-3.5 border-l-4 border-emerald-600 bg-emerald-50 text-emerald-950 text-xs font-semibold flex items-start gap-2.5 rounded-r">
-                <span className="material-icons text-base text-emerald-600 shrink-0 select-none">check_circle_outline</span>
-                <span>{success}</span>
-              </div>
-            )}
-
-            {/* Conditional Views rendering */}
-            {resetStep === "login" && (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Employee ID or Email Input */}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-zinc-700 mb-1.5"
-                  >
-                    Employee ID or Email Address
-                  </label>
-                  <div className="relative">
-                    <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">
-                      badge
-                    </span>
-                    <input
-                      type="text"
-                      id="email"
-                      name="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="HSGA/TG/SM00053 or name@domain.com"
-                      autoComplete="username"
-                      required
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-zinc-300 rounded-md text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Password Input */}
-                <div>
-                  <label
-                    htmlFor="current-password"
-                    className="block text-sm font-medium text-zinc-700 mb-1.5"
-                  >
-                    Password
-                  </label>
-                  <div className="relative">
-                    <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">
-                      lock
-                    </span>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      id="current-password"
-                      name="current-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      required
-                      className="w-full pl-10 pr-12 py-2.5 bg-white border border-zinc-300 rounded-md text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors focus:outline-none focus:ring-1 focus:ring-[#002f6c] rounded p-1 flex items-center justify-center"
-                    >
-                      <span className="material-icons text-lg select-none">
-                        {showPassword ? "visibility_off" : "visibility"}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Sign In Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center items-center py-2.5 px-4 bg-[#002f6c] hover:bg-[#002352] text-white font-semibold rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#002f6c] transition-colors disabled:opacity-50 disabled:pointer-events-none shadow-sm"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <svg
-                        className="animate-spin h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      <span>Signing In...</span>
-                    </div>
-                  ) : (
-                    "Sign In"
-                  )}
-                </button>
-
-                <div className="mt-4 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setResetStep("forgot");
-                      setError(null);
-                      setSuccess(null);
-                      setEmail("");
-                    }}
-                    className="text-xs font-semibold text-[#800020] hover:underline focus:outline-none"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {resetStep === "forgot" && (
-              <form onSubmit={handleRequestOTP} className="space-y-5">
-                <div>
-                  <label htmlFor="reset-username" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Employee ID or Registered Email
-                  </label>
-                  <div className="relative">
-                    <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">
-                      badge
-                    </span>
-                    <input
-                      type="text"
-                      id="reset-username"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="HSGA/TG/SM00053 or name@domain.com"
-                      required
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-zinc-300 rounded-md text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] transition-colors"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center items-center py-2.5 px-4 bg-[#002f6c] hover:bg-[#002352] text-white font-semibold rounded-md text-sm focus:outline-none transition-colors disabled:opacity-50"
-                >
-                  {isLoading ? "Sending OTP..." : "Send Verification Code"}
-                </button>
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setResetStep("login");
-                      setError(null);
-                      setSuccess(null);
-                      setEmail("");
-                    }}
-                    className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none"
-                  >
-                    Back to Sign In
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {resetStep === "otp" && (
-              <form onSubmit={handleVerifyOTP} className="space-y-5">
-                <div>
-                  <label htmlFor="otp-code" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Enter Verification Code (OTP)
-                  </label>
-                  <div className="relative">
-                    <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">
-                      pin
-                    </span>
-                    <input
-                      type="text"
-                      id="otp-code"
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                      placeholder="123456"
-                      required
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-zinc-300 rounded-md text-sm text-zinc-900 font-mono text-center tracking-[10px] text-lg placeholder-zinc-300 focus:outline-none focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] transition-colors"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center items-center py-2.5 px-4 bg-[#002f6c] hover:bg-[#002352] text-white font-semibold rounded-md text-sm focus:outline-none transition-colors disabled:opacity-50"
-                >
-                  {isLoading ? "Verifying..." : "Verify Code"}
-                </button>
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setResetStep("forgot");
-                      setError(null);
-                      setSuccess(null);
-                      setOtpCode("");
-                    }}
-                    className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none"
-                  >
-                    Request a new code
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {resetStep === "reset" && (
-              <form onSubmit={handleResetPassword} className="space-y-5">
-                {/* New Password */}
-                <div>
-                  <label htmlFor="new-password" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">
-                      lock
-                    </span>
-                    <input
-                      type={showNewPassword ? "text" : "password"}
-                      id="new-password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="w-full pl-10 pr-12 py-2.5 bg-white border border-zinc-300 rounded-md text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none p-1 flex items-center justify-center"
-                    >
-                      <span className="material-icons text-lg select-none">
-                        {showNewPassword ? "visibility_off" : "visibility"}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label htmlFor="confirm-password" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Confirm New Password
-                  </label>
-                  <div className="relative">
-                    <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">
-                      lock
-                    </span>
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      id="confirm-password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="w-full pl-10 pr-12 py-2.5 bg-white border border-zinc-300 rounded-md text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none p-1 flex items-center justify-center"
-                    >
-                      <span className="material-icons text-lg select-none">
-                        {showConfirmPassword ? "visibility_off" : "visibility"}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center items-center py-2.5 px-4 bg-[#002f6c] hover:bg-[#002352] text-white font-semibold rounded-md text-sm focus:outline-none transition-colors disabled:opacity-50 shadow-sm"
-                >
-                  {isLoading ? "Saving..." : "Save Password"}
-                </button>
-              </form>
-            )}
+            <p className="text-[10px] text-zinc-400">
+              Supports PWA standalone technology. Offline capability enabled automatically.
+            </p>
           </div>
-        </main>
-      </div>
+        </div>
+
+        {/* Operating System Specific Guidelines Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-4">
+          
+          {/* Android Steps */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col justify-between shadow-sm">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-icons text-[#3ddc84] text-2xl">android</span>
+                <h3 className="text-base font-bold text-zinc-800">Android Installation Guide</h3>
+              </div>
+              <ol className="space-y-4 text-xs text-zinc-700">
+                <li className="flex gap-3">
+                  <span className="font-bold text-zinc-400 bg-zinc-100 rounded-full h-5 w-5 flex items-center justify-center shrink-0">1</span>
+                  <span>Open this website inside <strong>Google Chrome</strong> or any chromium-based browser on your Android device.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-zinc-400 bg-zinc-100 rounded-full h-5 w-5 flex items-center justify-center shrink-0">2</span>
+                  <span>Tap the <strong>&quot;Install App Directly&quot;</strong> button above, or select <strong>&quot;Add to Home Screen&quot;</strong> from browser settings.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-zinc-400 bg-zinc-100 rounded-full h-5 w-5 flex items-center justify-center shrink-0">3</span>
+                  <span>Confirm the prompt to install the app. The HSGA icon will immediately appear on your mobile home screen.</span>
+                </li>
+              </ol>
+            </div>
+            <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10px] font-semibold text-zinc-400">
+              <span className="material-icons text-xs">info</span>
+              <span>Works on Samsung, Pixel, OnePlus, Xiaomi, Oppo &amp; Vivo.</span>
+            </div>
+          </div>
+
+          {/* iOS Steps */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col justify-between shadow-sm">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-icons text-zinc-800 text-2xl">phone_iphone</span>
+                <h3 className="text-base font-bold text-zinc-800">Apple iOS Installation Guide</h3>
+              </div>
+              <ol className="space-y-4 text-xs text-zinc-700">
+                <li className="flex gap-3">
+                  <span className="font-bold text-zinc-400 bg-zinc-100 rounded-full h-5 w-5 flex items-center justify-center shrink-0">1</span>
+                  <span>Open this website using the default <strong>Apple Safari</strong> browser on your iPhone or iPad.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-zinc-400 bg-zinc-100 rounded-full h-5 w-5 flex items-center justify-center shrink-0">2</span>
+                  <span>Tap the <strong>Share</strong> button (box with an upward arrow) at the bottom screen menu bar.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-zinc-400 bg-zinc-100 rounded-full h-5 w-5 flex items-center justify-center shrink-0">3</span>
+                  <span>Scroll down and select <strong>&quot;Add to Home Screen&quot;</strong>, then tap <strong>&quot;Add&quot;</strong> in the top-right corner.</span>
+                </li>
+              </ol>
+            </div>
+            <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10px] font-semibold text-zinc-400">
+              <span className="material-icons text-xs">info</span>
+              <span>Requires iOS Safari browser compatibility.</span>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full border-t border-zinc-200/50 py-5 text-center text-[10px] font-bold text-zinc-400 shrink-0">
+        &copy; {new Date().getFullYear()} Hindustan Scouts &amp; Guides Telangana State Association. All Rights Reserved.
+      </footer>
     </div>
   );
 }

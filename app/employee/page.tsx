@@ -342,29 +342,29 @@ export default function EmployeeDashboard() {
                     </span>
                   </div>
                 </div>
-                <div className="bg-white rounded-lg border border-zinc-200 p-4 sm:p-5 shadow-sm grid grid-cols-1 divide-y divide-zinc-100 sm:grid-cols-3 sm:divide-y-0 sm:divide-x sm:divide-zinc-200 text-center">
-                  <div className="flex flex-col items-center justify-center px-1 py-3 sm:py-0">
-                    <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight select-all">
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm grid grid-cols-3 divide-x divide-zinc-100 text-center">
+                  <div className="flex flex-col items-center justify-center px-2 py-3 sm:px-4 sm:py-4">
+                    <span className="text-[10px] xs:text-xs sm:text-sm font-bold text-zinc-900 leading-tight select-all break-all">
                       {employee.id}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2 font-medium">
+                    <span className="text-[9px] xs:text-[10px] sm:text-xs text-zinc-500 mt-1 font-medium">
                       Employee ID
                     </span>
                   </div>
-                  <div className="flex flex-col items-center justify-center px-1 py-3 sm:py-0">
-                    <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight">
+                  <div className="flex flex-col items-center justify-center px-2 py-3 sm:px-4 sm:py-4">
+                    <span className="text-[10px] xs:text-xs sm:text-sm font-bold text-zinc-900 leading-tight text-center">
                       {profile?.designation || roleTitle}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2 font-medium">
+                    <span className="text-[9px] xs:text-[10px] sm:text-xs text-zinc-500 mt-1 font-medium">
                       Role
                     </span>
                   </div>
-                  <div className="flex flex-col items-center justify-center px-1 py-3 sm:py-0">
-                    <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight">
+                  <div className="flex flex-col items-center justify-center px-2 py-3 sm:px-4 sm:py-4">
+                    <span className="text-[10px] xs:text-xs sm:text-sm font-bold text-emerald-600 leading-tight">
                       Active
                     </span>
-                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2 font-medium">
-                      Account Status
+                    <span className="text-[9px] xs:text-[10px] sm:text-xs text-zinc-500 mt-1 font-medium">
+                      Status
                     </span>
                   </div>
                 </div>
