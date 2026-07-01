@@ -35,3 +35,63 @@ model Employee {
   address        String?
   imageUrl       String?
 }
+
+model School {
+  id                               Int      @id @default(autoincrement())
+  name                             String
+  address                          String
+  district                         String
+  principalName                    String
+  principalPhone                   String
+  scoutInchargeName                String
+  scoutInchargePhone               String
+  petName                          String
+  petPhone                         String
+  scoutingStarted                  String   // Month & Year input
+  uniformsDistributed              Int
+  scarfsDistributed                Int
+  scoutMasterName                  String
+  praveshikaRegisteredStudents     Int
+  praveshikaExamDate               String
+  komalPadhRegisteredStudents      Int
+  komalPadhExamDate                String
+  dhruvPadhRegisteredStudents      Int
+  dhruvPadhExamDate                String
+  guruPadhRegisteredStudents       Int
+  guruPadhExamDate                 String
+  rajyaPuraskar                    String
+  createdAt                        DateTime @default(now())
+}
+
+model TimeTable {
+  id           Int      @id @default(autoincrement())
+  employeeName String
+  monday_1     String   @default("Free")
+  monday_2     String   @default("Free")
+  monday_3     String   @default("Free")
+  monday_4     String   @default("Free")
+  tuesday_1    String   @default("Free")
+  tuesday_2    String   @default("Free")
+  tuesday_3    String   @default("Free")
+  tuesday_4    String   @default("Free")
+  wednesday_1  String   @default("Free")
+  wednesday_2  String   @default("Free")
+  wednesday_3  String   @default("Free")
+  wednesday_4  String   @default("Free")
+  thursday_1   String   @default("Free")
+  thursday_2   String   @default("Free")
+  thursday_3   String   @default("Free")
+  thursday_4   String   @default("Free")
+  friday_1     String   @default("Free")
+  friday_2     String   @default("Free")
+  friday_3     String   @default("Free")
+  friday_4     String   @default("Free")
+  saturday_1   String   @default("Free")
+  saturday_2   String   @default("Free")
+  saturday_3   String   @default("Free")
+  saturday_4   String   @default("Free")
+  workingHours Int      @default(0)
+  createdAt    DateTime @default(now())
+}
+
+

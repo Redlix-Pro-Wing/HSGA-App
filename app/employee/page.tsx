@@ -29,10 +29,10 @@ export default function EmployeeDashboard() {
   const [isChecking, setIsChecking] = useState(true);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<"overview" | "id-card" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "settings">("overview");
 
-  // Profile view state — "view" | "edit"
-  const [profileView, setProfileView] = useState<"edit" | "view">("view");
+  // Profile view state — "view" | "edit" | "id-card" | "details"
+  const [profileView, setProfileView] = useState<"view" | "edit" | "id-card" | "details">("view");
 
   // Extended profile state
   const [profile, setProfile] = useState<EmployeeProfile | null>(null);
@@ -272,7 +272,6 @@ export default function EmployeeDashboard() {
           <nav className="flex-1 p-3 space-y-2">
             {[
               { key: "overview", icon: "dashboard", label: "Overview" },
-              { key: "id-card", icon: "badge", label: "My ID Card" },
               { key: "settings", icon: "manage_accounts", label: "Profile & Settings" },
             ].map(({ key, icon, label }) => (
               <button
@@ -304,7 +303,7 @@ export default function EmployeeDashboard() {
 
         {/* ── Main Content ── */}
         <main className="flex-1 bg-[#e8eaf6] overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
-          <div className="w-full space-y-6">
+          <div className="w-full space-y-4 md:space-y-6">
 
             {/* Status alerts */}
             {error && (
@@ -322,7 +321,7 @@ export default function EmployeeDashboard() {
 
             {/* ═══ TAB: Overview ═══ */}
             {activeTab === "overview" && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[220px]">
                   {/* Left side: Illustration */}
                   <div className="flex-1 flex justify-center sm:justify-start">
@@ -343,115 +342,30 @@ export default function EmployeeDashboard() {
                     </span>
                   </div>
                 </div>
-                <div className="bg-white rounded-lg border border-zinc-200 p-5 shadow-sm grid grid-cols-3 divide-x divide-zinc-200 text-center">
-                  <div className="flex flex-col items-center justify-center px-1">
+                <div className="bg-white rounded-lg border border-zinc-200 p-4 sm:p-5 shadow-sm grid grid-cols-1 divide-y divide-zinc-100 sm:grid-cols-3 sm:divide-y-0 sm:divide-x sm:divide-zinc-200 text-center">
+                  <div className="flex flex-col items-center justify-center px-1 py-3 sm:py-0">
                     <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight select-all">
                       {employee.id}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-2 font-medium">
+                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2 font-medium">
                       Employee ID
                     </span>
                   </div>
-                  <div className="flex flex-col items-center justify-center px-1">
+                  <div className="flex flex-col items-center justify-center px-1 py-3 sm:py-0">
                     <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight">
                       {profile?.designation || roleTitle}
                     </span>
-                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-2 font-medium">
+                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2 font-medium">
                       Role
                     </span>
                   </div>
-                  <div className="flex flex-col items-center justify-center px-1">
+                  <div className="flex flex-col items-center justify-center px-1 py-3 sm:py-0">
                     <span className="text-xs sm:text-sm md:text-base font-semibold text-zinc-900 leading-tight">
                       Active
                     </span>
-                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-2 font-medium">
+                    <span className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2 font-medium">
                       Account Status
                     </span>
-                  </div>
-                </div>
-                <div className="bg-white border border-zinc-200 rounded-lg p-5 shadow-sm">
-                  <h2 className="text-sm font-bold text-zinc-800 mb-3 pb-2 border-b border-zinc-100">Account Details</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
-                    {[
-                      { label: "Full Name", value: employee.name },
-                      { label: "Employee ID", value: employee.id, mono: true },
-                      { label: "Email Address", value: employee.email },
-                      { label: "Gender", value: genderLabel },
-                      { label: "District", value: profile?.district || "—" },
-                      { label: "Phone", value: profile?.phone || "—" },
-                      { label: "Address", value: profile?.address || "—" },
-                    ].map(({ label, value, mono }) => (
-                      <div key={label} className="py-2 flex flex-col border-b border-zinc-100 last:border-0 md:last:border-b md:[&:nth-last-child(-n+2)]:border-0">
-                        <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide">{label}</span>
-                        <span className={`text-xs font-semibold text-zinc-800 mt-0.5 ${mono ? "font-mono select-all" : ""}`}>{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ═══ TAB: ID Card ═══ */}
-            {activeTab === "id-card" && (
-              <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
-                <h2 className="text-base font-bold text-zinc-800 mb-1">Digital Identity Badge</h2>
-                <p className="text-xs text-zinc-500 mb-6">Your official HSGA Telangana employee verification card.</p>
-                <div className="flex justify-center">
-                  <div className="w-full max-w-sm">
-                    <div className="bg-gradient-to-br from-[#002f6c] via-[#053266] to-[#011b3d] text-white rounded-xl shadow-2xl overflow-hidden border-2 border-amber-400 relative">
-                      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
-                      <div className="bg-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-white/10">
-                        <div className="flex items-center gap-2.5">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png" alt="Logo" className="h-9 w-auto object-contain bg-white/90 p-0.5 rounded-full" />
-                          <div className="leading-none">
-                            <span className="font-bold text-[11px] tracking-wide uppercase block text-white/90">Hindustan Scouts & Guides</span>
-                            <span className="font-extrabold text-[#e2f1ff] text-[9px] tracking-widest uppercase block mt-0.5">Telangana State Association</span>
-                          </div>
-                        </div>
-                        <div className="h-6 w-6 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-200 opacity-80 border border-amber-300 shadow flex items-center justify-center">
-                          <span className="material-icons text-[10px] text-amber-900 select-none">verified</span>
-                        </div>
-                      </div>
-                      <div className="p-6 flex gap-5">
-                        <div className="flex flex-col items-center gap-3 shrink-0">
-                          <div className="h-24 w-20 rounded-md border-2 border-white/20 bg-white/5 flex items-center justify-center overflow-hidden relative shadow-inner">
-                            {imagePreview ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={imagePreview} alt="Employee" className="h-full w-full object-cover" />
-                            ) : (
-                              <span className="material-icons text-5xl text-white/30 select-none">account_circle</span>
-                            )}
-                            <div className="absolute bottom-1 right-1 px-1 py-0.5 bg-emerald-600/80 rounded text-[6px] font-bold text-white uppercase tracking-widest select-none">Active</div>
-                          </div>
-                          <div className="bg-white p-1 rounded-sm flex flex-col items-center">
-                            <div className="flex items-center gap-0.5 h-6 select-none">
-                              {[1, 2, 1, 3, 1, 2, 4, 1, 2].map((w, i) => <div key={i} style={{ width: `${w}px` }} className="h-full bg-zinc-950"></div>)}
-                            </div>
-                            <span className="text-[6px] font-mono text-zinc-800 tracking-widest font-bold mt-0.5">{employee.id}</span>
-                          </div>
-                        </div>
-                        <div className="flex-1 flex flex-col gap-2 justify-center text-xs">
-                          {[
-                            { label: "Name", value: employee.name },
-                            { label: "Employee ID", value: employee.id, mono: true },
-                            { label: "Role / Section", value: profile?.designation || roleTitle },
-                            { label: "Registered Email", value: employee.email },
-                            ...(profile?.district ? [{ label: "District", value: profile.district }] : []),
-                          ].map(({ label, value, mono }) => (
-                            <div key={label}>
-                              <span className="text-[9px] text-[#93c5fd] font-bold uppercase tracking-wider block leading-none">{label}</span>
-                              <span className={`font-bold text-sm tracking-wide text-white block mt-0.5 ${mono ? "font-mono text-[11px]" : ""}`}>{value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="bg-amber-400 py-1.5 px-6 flex items-center justify-between text-zinc-900 font-bold select-none text-[10px] uppercase tracking-widest">
-                        <span>Verification Card</span>
-                        <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-700 animate-ping"></span>Active Badge</span>
-                      </div>
-                    </div>
-                    <p className="text-center text-xs text-zinc-500 mt-4 leading-relaxed">Scan this badge at any HSGA Telangana facility to verify your status.</p>
                   </div>
                 </div>
               </div>
@@ -464,18 +378,24 @@ export default function EmployeeDashboard() {
                 {/* ── Breadcrumb ── */}
                 <div className="flex items-center gap-2 text-xs text-zinc-500">
                   <span className="material-icons text-sm text-zinc-400 select-none">manage_accounts</span>
-                  <span className="font-medium text-zinc-400">Profile & Settings</span>
-                  <span className="text-zinc-300">›</span>
-                  <button
-                    onClick={() => { setProfileView("edit"); setError(null); setSuccess(null); }}
-                    className={`font-semibold transition-colors ${profileView === "edit" ? "text-[#002f6c] cursor-default pointer-events-none" : "text-zinc-500 hover:text-[#002f6c] hover:underline"}`}
-                  >
-                    Edit Profile
-                  </button>
-                  {profileView === "view" && (
+                  {profileView === "view" ? (
+                    <span className="font-semibold text-[#002f6c]">Profile & Settings</span>
+                  ) : (
+                    <button
+                      onClick={() => { setProfileView("view"); setError(null); setSuccess(null); }}
+                      className="font-medium text-zinc-400 hover:text-[#002f6c] hover:underline"
+                    >
+                      Profile & Settings
+                    </button>
+                  )}
+                  {profileView !== "view" && (
                     <>
                       <span className="text-zinc-300">›</span>
-                      <span className="font-semibold text-[#002f6c]">Saved Profile</span>
+                      <span className="font-semibold text-[#002f6c]">
+                        {profileView === "edit" && "Edit Profile"}
+                        {profileView === "id-card" && "Digital ID Badge"}
+                        {profileView === "details" && "Account Details"}
+                      </span>
                     </>
                   )}
                 </div>
@@ -535,6 +455,18 @@ export default function EmployeeDashboard() {
                           onClick: () => { setProfileView("edit"); setError(null); setSuccess(null); }
                         },
                         {
+                          title: "Digital ID Badge",
+                          desc: "View your digital identity card.",
+                          icon: "badge",
+                          onClick: () => { setProfileView("id-card"); setError(null); setSuccess(null); }
+                        },
+                        {
+                          title: "Account Details",
+                          desc: "View full registry details.",
+                          icon: "info",
+                          onClick: () => { setProfileView("details"); setError(null); setSuccess(null); }
+                        },
+                        {
                           title: "My Permissions",
                           desc: "Permission related Details.",
                           icon: "gpp_maybe",
@@ -553,7 +485,7 @@ export default function EmployeeDashboard() {
                         {
                           title: "Terms and Conditions",
                           desc: "Terms and Conditions, Privacy Policy and Refunds.",
-                          icon: "info",
+                          icon: "description",
                           onClick: () => {
                             setSuccess("Viewing Terms and Conditions policy documents.");
                           }
@@ -580,6 +512,156 @@ export default function EmployeeDashboard() {
                       ))}
                     </div>
 
+                  </div>
+                ) : profileView === "id-card" ? (
+                  /* ─── DIGITAL ID BADGE VIEW ─── */
+                  <div className="max-w-md mx-auto space-y-4 pb-20">
+                    <div className="bg-white border border-zinc-200 rounded-lg p-5 shadow-sm">
+                      <h2 className="text-sm font-bold text-zinc-800 mb-1">Digital Identity Badge</h2>
+                      <p className="text-xs text-zinc-500 mb-6">Your official HSGA Telangana employee verification card.</p>
+                      
+                      <div className="flex justify-center">
+                        <div className="w-full max-w-md">
+                          <div className="w-full aspect-[1.586/1] bg-white border border-zinc-300 rounded-lg shadow-md overflow-hidden flex flex-col font-sans relative">
+                            {/* Header: Government Navy Blue Band */}
+                            <div className="bg-[#002f6c] px-4 py-2.5 flex items-center gap-3 border-b border-zinc-200/50">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img 
+                                src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png" 
+                                alt="Logo" 
+                                className="h-10 w-auto object-contain bg-white p-0.5 rounded-full" 
+                              />
+                              <div className="leading-none text-left">
+                                <span className="font-extrabold text-[11px] tracking-wide uppercase text-white block">Hindustan Scouts & Guides</span>
+                                <span className="font-bold text-amber-400 text-[8px] tracking-widest uppercase block mt-0.5">Telangana State Association</span>
+                              </div>
+                            </div>
+
+                            {/* Body: Left side photo/barcode, Right side details */}
+                            <div className="flex-1 p-4 flex gap-5 bg-white items-center relative overflow-hidden">
+                              {/* Indian Flag Subtle Watermark Mask */}
+                              <div className="absolute inset-0 flex flex-col pointer-events-none opacity-[0.06] select-none">
+                                <div className="flex-1 bg-[#FF9933]"></div>
+                                <div className="flex-1 bg-[#FFFFFF] flex items-center justify-center">
+                                  <svg className="h-10 w-10 text-[#000080]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <circle cx="12" cy="12" r="2" fill="currentColor" />
+                                    {[...Array(24)].map((_, i) => (
+                                      <line
+                                        key={i}
+                                        x1="12"
+                                        y1="12"
+                                        x2={12 + 10 * Math.cos(i * 15 * 0.017453292519943295)}
+                                        y2={12 + 10 * Math.sin(i * 15 * 0.017453292519943295)}
+                                        stroke="currentColor"
+                                        strokeWidth="0.5"
+                                      />
+                                    ))}
+                                  </svg>
+                                </div>
+                                <div className="flex-1 bg-[#138808]"></div>
+                              </div>
+
+                              {/* Left Column: Photo & Barcode */}
+                              <div className="flex flex-col items-center justify-center shrink-0 w-24 gap-2 relative z-10">
+                                <div className="h-24 w-20 bg-zinc-50 border border-zinc-300 rounded overflow-hidden relative shadow-inner flex items-center justify-center">
+                                  {imagePreview ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={imagePreview} alt="Photo" className="h-full w-full object-cover" />
+                                  ) : (
+                                    <span className="material-icons text-5xl text-zinc-300 select-none">account_circle</span>
+                                  )}
+                                </div>
+                                
+                                {/* Barcode representation */}
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <div className="flex items-center gap-0.5 h-3.5 select-none">
+                                    {[1, 2, 1, 3, 1, 2, 4, 1, 2].map((w, i) => (
+                                      <div key={i} style={{ width: `${w}px` }} className="h-full bg-zinc-950"></div>
+                                    ))}
+                                  </div>
+                                  <span className="text-[7px] font-mono font-bold text-zinc-900 tracking-wider leading-none">{employee.id}</span>
+                                </div>
+                              </div>
+
+                              {/* Right Column: Dynamic Profile Details */}
+                              <div className="flex-1 flex flex-col justify-center gap-1.5 text-left text-zinc-800 relative z-10">
+                                <div>
+                                  <span className="text-[7.5px] uppercase font-bold text-zinc-400 tracking-wider block leading-none">Employee Name</span>
+                                  <span className="font-extrabold text-sm text-zinc-900 block mt-0.5 uppercase tracking-wide">{employee.name}</span>
+                                </div>
+                                
+                                <div>
+                                  <span className="text-[7.5px] uppercase font-bold text-zinc-400 tracking-wider block leading-none">Designation</span>
+                                  <span className="font-bold text-[11px] text-zinc-700 block mt-0.5">{profile?.designation || roleTitle}</span>
+                                </div>
+
+                                <div>
+                                  <span className="text-[7.5px] uppercase font-bold text-zinc-400 tracking-wider block leading-none">Email Address</span>
+                                  <span className="font-medium text-[10px] text-zinc-600 block mt-0.5 break-all">{employee.email}</span>
+                                </div>
+
+                                {profile?.phone && (
+                                  <div>
+                                    <span className="text-[7.5px] uppercase font-bold text-zinc-400 tracking-wider block leading-none">Contact No</span>
+                                    <span className="font-medium text-[10px] text-zinc-600 block mt-0.5">{profile.phone}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Footer Strip */}
+                            <div className="bg-zinc-100 border-t border-zinc-200 py-1.5 px-4 flex justify-between items-center text-[8px] uppercase tracking-wider font-bold text-zinc-500">
+                              <span>Telangana State Association</span>
+                              <span className="text-[#002f6c] font-black">Official ID Card</span>
+                            </div>
+                          </div>
+
+                          <p className="text-center text-[10px] text-zinc-400 mt-3 leading-relaxed">Scan this badge at any HSGA Telangana facility to verify your status.</p>
+                        </div>
+                      </div>
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          onClick={() => setProfileView("view")}
+                          className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold rounded-md text-xs transition-colors flex items-center gap-1"
+                        >
+                          <span className="material-icons text-xs select-none">arrow_back</span>
+                          Back to Profile
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : profileView === "details" ? (
+                  /* ─── ACCOUNT DETAILS VIEW ─── */
+                  <div className="max-w-md mx-auto space-y-4 pb-20">
+                    <div className="bg-white border border-zinc-200 rounded-lg p-5 shadow-sm">
+                      <h2 className="text-sm font-bold text-zinc-800 mb-3 pb-2 border-b border-zinc-100">Account Details</h2>
+                      <div className="space-y-3">
+                        {[
+                          { label: "Full Name", value: employee.name },
+                          { label: "Employee ID", value: employee.id, mono: true },
+                          { label: "Email Address", value: employee.email },
+                          { label: "Gender", value: genderLabel },
+                          { label: "District", value: profile?.district || "—" },
+                          { label: "Phone", value: profile?.phone || "—" },
+                          { label: "Address", value: profile?.address || "—" },
+                        ].map(({ label, value, mono }) => (
+                          <div key={label} className="py-2 flex flex-col border-b border-zinc-100 last:border-0 text-left">
+                            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide">{label}</span>
+                            <span className={`text-xs font-semibold text-zinc-800 mt-0.5 ${mono ? "font-mono select-all" : ""}`}>{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          onClick={() => setProfileView("view")}
+                          className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold rounded-md text-xs transition-colors flex items-center gap-1"
+                        >
+                          <span className="material-icons text-xs select-none">arrow_back</span>
+                          Back to Profile
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
 
@@ -809,7 +891,6 @@ export default function EmployeeDashboard() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#F7F6F3] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
         {[
           { key: "overview", icon: "dashboard", label: "Overview" },
-          { key: "id-card", icon: "badge", label: "ID Card" },
           { key: "settings", icon: "manage_accounts", label: "Settings" },
         ].map(({ key, icon, label }) => (
           <button

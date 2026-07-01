@@ -47,10 +47,10 @@ export async function POST(request: Request) {
     }
 
     // Determine ID prefix:
-    // Male: HSGA/TG/SM00053
-    // Female: HSGA/TG/GC/00053
+    // Male: HSGA/TG/SM/0054
+    // Female: HSGA/TG/GC/0053
     const isMale = gender.toLowerCase() === "male";
-    const prefix = isMale ? "HSGA/TG/SM" : "HSGA/TG/GC/";
+    const prefix = isMale ? "HSGA/TG/SM/" : "HSGA/TG/GC/";
 
     // Find all employees that match this prefix
     const matchingEmployees = await prisma.employee.findMany({
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     });
 
     // Find max counter
-    let maxCounter = 52; // default starting point (next will be 53)
+    let maxCounter = isMale ? 59 : 53; 
     matchingEmployees.forEach((emp: any) => {
       const numPart = emp.id.substring(prefix.length);
       const num = parseInt(numPart, 10);
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     });
 
     const nextCounter = maxCounter + 1;
-    const paddedCounter = String(nextCounter).padStart(5, "0");
+    const paddedCounter = String(nextCounter).padStart(4, "0");
     const generatedId = prefix + paddedCounter;
 
     // Generate demo password (TG@ followed by 4 random digits)
@@ -99,3 +99,69 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, name, email, gender } = body;
+
+    if (!id || !name || !email || !gender) {
+      return NextResponse.json(
+        { error: "ID, Name, Email, and Gender are required fields." },
+        { status: 400 }
+      );
+    }
+
+    // Check if email conflicts with another employee
+    const emailConflict = await prisma.employee.findFirst({
+      where: {
+        email: email.toLowerCase().trim(),
+        NOT: { id },
+      },
+    });
+
+    if (emailConflict) {
+      return NextResponse.json(
+        { error: "An employee with this email address already exists." },
+        { status: 400 }
+      );
+    }
+
+    const updatedEmployee = await prisma.employee.update({
+      where: { id },
+      data: {
+        name,
+        email: email.toLowerCase().trim(),
+        gender,
+      },
+    });
+
+    return NextResponse.json({ success: true, employee: updatedEmployee });
+  } catch (err) {
+    console.error("Update employee error:", err);
+    const errMsg = err instanceof Error ? err.message : "Failed to update employee.";
+    return NextResponse.json({ error: errMsg }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "ID is required." }, { status: 400 });
+    }
+
+    await prisma.employee.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Delete employee error:", err);
+    const errMsg = err instanceof Error ? err.message : "Failed to delete employee.";
+    return NextResponse.json({ error: errMsg }, { status: 500 });
+  }
+}
+
