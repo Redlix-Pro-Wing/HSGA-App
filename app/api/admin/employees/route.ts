@@ -7,12 +7,13 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     
-    // Return employees with passwords omitted for overview security
+    // Return employees with passwords included so admin can view demo credentials
     const safeEmployees = employees.map((emp: any) => ({
       id: emp.id,
       name: emp.name,
       email: emp.email,
       gender: emp.gender,
+      password: emp.password,
     }));
     
     return NextResponse.json(safeEmployees);

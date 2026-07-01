@@ -1702,6 +1702,7 @@ export default function AdminPage() {
                             <th className="px-5 py-3">Name</th>
                             <th className="px-5 py-3">Email Address</th>
                             <th className="px-5 py-3">Gender</th>
+                            <th className="px-5 py-3">Demo Password</th>
                             <th className="px-5 py-3">Status</th>
                           </tr>
                         </thead>
@@ -1719,6 +1720,7 @@ export default function AdminPage() {
                                   {emp.gender}
                                 </span>
                               </td>
+                              <td className="px-5 py-3.5 font-mono text-xs font-bold text-amber-600">{emp.password || "N/A"}</td>
                               <td className="px-5 py-3.5">
                                 <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">
                                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
@@ -1820,6 +1822,11 @@ export default function AdminPage() {
                           <div>
                             <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">District Jurisdiction</span>
                             <p className="text-sm font-semibold text-zinc-700 mt-0.5">{viewingEmployeeProfile.district || "Not Configured"}</p>
+                          </div>
+
+                          <div>
+                             <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Demo / Assigned Password</span>
+                             <p className="text-sm font-mono font-bold text-amber-600 mt-0.5">{viewingEmployeeProfile.password || "N/A"}</p>
                           </div>
 
                           <div className="md:col-span-2">
@@ -1925,20 +1932,14 @@ export default function AdminPage() {
 
                         {/* Action Buttons */}
                         {(() => {
-                          // Shared helper: clone card into offscreen container with plain-hex CSS vars
-                          // so html2canvas never encounters Tailwind v4's lab() computed colours.
                           const captureCard = async (scale: number): Promise<HTMLCanvasElement> => {
                             const html2canvas = (await import("html2canvas")).default;
                             const original = document.getElementById("hsga-id-card")!;
                             const rect = original.getBoundingClientRect();
-
-                            // Offscreen host that carries plain-hex overrides for every CSS var
-                            // that Tailwind v4 re-defines using lab() inside @supports blocks.
                             const host = document.createElement("div");
                             host.style.cssText = [
                               "position:fixed","left:-99999px","top:0",
                               `width:${rect.width}px`,`height:${rect.height}px`,
-                              // neutralise any lab() var that might propagate into the clone
                               "--background:#ffffff","--foreground:#1e293b",
                               "--card:#ffffff","--card-foreground:#1e293b",
                               "--primary:#002f6c","--primary-foreground:#ffffff",
@@ -1991,7 +1992,6 @@ export default function AdminPage() {
                                   const canvas = await captureCard(4);
                                   const { jsPDF } = await import("jspdf");
                                   const imgData = canvas.toDataURL("image/jpeg", 1.0);
-                                  // CR80 PVC card: 85.6 × 54 mm landscape
                                   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [85.6, 54] });
                                   pdf.addImage(imgData, "JPEG", 0, 0, 85.6, 54);
                                   pdf.autoPrint();
@@ -2114,6 +2114,7 @@ export default function AdminPage() {
                                       <th className="px-5 py-3.5 border border-zinc-200">Name</th>
                                       <th className="px-5 py-3.5 border border-zinc-200">Email Address</th>
                                       <th className="px-5 py-3.5 border border-zinc-200">Gender</th>
+                                      <th className="px-5 py-3.5 border border-zinc-200">Demo Password</th>
                                       <th className="px-5 py-3.5 border border-zinc-200">Status</th>
                                       <th className="px-5 py-3.5 border border-zinc-200 text-center">Actions</th>
                                     </tr>
@@ -2132,6 +2133,7 @@ export default function AdminPage() {
                                             {emp.gender}
                                           </span>
                                         </td>
+                                        <td className="px-5 py-3.5 border border-zinc-200 font-mono text-xs font-bold text-amber-600">{emp.password || "N/A"}</td>
                                         <td className="px-5 py-3.5 border border-zinc-200">
                                           <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">
                                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
