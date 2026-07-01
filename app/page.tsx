@@ -1,256 +1,450 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Forgot password reset states
+  const [resetStep, setResetStep] = useState<"login" | "forgot" | "otp" | "reset">("login");
+  const [otpCode, setOtpCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
 
+  // On mount: if employee session already exists redirect to dashboard
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Check if already running in standalone mode (PWA window)
-      const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-        || (navigator as any).standalone
-        || document.referrer.includes("android-app://");
-
-      if (isStandalone) {
-        router.replace("/login");
+      const stored = localStorage.getItem("employeeSession");
+      if (stored) {
+        router.replace("/employee");
         return;
       }
-
-      if (window.matchMedia("(display-mode: standalone)").matches) {
-        setIsInstalled(true);
-      }
-
-      const handleBeforeInstallPrompt = (e: Event) => {
-        e.preventDefault();
-        setDeferredPrompt(e);
-        setIsInstallable(true);
-      };
-
-      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-      const handleAppInstalled = () => {
-        setIsInstalled(true);
-        setIsInstallable(false);
-        setDeferredPrompt(null);
-      };
-      window.addEventListener("appinstalled", handleAppInstalled);
-
-      return () => {
-        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-        window.removeEventListener("appinstalled", handleAppInstalled);
-      };
     }
+    setIsChecking(false);
   }, [router]);
 
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      alert("Installation prompt is not ready. If you are on Android Chrome, make sure you aren't already running the app, or tap the three dots in Chrome and select 'Add to Home Screen'.");
-      return;
+  // Lock document body scroll on mobile
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.body.classList.add("overflow-hidden", "h-full", "fixed", "w-full");
+      return () => {
+        document.body.classList.remove("overflow-hidden", "h-full", "fixed", "w-full");
+      };
     }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setIsInstalled(true);
-      setIsInstallable(false);
-      setDeferredPrompt(null);
+  }, []);
+
+  const handleRequestOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/employee/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to dispatch verification code.");
+      }
+
+      setMaskedEmail(data.maskedEmail || data.email);
+      setSuccess(`Verification code dispatched to ${data.maskedEmail || data.email}`);
+      setResetStep("otp");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(errMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50/50 text-zinc-900 flex flex-col font-sans select-none antialiased relative overflow-x-hidden">
-      {/* Subtle decorative background glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[400px] bg-gradient-to-b from-blue-50/40 via-transparent to-transparent pointer-events-none -z-10" />
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
 
-      {/* Top Banner / Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-zinc-200/80 py-4 px-6 flex items-center justify-between transition-all duration-200">
-        <div className="flex items-center gap-3">
+    try {
+      const res = await fetch("/api/employee/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, otp: otpCode }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "OTP verification failed.");
+      }
+
+      setSuccess("Identity verified successfully. Please enter your new password below.");
+      setResetStep("reset");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match. Please verify.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must contain at least 6 characters.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/employee/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: email,
+          otp: otpCode,
+          newPassword
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to reset password.");
+      }
+
+      setSuccess("Password updated successfully. Please log in with your new credentials.");
+      setResetStep("login");
+      setOtpCode("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+
+    const username = email.trim();
+
+    // Check if they enter the admin email
+    if (username.toLowerCase() === "webstrixx@gmail.com") {
+      setIsLoading(false);
+      setSuccess("Administrator account detected. Redirecting to admin portal...");
+      setTimeout(() => {
+        router.push("/admin");
+      }, 1000);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/employee/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Authentication failed.");
+      }
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("employeeSession", JSON.stringify(data.employee));
+      }
+      setSuccess("Authentication successful. Opening portal...");
+      setEmail("");
+      setPassword("");
+      setTimeout(() => { router.push("/employee"); }, 800);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isChecking) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-[#002f6c]">
+        <div className="flex flex-col items-center gap-2">
+          <span className="material-icons animate-spin text-3xl text-white/70 select-none">sync</span>
+          <p className="text-sm font-semibold text-white/50">Loading portal...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const inputCls = "w-full bg-transparent border-0 border-b border-zinc-300 focus:border-[#002f6c] focus:outline-none py-2.5 text-sm text-zinc-800 placeholder-zinc-400 transition-colors";
+
+  return (
+    <div className="fixed inset-0 w-full h-dvh overflow-hidden flex flex-col bg-[#e8eaf6] font-sans antialiased select-none">
+
+      {/* TOP: Header with HSGA logo */}
+      <div className="bg-[#F7F6F3] flex-none border-b border-zinc-200/40" style={{ height: "35%" }}>
+        <div className="flex items-center px-6 sm:px-8 pt-8 sm:pt-10 pb-4 gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
             alt="HSGA Logo"
-            className="h-10 sm:h-12 w-auto object-contain bg-white p-0.5 rounded-full shadow-sm ring-1 ring-zinc-100"
+            className="h-20 w-20 sm:h-24 sm:w-24 object-contain select-none"
           />
           <div className="leading-tight">
-            <span className="font-black text-[#002f6c] text-[11px] sm:text-xs tracking-wider uppercase block">
-              Hindustan Scouts &amp; Guides
-            </span>
-            <span className="font-extrabold text-amber-600 text-[9px] sm:text-[10px] tracking-widest uppercase block">
-              Telangana Association
-            </span>
+            <span className="text-[#002f6c] text-xs sm:text-sm font-extrabold tracking-wide block">Hindustan Scouts and Guides</span>
+            <span className="text-[#800020] text-[10px] sm:text-[11px] font-bold block">Association · Telangana</span>
           </div>
         </div>
-        <Link
-          href="/login"
-          className="text-xs font-semibold bg-[#002f6c] hover:bg-[#003d8f] active:scale-95 text-white py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm shadow-[#002f6c]/10"
-        >
-          Staff Login
-        </Link>
-      </header>
+      </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-5 py-8 sm:py-12 flex flex-col items-center z-10">
-        {/* Page title */}
-        <div className="text-center max-w-2xl mb-10">
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#800020] uppercase bg-[#800020]/10 px-3.5 py-1 rounded-full inline-block">
-            Official Installation Guide
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 mt-5 tracking-tight leading-tight">
-            Download &amp; Install the <span className="text-[#002f6c]">HSGA App</span>
-          </h1>
-          <p className="text-sm sm:text-base text-zinc-600 mt-3.5 leading-relaxed max-w-xl mx-auto">
-            Access your state-wide Scout &amp; Guide profile, digital identity badge, and timetable directly from your home screen as a secure Progressive Web App (PWA).
-          </p>
-        </div>
+      {/* BOTTOM: Page container bg */}
+      <div className="bg-[#e8eaf6] flex-1" />
 
-        {/* Dynamic Installation Dashboard Card */}
-        <div className="w-full bg-white border border-zinc-200/80 shadow-md shadow-zinc-100/50 rounded-2xl p-6 sm:p-10 mb-8 relative overflow-hidden">
-          {/* Accent border top */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#002f6c] to-amber-500" />
+      {/* FLOATING WHITE CARD */}
+      <div className="absolute inset-x-5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-sm"
+        style={{ top: "24dvh" }}>
+        <div className="bg-white rounded-2xl shadow-xl shadow-black/10 px-6 py-6 sm:px-8 sm:py-8 border border-zinc-100">
 
-          <div className="max-w-md mx-auto flex flex-col items-center text-center">
-            {isInstalled ? (
-              <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-emerald-500/5">
-                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+          {/* Dynamic title */}
+          {resetStep === "login" && (
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">Sign In</h2>
+          )}
+          {resetStep === "forgot" && (
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">Forgot Password</h2>
+          )}
+          {resetStep === "otp" && (
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">Verify OTP Code</h2>
+          )}
+          {resetStep === "reset" && (
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">New Password</h2>
+          )}
+
+          {/* Status messages */}
+          {error && (
+            <div className="mb-4 p-2.5 border-l-4 border-rose-500 bg-rose-50 text-rose-800 text-xs font-semibold flex items-start gap-2 rounded-r">
+              <span className="material-icons text-sm text-rose-500 shrink-0 select-none">error_outline</span>
+              <span>{error}</span>
+            </div>
+          )}
+          {success && (
+            <div className="mb-4 p-2.5 border-l-4 border-emerald-500 bg-emerald-50 text-emerald-800 text-xs font-semibold flex items-start gap-2 rounded-r">
+              <span className="material-icons text-sm text-emerald-500 shrink-0 select-none">check_circle_outline</span>
+              <span>{success}</span>
+            </div>
+          )}
+
+          {/* Sign In form */}
+          {resetStep === "login" && (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="email" className="block text-xs font-medium text-zinc-500 mb-0.5">Username</label>
+                <input
+                  type="text"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Employee ID or Email"
+                  autoComplete="username"
+                  required
+                  className={inputCls}
+                />
               </div>
-            ) : (
-              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-[#002f6c]/5">
-                <svg className="w-7 h-7 text-[#002f6c]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-11.99 0A3.75 3.75 0 0112 18z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 12v9m-3-3l3 3 3-3" />
-                </svg>
+              <div>
+                <label htmlFor="current-password" className="block text-xs font-medium text-zinc-500 mb-0.5">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="current-password"
+                    name="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    required
+                    className={inputCls + " pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide" : "Show"}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none"
+                  >
+                    <span className="material-icons text-base select-none">
+                      {showPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
+                </div>
               </div>
-            )}
 
-            <h2 className="text-xl font-bold text-zinc-800">
-              {isInstalled ? "Application Already Installed" : "Instant PWA Installation"}
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-500 mt-1.5 mb-6 leading-relaxed">
-              {isInstalled
-                ? "The application is ready on your device. You can safely launch it from your home screen or app drawer."
-                : "No store downloads or updates needed. Install directly to your device screen in seconds."}
-            </p>
-
-            {!isInstalled && (
               <button
-                onClick={handleInstallClick}
-                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-semibold rounded-xl text-sm shadow-md shadow-[#002f6c]/20 hover:shadow-lg hover:shadow-[#002f6c]/20 transition-all duration-200 mb-4"
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex justify-center items-center gap-2 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50 disabled:pointer-events-none mt-2"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                {isInstallable ? "Install App Directly" : "Install App (Android)"}
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span>Signing In...</span>
+                  </>
+                ) : "Sign In"}
               </button>
-            )}
 
-            {isInstalled && (
-              <Link
-                href="/login"
-                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold rounded-xl text-sm shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/20 transition-all duration-200 mb-4"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H8.25" />
-                </svg>
-                Proceed to Staff Login
-              </Link>
-            )}
-
-            <div className="flex items-center gap-1.5 justify-center text-[10px] text-zinc-400 font-medium">
-              <svg className="w-3.5 h-3.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
-              Supports secure PWA technology with integrated offline mode.
-            </div>
-          </div>
-        </div>
-
-        {/* Operating System Specific Guidelines Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-2">
-
-          {/* Android Steps */}
-          <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-250">
-            <div>
-              <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-zinc-100">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  {/* Android Icon */}
-                  <svg className="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.523 15.3414C17.11 15.3414 16.7728 15.0063 16.7728 14.5912C16.7728 14.1793 17.11 13.8442 17.523 13.8442C17.9359 13.8442 18.2731 14.1793 18.2731 14.5912C18.2731 15.0063 17.9359 15.3414 17.523 15.3414ZM6.47721 15.3414C6.06429 15.3414 5.72714 15.0063 5.72714 14.5912C5.72714 14.1793 6.06429 13.8442 6.47721 13.8442C6.89013 13.8442 7.22728 14.1793 7.22728 14.5912C7.22728 15.0063 6.89013 15.3414 6.47721 15.3414ZM17.9427 10.7497L19.8242 7.46808C19.9573 7.23466 19.8787 6.93883 19.6433 6.80456C19.412 6.67406 19.1128 6.7519 18.9798 6.98532L17.0729 10.3023C15.6015 9.62778 13.882 9.24414 12 9.24414C10.118 9.24414 8.39849 9.62778 6.9271 10.3023L5.02016 6.98532C4.88716 6.7519 4.58793 6.67406 4.35667 6.80456C4.12128 6.93883 4.04271 7.23466 4.17571 7.46808L6.05728 10.7497C2.93532 12.4463 0.811707 15.655 0.5 19.4452H23.5C23.1883 15.655 21.0647 12.4463 17.9427 10.7497Z" />
-                  </svg>
-                </div>
-                <h3 className="text-base font-extrabold text-zinc-800">Android Instructions</h3>
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={() => { setResetStep("forgot"); setError(null); setSuccess(null); setEmail(""); }}
+                  className="text-xs font-semibold text-[#002f6c] hover:underline focus:outline-none"
+                >
+                  Forgot Password
+                </button>
+                <Link
+                  href="/guidelines"
+                  className="text-xs font-semibold text-zinc-500 hover:text-[#002f6c] hover:underline focus:outline-none"
+                >
+                  Install Guide
+                </Link>
               </div>
-              <ol className="space-y-4 text-xs text-zinc-600">
-                <li className="flex gap-3 items-start">
-                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
-                  <span className="leading-relaxed">Launch <strong>Google Chrome</strong> and search or visit this portal on your Android device.</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
-                  <span className="leading-relaxed">Tap the <strong>&quot;Install App Directly&quot;</strong> button above, or select <strong>&quot;Add to Home Screen&quot;</strong> from browser settings.</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
-                  <span className="leading-relaxed">Approve the installation. The official HSGA icon will automatically adapt to your desktop launcher.</span>
-                </li>
-              </ol>
-            </div>
-            <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10px] font-semibold text-zinc-400">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.028M12 13.5t-3 0 3 0zm0-3a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-              </svg>
-              <span>Fully supports Chrome, Samsung Internet &amp; Edge browsers.</span>
-            </div>
-          </div>
+            </form>
+          )}
 
-          {/* iOS Steps */}
-          <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-250">
-            <div>
-              <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-zinc-100">
-                <div className="w-8 h-8 rounded-lg bg-zinc-50 flex items-center justify-center">
-                  {/* Apple Icon */}
-                  <svg className="w-5 h-5 text-zinc-800" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.57 2.95-1.39z" />
-                  </svg>
-                </div>
-                <h3 className="text-base font-extrabold text-zinc-800">Apple iOS Instructions</h3>
+          {/* Forgot Password form */}
+          {resetStep === "forgot" && (
+            <form onSubmit={handleRequestOTP} className="space-y-5">
+              <div>
+                <label htmlFor="reset-username" className="block text-xs font-medium text-zinc-500 mb-0.5">Employee ID or Email</label>
+                <input
+                  type="text"
+                  id="reset-username"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="HSGA/TG/SM00053 or email"
+                  required
+                  className={inputCls}
+                />
               </div>
-              <ol className="space-y-4 text-xs text-zinc-600">
-                <li className="flex gap-3 items-start">
-                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
-                  <span className="leading-relaxed">Open this link explicitly using the built-in <strong>Apple Safari</strong> browser on your iPhone/iPad.</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
-                  <span className="leading-relaxed">Tap the native <strong>Share</strong> button (box with an upward-pointing arrow icon) at the bottom or top bar.</span>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
-                  <span className="leading-relaxed">Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong>, then press <strong>&quot;Add&quot;</strong> in the top-right corner to complete.</span>
-                </li>
-              </ol>
-            </div>
-            <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10px] font-semibold text-zinc-400">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.028M12 13.5t-3 0 3 0zm0-3a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-              </svg>
-              <span>Requires Safari implementation compatibility on iOS.</span>
-            </div>
-          </div>
+              <button type="submit" disabled={isLoading}
+                className="w-full flex justify-center items-center py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50">
+                {isLoading ? "Sending..." : "Send Verification Code"}
+              </button>
+              <div className="text-center">
+                <button type="button"
+                  onClick={() => { setResetStep("login"); setError(null); setSuccess(null); setEmail(""); }}
+                  className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none">
+                  ← Back to Sign In
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* OTP Verify form */}
+          {resetStep === "otp" && (
+            <form onSubmit={handleVerifyOTP} className="space-y-5">
+              <div>
+                <label htmlFor="otp-code" className="block text-xs font-medium text-zinc-500 mb-0.5">6-Digit Verification Code</label>
+                <input
+                  type="text"
+                  id="otp-code"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="1  2  3  4  5  6"
+                  required
+                  className={inputCls + " font-mono tracking-[6px] text-center text-lg"}
+                />
+              </div>
+              <button type="submit" disabled={isLoading}
+                className="w-full flex justify-center items-center py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50">
+                {isLoading ? "Verifying..." : "Verify Code"}
+              </button>
+              <div className="text-center">
+                <button type="button"
+                  onClick={() => { setResetStep("forgot"); setError(null); setSuccess(null); setOtpCode(""); }}
+                  className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none">
+                  Request a new code
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Reset Password form */}
+          {resetStep === "reset" && (
+            <form onSubmit={handleResetPassword} className="space-y-5">
+              <div>
+                <label htmlFor="new-password" className="block text-xs font-medium text-zinc-500 mb-0.5">New Password</label>
+                <div className="relative">
+                  <input type={showNewPassword ? "text" : "password"} id="new-password" value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" required
+                    className={inputCls + " pr-10"} />
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none">
+                    <span className="material-icons text-base select-none">{showNewPassword ? "visibility_off" : "visibility"}</span>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label htmlFor="confirm-password" className="block text-xs font-medium text-zinc-500 mb-0.5">Confirm New Password</label>
+                <div className="relative">
+                  <input type={showConfirmPassword ? "text" : "password"} id="confirm-password" value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required
+                    className={inputCls + " pr-10"} />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none">
+                    <span className="material-icons text-base select-none">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
+                  </button>
+                </div>
+              </div>
+              <button type="submit" disabled={isLoading}
+                className="w-full flex justify-center items-center py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50">
+                {isLoading ? "Saving..." : "Save New Password"}
+              </button>
+            </form>
+          )}
 
         </div>
-      </main>
+      </div>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-zinc-200/60 py-5 text-center text-[10px] font-bold text-zinc-400 tracking-wide bg-white shrink-0 mt-12">
-        &copy; {new Date().getFullYear()} Hindustan Scouts &amp; Guides Telangana State Association. All Rights Reserved.
-      </footer>
+      {/* POWERED BY FOOTER */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 select-none z-10">
+        <span className="text-[10px] text-zinc-500 font-medium">Powered by</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
+          alt="Redlix Logo"
+          className="h-6 w-auto object-contain"
+        />
+      </div>
     </div>
   );
 }
