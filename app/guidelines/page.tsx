@@ -184,7 +184,7 @@ export default function Guidelines() {
                 </div>
                 <h3 className="text-base font-bold text-zinc-800">Android Instructions</h3>
               </div>
-              <p className="text-[10px] text-rose-650 font-semibold mb-4 leading-normal -mt-3">Supports Android Laptops and Android devices</p>
+              <p className="text-[10px] text-rose-655 font-semibold mb-4 leading-normal -mt-3">[Supports Android Laptops and Android devices]</p>
               <ol className="space-y-4 text-xs text-zinc-600">
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
@@ -218,7 +218,7 @@ export default function Guidelines() {
                 </div>
                 <h3 className="text-base font-bold text-zinc-800">Apple iOS Instructions</h3>
               </div>
-              <p className="text-[10px] text-rose-650 font-semibold mb-4 leading-normal -mt-3">Supports both MacBooks and iMac OS</p>
+              <p className="text-[10px] text-rose-655 font-semibold mb-4 leading-normal -mt-3">[Supports both MacBooks and iMac OS]</p>
               <ol className="space-y-4 text-xs text-zinc-600">
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
