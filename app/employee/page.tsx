@@ -535,9 +535,9 @@ export default function EmployeeDashboard() {
           </div>
           <nav className="flex-1 p-3 space-y-2">
             {[
-              { key: "overview", icon: "dashboard", label: "Overview", cls: "material-icons" },
-              { key: "schools", icon: "domain", label: "Schools", cls: "material-icons" },
-              { key: "calls", icon: "call", label: "Calls", cls: "material-icons" },
+              { key: "overview", icon: "team_dashboard", label: "Overview", cls: "material-symbols-outlined" },
+              { key: "schools", icon: "school", label: "Schools", cls: "material-symbols-outlined" },
+              { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
               { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
               { key: "settings", icon: "account_circle", label: "Profile & Settings", cls: "material-symbols-outlined" },
             ].map(({ key, icon, label, cls }) => (
@@ -683,7 +683,7 @@ export default function EmployeeDashboard() {
 
             {activeTab === "schools" && (
               <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 min-h-[250px] flex flex-col items-center justify-center text-center select-none">
-                <span className="material-icons text-4xl text-[#002f6c] mb-2 select-none">domain</span>
+                <span className="material-symbols-outlined text-4xl text-[#002f6c] mb-2 select-none">school</span>
                 <h3 className="text-base font-bold text-zinc-900">Schools</h3>
                 <p className="text-xs text-zinc-500 mt-1">School details and classes information will be loaded here.</p>
               </div>
@@ -691,7 +691,7 @@ export default function EmployeeDashboard() {
 
             {activeTab === "calls" && (
               <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 min-h-[250px] flex flex-col items-center justify-center text-center select-none">
-                <span className="material-icons text-4xl text-[#002f6c] mb-2 select-none">call</span>
+                <span className="material-symbols-outlined text-4xl text-[#002f6c] mb-2 select-none">forms_add_on</span>
                 <h3 className="text-base font-bold text-zinc-900">Calls</h3>
                 <p className="text-xs text-zinc-500 mt-1">Call details and call history records will be loaded here.</p>
               </div>
@@ -1224,9 +1224,9 @@ export default function EmployeeDashboard() {
       {/* ── Mobile Bottom Navigation Bar ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#F7F6F3] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
         {[
-          { key: "overview", icon: "dashboard", label: "Overview", cls: "material-icons" },
-          { key: "schools", icon: "domain", label: "Schools", cls: "material-icons" },
-          { key: "calls", icon: "call", label: "Calls", cls: "material-icons" },
+          { key: "overview", icon: "team_dashboard", label: "Overview", cls: "material-symbols-outlined" },
+          { key: "schools", icon: "school", label: "Schools", cls: "material-symbols-outlined" },
+          { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
           { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
           { key: "settings", icon: "account_circle", label: "Settings", cls: "material-symbols-outlined" },
         ].map(({ key, icon, label, cls }) => (
