@@ -3325,6 +3325,34 @@ export default function AdminPage() {
                 </div>
 
                 <form onSubmit={handleUpdateTimetable} className="p-6 space-y-6">
+                  {/* Scout Master Selector */}
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4 max-w-md select-none">
+                    <label className="block text-xs font-bold text-zinc-700 mb-1.5 uppercase tracking-wide">
+                      Assigned Scout Master
+                    </label>
+                    <select
+                      value={editingTimetableEntry.employeeName}
+                      onChange={(e) => {
+                        setEditingTimetableEntry({
+                          ...editingTimetableEntry,
+                          employeeName: e.target.value
+                        });
+                      }}
+                      required
+                      className="w-full bg-white border border-zinc-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-[#002f6c] outline-none font-semibold text-zinc-850 shadow-sm"
+                    >
+                      <option value="">-- Select Scout Master --</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.name}>
+                          {emp.name} ({emp.id})
+                        </option>
+                      ))}
+                      {editingTimetableEntry.employeeName && !employees.some(e => e.name === editingTimetableEntry.employeeName) && (
+                        <option value={editingTimetableEntry.employeeName}>{editingTimetableEntry.employeeName}</option>
+                      )}
+                    </select>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].map((day) => (
                       <div key={day} className="border border-zinc-100 rounded-lg p-4 bg-zinc-50/50 space-y-3.5">

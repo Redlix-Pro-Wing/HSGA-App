@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 interface Employee {
@@ -38,6 +38,10 @@ export default function EmployeeDashboard() {
   const [profile, setProfile] = useState<EmployeeProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // Timetable State
+  const [timetableEntry, setTimetableEntry] = useState<any>(null);
+  const [isFetchingTimetable, setIsFetchingTimetable] = useState(false);
 
   // Form fields
   const [designation, setDesignation] = useState("");
@@ -81,6 +85,84 @@ export default function EmployeeDashboard() {
     }
     setIsChecking(false);
   }, [router]);
+
+  // Fetch timetable entries for the logged-in employee name
+  useEffect(() => {
+    if (employee) {
+      const loadTimetable = async () => {
+        setIsFetchingTimetable(true);
+        try {
+          const res = await fetch("/api/admin/timetable");
+          if (res.ok) {
+            const data = await res.json();
+            const myEntry = data.find((row: any) => row.employeeName.toLowerCase().trim() === employee.name.toLowerCase().trim());
+            setTimetableEntry(myEntry || null);
+          }
+        } catch (err) {
+          console.error("Error loading employee timetable:", err);
+        } finally {
+          setIsFetchingTimetable(false);
+        }
+      };
+      loadTimetable();
+    }
+  }, [employee]);
+
+  // Compute upcoming session for the week
+  const upcomingSession = useMemo(() => {
+    if (!timetableEntry) return null;
+
+    const DAYS_ORDER = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const slotsConfig = [
+      { key: "1", label: "8:30 AM - 10:30 AM", start: 510 },
+      { key: "2", label: "10:30 AM - 12:30 PM", start: 630 },
+      { key: "3", label: "1:30 PM - 3:30 PM", start: 810 },
+      { key: "4", label: "3:30 PM - 5:30 PM", start: 930 },
+    ];
+
+    const now = new Date();
+    const currentDayIdx = now.getDay();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const checkDayIdx = (currentDayIdx + dayOffset) % 7;
+      const checkDayName = DAYS_ORDER[checkDayIdx];
+
+      if (checkDayName === "sunday") continue;
+
+      for (let slot of slotsConfig) {
+        if (dayOffset === 0 && slot.start <= currentMinutes) {
+          continue;
+        }
+
+        const fieldKey = `${checkDayName}_${slot.key}`;
+        const val = timetableEntry[fieldKey];
+        if (val && val.toLowerCase() !== "free" && val.trim() !== "") {
+          const sessionDate = new Date(now);
+          sessionDate.setDate(now.getDate() + dayOffset);
+
+          const dayNumber = String(sessionDate.getDate()).padStart(2, "0");
+          const monthName = sessionDate.toLocaleString("default", { month: "long" });
+
+          return {
+            schoolName: val,
+            dayNumber,
+            monthName,
+            timeLabel: slot.label,
+          };
+        }
+      }
+    }
+    return null;
+  }, [timetableEntry]);
+
+  // Fallback date info (current date)
+  const fallbackDate = useMemo(() => {
+    const now = new Date();
+    const dayNumber = String(now.getDate()).padStart(2, "0");
+    const monthName = now.toLocaleString("default", { month: "long" });
+    return { dayNumber, monthName };
+  }, []);
 
   // Load extended profile when settings tab opens
   const fetchProfile = useCallback(async (id: string) => {
@@ -368,6 +450,40 @@ export default function EmployeeDashboard() {
                     </span>
                   </div>
                 </div>
+
+                {/* Upcoming / Session Time Table Card */}
+                {isFetchingTimetable ? (
+                  <div className="bg-white rounded-lg border border-zinc-200 p-6 flex items-center justify-center gap-2 shadow-sm select-none">
+                    <span className="material-icons animate-spin text-lg text-[#002f6c] select-none">sync</span>
+                    <span className="text-xs text-zinc-500 font-semibold">Loading schedule...</span>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 flex flex-row items-stretch select-none">
+                    {/* Left portion: Date and Up Next info */}
+                    <div className="w-24 sm:w-28 flex-none flex flex-col items-center justify-center border-r border-zinc-100 pr-4 text-center">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Up Next</span>
+                      <span className="text-2xl sm:text-3xl font-black text-zinc-800 leading-none mt-1.5">
+                        {upcomingSession ? upcomingSession.dayNumber : fallbackDate.dayNumber}
+                      </span>
+                      <span className="text-[10px] sm:text-xs font-semibold text-zinc-400 mt-1">
+                        {upcomingSession ? upcomingSession.monthName : fallbackDate.monthName}
+                      </span>
+                    </div>
+
+                    {/* Right portion: Class Details */}
+                    <div className="flex-1 pl-4 flex flex-col justify-center">
+                      <h3 className="text-sm sm:text-base font-bold text-zinc-950 leading-tight">
+                        {upcomingSession ? upcomingSession.schoolName : "No Sessions"}
+                      </h3>
+                      <p className="text-xs text-zinc-500 font-semibold mt-1">
+                        {upcomingSession ? upcomingSession.schoolName : "NA"}
+                      </p>
+                      <p className="text-xs text-zinc-400 mt-0.5">
+                        {upcomingSession ? `Time: ${upcomingSession.timeLabel}` : "Room no NA"}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
