@@ -48,10 +48,10 @@ export async function POST(request: Request) {
     }
 
     // Determine ID prefix:
-    // Male: HSGA/TG/SM/0054
-    // Female: HSGA/TG/GC/0053
+    // Male: HSGA/TG/SM00053
+    // Female: HSGA/TG/GC00053
     const isMale = gender.toLowerCase() === "male";
-    const prefix = isMale ? "HSGA/TG/SM/" : "HSGA/TG/GC/";
+    const prefix = isMale ? "HSGA/TG/SM" : "HSGA/TG/GC";
 
     // Find all employees that match this prefix
     const matchingEmployees = await prisma.employee.findMany({
@@ -65,15 +65,17 @@ export async function POST(request: Request) {
     // Find max counter
     let maxCounter = isMale ? 59 : 53; 
     matchingEmployees.forEach((emp: any) => {
-      const numPart = emp.id.substring(prefix.length);
-      const num = parseInt(numPart, 10);
-      if (!isNaN(num) && num > maxCounter) {
-        maxCounter = num;
+      const match = emp.id.match(/\d+$/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (!isNaN(num) && num > maxCounter) {
+          maxCounter = num;
+        }
       }
     });
 
     const nextCounter = maxCounter + 1;
-    const paddedCounter = String(nextCounter).padStart(4, "0");
+    const paddedCounter = String(nextCounter).padStart(5, "0");
     const generatedId = prefix + paddedCounter;
 
     // Generate demo password (TG@ followed by 4 random digits)
