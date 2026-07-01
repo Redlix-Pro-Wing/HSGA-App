@@ -108,7 +108,7 @@ export default function EmployeeDashboard() {
     }
   }, [employee]);
 
-  // Compute upcoming session for the week
+  // Compute upcoming session for the week in Indian Standard Time (IST)
   const upcomingSession = useMemo(() => {
     if (!timetableEntry) return null;
 
@@ -120,9 +120,16 @@ export default function EmployeeDashboard() {
       { key: "4", label: "3:30 PM - 5:30 PM", start: 930 },
     ];
 
-    const now = new Date();
-    const currentDayIdx = now.getDay();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    // Get current time adjusted to Indian Standard Time (IST, UTC+5:30)
+    const getISTTime = () => {
+      const d = new Date();
+      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+      return new Date(utc + (3600000 * 5.5));
+    };
+
+    const nowIST = getISTTime();
+    const currentDayIdx = nowIST.getDay();
+    const currentMinutes = nowIST.getHours() * 60 + nowIST.getMinutes();
 
     for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
       const checkDayIdx = (currentDayIdx + dayOffset) % 7;
@@ -138,11 +145,11 @@ export default function EmployeeDashboard() {
         const fieldKey = `${checkDayName}_${slot.key}`;
         const val = timetableEntry[fieldKey];
         if (val && val.toLowerCase() !== "free" && val.trim() !== "") {
-          const sessionDate = new Date(now);
-          sessionDate.setDate(now.getDate() + dayOffset);
+          const sessionDate = new Date(nowIST);
+          sessionDate.setDate(nowIST.getDate() + dayOffset);
 
           const dayNumber = String(sessionDate.getDate()).padStart(2, "0");
-          const monthName = sessionDate.toLocaleString("default", { month: "long" });
+          const monthName = sessionDate.toLocaleString("en-US", { month: "long" });
 
           return {
             schoolName: val,
@@ -156,11 +163,14 @@ export default function EmployeeDashboard() {
     return null;
   }, [timetableEntry]);
 
-  // Fallback date info (current date)
+  // Fallback date info in Indian Standard Time (IST)
   const fallbackDate = useMemo(() => {
-    const now = new Date();
-    const dayNumber = String(now.getDate()).padStart(2, "0");
-    const monthName = now.toLocaleString("default", { month: "long" });
+    const d = new Date();
+    const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    const nowIST = new Date(utc + (3600000 * 5.5));
+
+    const dayNumber = String(nowIST.getDate()).padStart(2, "0");
+    const monthName = nowIST.toLocaleString("en-US", { month: "long" });
     return { dayNumber, monthName };
   }, []);
 

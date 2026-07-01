@@ -82,6 +82,7 @@ export default function AdminPage() {
   const [isFetchingTimetable, setIsFetchingTimetable] = useState(false);
   const [editingTimetableEntry, setEditingTimetableEntry] = useState<any | null>(null);
   const [isUpdatingTimetable, setIsUpdatingTimetable] = useState(false);
+  const [timetableSubTab, setTimetableSubTab] = useState<"matrix" | "calendar">("matrix");
 
   // New School Form values
   const [schoolName, setSchoolName] = useState("");
@@ -2538,6 +2539,30 @@ export default function AdminPage() {
                                   <h2 className="text-lg font-bold text-zinc-800">Scout Master Time Table</h2>
                                   <p className="text-xs text-zinc-500 mt-0.5">Manage weekly teaching and scouting class schedules across association masters.</p>
                                 </div>
+                                <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-lg border border-zinc-200 shadow-inner">
+                                  <button
+                                    type="button"
+                                    onClick={() => setTimetableSubTab("matrix")}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                                      timetableSubTab === "matrix"
+                                        ? "bg-white text-[#002f6c] shadow-sm"
+                                        : "text-zinc-500 hover:text-zinc-800"
+                                    }`}
+                                  >
+                                    Matrix Grid
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setTimetableSubTab("calendar")}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                                      timetableSubTab === "calendar"
+                                        ? "bg-white text-[#002f6c] shadow-sm"
+                                        : "text-zinc-500 hover:text-zinc-800"
+                                    }`}
+                                  >
+                                    Weekly Calendar
+                                  </button>
+                                </div>
                               </div>
 
                               {isFetchingTimetable ? (
@@ -2550,7 +2575,7 @@ export default function AdminPage() {
                                   <span className="material-icons text-4xl text-zinc-300 select-none font-semibold">calendar_today</span>
                                   <p className="text-sm font-semibold text-zinc-500 mt-2">No timetable entries configured.</p>
                                 </div>
-                              ) : (
+                              ) : timetableSubTab === "matrix" ? (
                                 <div className="overflow-x-auto border border-zinc-200 rounded-md">
                                   <table className="min-w-full divide-y divide-zinc-200 text-left text-xs border-collapse whitespace-nowrap">
                                     <thead className="bg-[#002f6c] text-white font-bold select-none text-center">
@@ -2643,6 +2668,73 @@ export default function AdminPage() {
                                       ))}
                                     </tbody>
                                   </table>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                  {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].map((day) => (
+                                    <div key={day} className="bg-zinc-50 border border-zinc-200/80 rounded-xl p-4 flex flex-col space-y-4 shadow-sm">
+                                      <h3 className="text-xs font-bold text-[#002f6c] border-b border-zinc-200/80 pb-2 capitalize tracking-widest select-none">
+                                        {day}
+                                      </h3>
+
+                                      {[
+                                        { num: "1", label: "8:30 AM - 10:30 AM" },
+                                        { num: "2", label: "10:30 AM - 12:30 PM" },
+                                        { num: "3", label: "1:30 PM - 3:30 PM" },
+                                        { num: "4", label: "3:30 PM - 5:30 PM" }
+                                      ].map((slot) => {
+                                        const slotKey = `${day}_${slot.num}`;
+                                        const assignments = timetable.filter((row) => {
+                                          return row[slotKey] && row[slotKey].toLowerCase() !== "free" && row[slotKey].trim() !== "";
+                                        });
+
+                                        return (
+                                          <div key={slot.num} className="bg-white border border-zinc-200 rounded-lg p-3 flex flex-col space-y-2 select-none shadow-[0_2px_4px_rgba(0,0,0,0.01)]">
+                                            <div className="flex items-center justify-between border-b border-zinc-100 pb-1.5">
+                                              <span className="text-[9px] font-bold text-zinc-400 tracking-wider">
+                                                {slot.label}
+                                              </span>
+                                              <span className="text-[8px] font-extrabold text-[#800020] bg-rose-50 border border-rose-100 px-1 py-0.2 rounded">
+                                                Slot {slot.num}
+                                              </span>
+                                            </div>
+
+                                            {assignments.length === 0 ? (
+                                              <div className="py-3 text-center border border-dashed border-zinc-100 rounded text-[10px] text-zinc-400 font-medium bg-zinc-50/20">
+                                                No Scheduled Classes
+                                              </div>
+                                            ) : (
+                                              <div className="space-y-1.5">
+                                                {assignments.map((row) => {
+                                                  const school = row[slotKey];
+                                                  return (
+                                                    <div key={row.id} className="flex items-center justify-between gap-2 bg-[#f0f2ff] border border-blue-100 rounded p-2">
+                                                      <div className="min-w-0 flex-1">
+                                                        <h4 className="text-[11px] font-bold text-zinc-900 truncate">
+                                                          {row.employeeName}
+                                                        </h4>
+                                                        <p className="text-[9px] font-semibold text-blue-700 truncate mt-0.5">
+                                                          {school}
+                                                        </p>
+                                                      </div>
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => handleEditTimetableClick(row)}
+                                                        className="p-1 hover:bg-white text-zinc-500 hover:text-[#002f6c] rounded border border-transparent hover:border-zinc-200 transition-all cursor-pointer shrink-0"
+                                                        title="Edit trainer schedule"
+                                                      >
+                                                        <span className="material-icons text-xs select-none">edit</span>
+                                                      </button>
+                                                    </div>
+                                                  );
+                                                })}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </div>
