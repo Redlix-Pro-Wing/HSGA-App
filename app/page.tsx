@@ -157,7 +157,8 @@ export default function Home() {
     const username = email.trim();
 
     // Check if they enter the admin email
-    if (username.toLowerCase() === "webstrixx@gmail.com") {
+    const lowerUsername = username.toLowerCase();
+    if (lowerUsername === "webstrixx@gmail.com" || lowerUsername === "office.hsga@gmail.com") {
       setIsLoading(false);
       setSuccess("Administrator account detected. Redirecting to admin portal...");
       setTimeout(() => {

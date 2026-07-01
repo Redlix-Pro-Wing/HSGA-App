@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get("email")?.toLowerCase().trim() || "webstrixx@gmail.com";
+
     const admin = await prisma.admin.upsert({
-      where: { email: "webstrixx@gmail.com" },
+      where: { email },
       update: {},
       create: {
-        email: "webstrixx@gmail.com",
+        email,
         password: "password123",
-        name: "State Admin",
+        name: email === "webstrixx@gmail.com" ? "State Admin" : "Office Admin",
         designation: "State Commissioner",
         phone: "+91 99999 99999",
       },
@@ -30,10 +33,11 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, designation, phone, currentPassword, newPassword } = body;
+    const { name, designation, phone, currentPassword, newPassword, email } = body;
+    const targetEmail = email?.toLowerCase().trim() || "webstrixx@gmail.com";
 
     const admin = await prisma.admin.findUnique({
-      where: { email: "webstrixx@gmail.com" },
+      where: { email: targetEmail },
     });
 
     if (!admin) {
@@ -73,7 +77,7 @@ export async function POST(request: Request) {
     }
 
     await prisma.admin.update({
-      where: { email: "webstrixx@gmail.com" },
+      where: { email: targetEmail },
       data: updateData,
     });
 

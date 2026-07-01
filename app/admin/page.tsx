@@ -604,8 +604,7 @@ export default function AdminPage() {
   // Load admin profile and employee list on mount
   useEffect(() => {
     if (email) {
-      // Fetch Admin Profile
-      fetch("/api/admin/profile")
+      fetch(`/api/admin/profile?email=${encodeURIComponent(email)}`)
         .then((res) => res.json())
         .then((data) => {
           setAdminName(data.name || "");
@@ -1463,8 +1462,9 @@ export default function AdminPage() {
     );
   }
 
-  // Case 2: Signed in, but NOT the admin email (webstrixx@gmail.com)
-  if (email.toLowerCase() !== "webstrixx@gmail.com") {
+  // Case 2: Signed in, but NOT the admin email
+  const lowerEmail = email.toLowerCase();
+  if (lowerEmail !== "webstrixx@gmail.com" && lowerEmail !== "office.hsga@gmail.com") {
     return (
       <div className="min-h-screen flex flex-col bg-[#e8eaf6] text-zinc-900 font-sans antialiased">
         {/* Navbar at the top matching main page background */}

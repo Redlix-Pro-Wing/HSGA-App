@@ -13,7 +13,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (email.toLowerCase().trim() !== "webstrixx@gmail.com") {
+    const allowedAdmins = ["webstrixx@gmail.com", "office.hsga@gmail.com"];
+    const targetEmail = email.toLowerCase().trim();
+    if (!allowedAdmins.includes(targetEmail)) {
       return NextResponse.json(
         { error: "This email address is not registered as an administrator on this system." },
         { status: 401 }
@@ -22,7 +24,7 @@ export async function POST(request: Request) {
 
     // Retrieve the admin record from the database
     const admin = await prisma.admin.findUnique({
-      where: { email: "webstrixx@gmail.com" },
+      where: { email: targetEmail },
     });
 
     if (!admin || !admin.otp) {

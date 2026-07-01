@@ -13,7 +13,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (email.toLowerCase().trim() !== "webstrixx@gmail.com") {
+    const allowedAdmins = ["webstrixx@gmail.com", "office.hsga@gmail.com"];
+    const targetEmail = email.toLowerCase().trim();
+    if (!allowedAdmins.includes(targetEmail)) {
       return NextResponse.json(
         { error: "This email address is not registered as an administrator on this system." },
         { status: 401 }
@@ -22,12 +24,12 @@ export async function POST(request: Request) {
 
     // Load admin config from database, or upsert defaults if empty
     const admin = await prisma.admin.upsert({
-      where: { email: "webstrixx@gmail.com" },
+      where: { email: targetEmail },
       update: {},
       create: {
-        email: "webstrixx@gmail.com",
+        email: targetEmail,
         password: "password123",
-        name: "State Admin",
+        name: targetEmail === "webstrixx@gmail.com" ? "State Admin" : "Office Admin",
         designation: "State Commissioner",
         phone: "+91 99999 99999",
       },
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       user: {
-        email: "webstrixx@gmail.com",
+        email: targetEmail,
       },
     });
   } catch (err) {

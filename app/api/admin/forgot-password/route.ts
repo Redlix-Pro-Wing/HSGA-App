@@ -14,8 +14,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Restrict reset workflow specifically to the admin email webstrixx@gmail.com
-    if (email.toLowerCase().trim() !== "webstrixx@gmail.com") {
+    const allowedAdmins = ["webstrixx@gmail.com", "office.hsga@gmail.com"];
+    const targetEmail = email.toLowerCase().trim();
+    if (!allowedAdmins.includes(targetEmail)) {
       return NextResponse.json(
         { error: "This email address is not registered as an administrator on this system." },
         { status: 404 }
@@ -27,12 +28,12 @@ export async function POST(request: Request) {
 
     // Save OTP to PostgreSQL Admin record
     await prisma.admin.upsert({
-      where: { email: "webstrixx@gmail.com" },
+      where: { email: targetEmail },
       update: { otp },
       create: {
-        email: "webstrixx@gmail.com",
+        email: targetEmail,
         password: "password123",
-        name: "State Admin",
+        name: targetEmail === "webstrixx@gmail.com" ? "State Admin" : "Office Admin",
         designation: "State Commissioner",
         phone: "+91 99999 99999",
         otp,
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
     const mailOptions = {
       from: '"HSGA Telangana Admin Portal" <help.ckrdatapoint@gmail.com>',
-      to: "webstrixx@gmail.com",
+      to: targetEmail,
       subject: "HSGA Telangana Admin Portal - Verification Code (OTP)",
       html: `
         <div style="font-family: sans-serif; padding: 25px; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "One-Time Password (OTP) sent successfully. Please check webstrixx@gmail.com.",
+      message: `One-Time Password (OTP) sent successfully. Please check ${targetEmail}.`,
     });
   } catch (err) {
     console.error("Nodemailer forgot-password handler error:", err);
