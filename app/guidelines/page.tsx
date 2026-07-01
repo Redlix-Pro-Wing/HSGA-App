@@ -109,50 +109,62 @@ export default function Guidelines() {
 
         {/* Dynamic Installation Dashboard Card */}
         <div className="w-full bg-white border border-zinc-200/80 shadow-md shadow-zinc-100/50 rounded-2xl p-6 sm:p-8 mb-8 relative overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            {/* Left Column: Details */}
+            <div className="flex-1 flex flex-col items-start text-left">
+              {isInstalled ? (
+                <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-emerald-500/5">
+                  <span className="material-symbols-outlined text-2xl text-emerald-600 select-none">check_circle</span>
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-[#002f6c]/5">
+                  <span className="material-symbols-outlined text-2xl text-[#002f6c] select-none">download_for_offline</span>
+                </div>
+              )}
 
-          <div className="flex flex-col items-start text-left">
-            {isInstalled ? (
-              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-emerald-500/5">
-                <span className="material-symbols-outlined text-2xl text-emerald-600 select-none">check_circle</span>
+              <h2 className="text-lg sm:text-xl font-bold text-zinc-800">
+                {isInstalled ? "Application Already Installed" : "Instant PWA Installation"}
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-500 mt-1.5 mb-5 leading-relaxed max-w-xl">
+                {isInstalled
+                  ? "The application is ready on your device. You can safely launch it from your home screen or app drawer."
+                  : "No store downloads or updates needed. Install directly to your device screen in seconds."}
+              </p>
+
+              {!isInstalled && (
+                <button
+                  onClick={handleInstallClick}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-base select-none">download</span>
+                  {isInstallable ? "Install App Directly" : "Install App (Android)"}
+                </button>
+              )}
+
+              {isInstalled && (
+                <Link
+                  href="/"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4"
+                >
+                  <span className="material-symbols-outlined text-base select-none">login</span>
+                  Proceed to Staff Login
+                </Link>
+              )}
+
+              <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium mt-1">
+                <span className="material-symbols-outlined text-sm text-zinc-400 select-none">verified_user</span>
+                Supports secure PWA technology with integrated offline mode.
               </div>
-            ) : (
-              <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4 ring-8 ring-[#002f6c]/5">
-                <span className="material-symbols-outlined text-2xl text-[#002f6c] select-none">download_for_offline</span>
-              </div>
-            )}
+            </div>
 
-            <h2 className="text-lg sm:text-xl font-bold text-zinc-800">
-              {isInstalled ? "Application Already Installed" : "Instant PWA Installation"}
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-500 mt-1.5 mb-5 leading-relaxed max-w-xl">
-              {isInstalled
-                ? "The application is ready on your device. You can safely launch it from your home screen or app drawer."
-                : "No store downloads or updates needed. Install directly to your device screen in seconds."}
-            </p>
-
-            {!isInstalled && (
-              <button
-                onClick={handleInstallClick}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-base select-none">download</span>
-                {isInstallable ? "Install App Directly" : "Install App (Android)"}
-              </button>
-            )}
-
-            {isInstalled && (
-              <Link
-                href="/"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4"
-              >
-                <span className="material-symbols-outlined text-base select-none">login</span>
-                Proceed to Staff Login
-              </Link>
-            )}
-
-            <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium mt-1">
-              <span className="material-symbols-outlined text-sm text-zinc-400 select-none">verified_user</span>
-              Supports secure PWA technology with integrated offline mode.
+            {/* Right Column: SVG Illustration */}
+            <div className="w-48 h-48 sm:w-56 sm:h-56 shrink-0 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://ik.imagekit.io/dypkhqxip/Mobile%20development-rafiki.svg"
+                alt="Mobile Development Illustration"
+                className="w-full h-full object-contain select-none"
+              />
             </div>
           </div>
         </div>
