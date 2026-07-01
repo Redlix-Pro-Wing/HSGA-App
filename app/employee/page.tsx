@@ -82,6 +82,19 @@ export default function EmployeeDashboard() {
       if (stored) {
         try {
           const parsed = JSON.parse(stored) as Employee;
+          // Clean/migrate ID loaded from local storage to match database pattern format
+          const exactRegex = /^HSGA\/TG\/(SM|GC)\d{5}$/;
+          if (!exactRegex.test(parsed.id)) {
+            const digitsMatch = parsed.id.match(/\d+$/);
+            if (digitsMatch) {
+              const num = parseInt(digitsMatch[0], 10);
+              const isMale = parsed.id.toLowerCase().includes("sm");
+              const prefix = isMale ? "HSGA/TG/SM" : "HSGA/TG/GC";
+              const paddedCounter = String(num).padStart(5, "0");
+              parsed.id = prefix + paddedCounter;
+              localStorage.setItem("employeeSession", JSON.stringify(parsed));
+            }
+          }
           setEmployee(parsed);
         } catch {
           localStorage.removeItem("employeeSession");
