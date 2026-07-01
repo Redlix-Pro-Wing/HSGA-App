@@ -94,7 +94,7 @@ export default function EmployeeDashboard() {
     setIsChecking(false);
   }, [router]);
 
-  // Fetch timetable entries for the logged-in employee name
+  // Fetch/refetch timetable entries for the logged-in employee name automatically when day is selected
   useEffect(() => {
     if (employee) {
       const loadTimetable = async () => {
@@ -114,7 +114,7 @@ export default function EmployeeDashboard() {
       };
       loadTimetable();
     }
-  }, [employee]);
+  }, [employee, profileView, selectedDayIdx]);
 
   // Compute upcoming session for the week in Indian Standard Time (IST)
   const upcomingSession = useMemo(() => {
@@ -351,14 +351,15 @@ export default function EmployeeDashboard() {
       const startOfWeek = new Date(nowIST);
       startOfWeek.setDate(nowIST.getDate() - currentDay); // Go to Sunday
       
-      const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const weekdaysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const weekdaysFull = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
       const days = [];
       for (let i = 0; i < 7; i++) {
         const dateObj = new Date(startOfWeek);
         dateObj.setDate(startOfWeek.getDate() + i);
         days.push({
-          dayName: weekdays[i],
-          dayNameLong: weekdays[i].toLowerCase(), // 'sunday', 'monday', etc.
+          dayName: weekdaysShort[i],
+          dayNameLong: weekdaysFull[i], // 'sunday', 'monday', etc.
           dayNumber: dateObj.getDate(),
           dayIndex: i,
           isToday: dateObj.toDateString() === nowIST.toDateString(),
