@@ -184,127 +184,119 @@ export default function LoginPage() {
 
   if (isChecking) {
     return (
-      <div className="h-dvh flex items-center justify-center bg-[#f0f2ff]">
+      <div className="h-dvh flex items-center justify-center bg-[#002f6c]">
         <div className="flex flex-col items-center gap-2">
-          <span className="material-icons animate-spin text-3xl text-[#002f6c] select-none">sync</span>
-          <p className="text-sm font-semibold text-zinc-500">Loading portal credentials...</p>
+          <span className="material-icons animate-spin text-3xl text-white/70 select-none">sync</span>
+          <p className="text-sm font-semibold text-white/50">Loading portal...</p>
         </div>
       </div>
     );
   }
 
+  // ── shared underline-input style ──
+  const inputCls = "w-full bg-transparent border-0 border-b border-zinc-300 focus:border-[#002f6c] focus:outline-none py-2.5 text-sm text-zinc-800 placeholder-zinc-400 transition-colors";
+
   return (
     /*
-     * LAYOUT: Full viewport, no scroll.
-     * - Light lavender-white background at top
-     * - Large navy semi-circle SVG rising from the bottom
-     * - White card with logo + form centred in the upper half
+     * LAYOUT: Full-viewport, no scroll.
+     * ┌─────────────────────────────────┐  ← navy header   ~42% height
+     * │  [HSGA logo]    [Telangana seal]│
+     * │                                 │
+     * │  ┌───────────────────────────┐  │  ← white card (floats between)
+     * │  │  Sign in                  │  │
+     * │  │  ─────────────────────    │  │
+     * │  │  Username                 │  │
+     * │  │  Password                 │  │
+     * │  │  [  Sign In  ]            │  │
+     * │  └───────────────────────────┘  │
+     * └─────────────────────────────────┘  ← light grey body ~58% height
      */
-    <div className="h-dvh w-full overflow-hidden relative flex flex-col items-center bg-[#f0f2ff] font-sans antialiased">
+    <div className="h-dvh w-full overflow-hidden relative flex flex-col font-sans antialiased">
 
-      {/* ── Decorative single curve at the bottom ── */}
-      <div className="absolute bottom-0 left-0 w-full h-[55dvh] pointer-events-none select-none z-0">
-        <svg
-          viewBox="0 0 100 100"
-          className="w-full h-full"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Smooth quadratic curve spanning from bottom-left (0,100) to bottom-right (100,100) */}
-          <path d="M0,100 Q50,15 100,100 Z" fill="#002f6c" />
-        </svg>
+      {/* ── TOP: Navy header with logos ── */}
+      <div className="bg-[#002f6c] flex-none" style={{ height: "42%" }}>
+        {/* Logos row */}
+        <div className="flex items-center justify-between px-8 pt-10 pb-4">
+          {/* HSGA logo */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <div className="flex flex-col items-center gap-1">
+            <img
+              src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
+              alt="HSGA Logo"
+              className="h-16 w-16 rounded-full object-contain bg-white p-1 shadow-md select-none"
+            />
+            <span className="text-white/80 text-[9px] font-semibold tracking-wide text-center leading-tight max-w-[80px]">Hindustan Scouts &amp; Guides</span>
+          </div>
+
+          {/* Telangana Government seal */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <div className="flex flex-col items-center gap-1">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Seal_of_Telangana.svg/240px-Seal_of_Telangana.svg.png"
+              alt="Government of Telangana Seal"
+              className="h-16 w-16 rounded-full object-contain bg-white p-1 shadow-md select-none"
+            />
+            <span className="text-white/80 text-[9px] font-semibold tracking-wide text-center leading-tight max-w-[80px]">Govt. of Telangana</span>
+          </div>
+        </div>
       </div>
 
-      {/* ── Main content: logo + card ── */}
-      <div className="relative z-20 flex flex-col items-center w-full px-5 pt-10 sm:pt-14">
+      {/* ── BOTTOM: Light gray background ── */}
+      <div className="bg-[#ebebeb] flex-1" />
 
-        {/* Logo + org name */}
-        <div className="flex flex-col items-center mb-5 sm:mb-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
-            alt="HSGA Telangana Logo"
-            className="h-16 sm:h-20 w-auto object-contain drop-shadow-md select-none"
-          />
-          <h1 className="mt-2 text-[#002f6c] font-extrabold text-base sm:text-lg text-center leading-tight">
-            Hindustan Scouts and Guides Association
-          </h1>
-          <span className="text-[#800020] font-bold text-xs sm:text-sm tracking-widest">
-            Telangana
-          </span>
-        </div>
-
-        {/* ── Login Card ── */}
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl shadow-blue-900/10 border border-zinc-100 px-6 py-7 sm:px-8 sm:py-8">
+      {/* ── FLOATING WHITE CARD (absolutely centred across both zones) ── */}
+      <div className="absolute inset-x-5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-sm"
+        style={{ top: "28%" }}>
+        <div className="bg-white rounded-2xl shadow-2xl shadow-black/20 px-7 py-8">
 
           {/* Dynamic title */}
           {resetStep === "login" && (
-            <div className="mb-5 text-center">
-              <h2 className="text-lg sm:text-xl font-bold text-zinc-800">Staff Portal Sign In</h2>
-              <p className="text-[11px] text-zinc-400 mt-0.5">HSGA Telangana — Secure Access</p>
-            </div>
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">Sign In</h2>
           )}
           {resetStep === "forgot" && (
-            <div className="mb-5 text-center">
-              <h2 className="text-lg font-bold text-zinc-800">Forgot Password</h2>
-              <p className="text-[11px] text-zinc-400 mt-0.5">Enter your ID to receive a verification code</p>
-            </div>
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">Forgot Password</h2>
           )}
           {resetStep === "otp" && (
-            <div className="mb-5 text-center">
-              <h2 className="text-lg font-bold text-zinc-800">Verify OTP Code</h2>
-              <p className="text-[11px] text-zinc-400 mt-0.5">6-digit code dispatched to {maskedEmail}</p>
-            </div>
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">Verify OTP Code</h2>
           )}
           {resetStep === "reset" && (
-            <div className="mb-5 text-center">
-              <h2 className="text-lg font-bold text-zinc-800">Create New Password</h2>
-              <p className="text-[11px] text-zinc-400 mt-0.5">Set a new secure password for your account</p>
-            </div>
+            <h2 className="text-xl font-bold text-[#002f6c] text-center mb-6">New Password</h2>
           )}
 
           {/* Status messages */}
           {error && (
-            <div className="mb-4 p-3 border-l-4 border-rose-500 bg-rose-50 text-rose-900 text-xs font-semibold flex items-start gap-2 rounded-r-md">
-              <span className="material-icons text-base text-rose-500 shrink-0 select-none">error_outline</span>
+            <div className="mb-4 p-2.5 border-l-4 border-rose-500 bg-rose-50 text-rose-800 text-xs font-semibold flex items-start gap-2 rounded-r">
+              <span className="material-icons text-sm text-rose-500 shrink-0 select-none">error_outline</span>
               <span>{error}</span>
             </div>
           )}
           {success && (
-            <div className="mb-4 p-3 border-l-4 border-emerald-500 bg-emerald-50 text-emerald-900 text-xs font-semibold flex items-start gap-2 rounded-r-md">
-              <span className="material-icons text-base text-emerald-500 shrink-0 select-none">check_circle_outline</span>
+            <div className="mb-4 p-2.5 border-l-4 border-emerald-500 bg-emerald-50 text-emerald-800 text-xs font-semibold flex items-start gap-2 rounded-r">
+              <span className="material-icons text-sm text-emerald-500 shrink-0 select-none">check_circle_outline</span>
               <span>{success}</span>
             </div>
           )}
 
           {/* ─── Sign In form ─── */}
           {resetStep === "login" && (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="email" className="block text-xs font-semibold text-zinc-600 mb-1.5">
-                  Employee ID or Email
-                </label>
-                <div className="relative">
-                  <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">badge</span>
-                  <input
-                    type="text"
-                    id="email"
-                    name="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="HSGA/TG/SM00053 or email"
-                    autoComplete="username"
-                    required
-                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30 focus:border-[#002f6c] transition-all"
-                  />
-                </div>
+                <label htmlFor="email" className="block text-xs font-medium text-zinc-500 mb-0.5">Username</label>
+                <input
+                  type="text"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Employee ID or Email"
+                  autoComplete="username"
+                  required
+                  className={inputCls}
+                />
               </div>
               <div>
-                <label htmlFor="current-password" className="block text-xs font-semibold text-zinc-600 mb-1.5">
-                  Password
-                </label>
+                <label htmlFor="current-password" className="block text-xs font-medium text-zinc-500 mb-0.5">Password</label>
                 <div className="relative">
-                  <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">lock</span>
                   <input
                     type={showPassword ? "text" : "password"}
                     id="current-password"
@@ -314,24 +306,25 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     autoComplete="current-password"
                     required
-                    className="w-full pl-10 pr-12 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30 focus:border-[#002f6c] transition-all"
+                    className={inputCls + " pr-10"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors focus:outline-none"
+                    aria-label={showPassword ? "Hide" : "Show"}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none"
                   >
-                    <span className="material-icons text-lg select-none">
+                    <span className="material-icons text-base select-none">
                       {showPassword ? "visibility_off" : "visibility"}
                     </span>
                   </button>
                 </div>
               </div>
+
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center gap-2 py-2.5 px-4 bg-[#002f6c] hover:bg-[#003d8f] active:bg-[#001f4a] text-white font-bold rounded-lg text-sm transition-all shadow-md shadow-blue-900/20 disabled:opacity-50 disabled:pointer-events-none mt-1"
+                className="w-full flex justify-center items-center gap-2 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50 disabled:pointer-events-none mt-2"
               >
                 {isLoading ? (
                   <>
@@ -343,13 +336,14 @@ export default function LoginPage() {
                   </>
                 ) : "Sign In"}
               </button>
-              <div className="text-center pt-1">
+
+              <div className="flex items-center justify-between pt-1">
                 <button
                   type="button"
                   onClick={() => { setResetStep("forgot"); setError(null); setSuccess(null); setEmail(""); }}
-                  className="text-[11px] font-semibold text-[#800020] hover:underline focus:outline-none"
+                  className="text-xs font-semibold text-[#002f6c] hover:underline focus:outline-none"
                 >
-                  Forgot Password?
+                  Forgot Password
                 </button>
               </div>
             </form>
@@ -357,32 +351,27 @@ export default function LoginPage() {
 
           {/* ─── Forgot Password form ─── */}
           {resetStep === "forgot" && (
-            <form onSubmit={handleRequestOTP} className="space-y-4">
+            <form onSubmit={handleRequestOTP} className="space-y-5">
               <div>
-                <label htmlFor="reset-username" className="block text-xs font-semibold text-zinc-600 mb-1.5">
-                  Employee ID or Registered Email
-                </label>
-                <div className="relative">
-                  <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">badge</span>
-                  <input
-                    type="text"
-                    id="reset-username"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="HSGA/TG/SM00053 or email"
-                    required
-                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30 focus:border-[#002f6c] transition-all"
-                  />
-                </div>
+                <label htmlFor="reset-username" className="block text-xs font-medium text-zinc-500 mb-0.5">Employee ID or Email</label>
+                <input
+                  type="text"
+                  id="reset-username"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="HSGA/TG/SM00053 or email"
+                  required
+                  className={inputCls}
+                />
               </div>
               <button type="submit" disabled={isLoading}
-                className="w-full flex justify-center items-center py-2.5 px-4 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-lg text-sm transition-all shadow-md shadow-blue-900/20 disabled:opacity-50">
-                {isLoading ? "Sending OTP..." : "Send Verification Code"}
+                className="w-full flex justify-center items-center py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50">
+                {isLoading ? "Sending..." : "Send Verification Code"}
               </button>
               <div className="text-center">
                 <button type="button"
                   onClick={() => { setResetStep("login"); setError(null); setSuccess(null); setEmail(""); }}
-                  className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none">
+                  className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none">
                   ← Back to Sign In
                 </button>
               </div>
@@ -391,33 +380,28 @@ export default function LoginPage() {
 
           {/* ─── OTP Verify form ─── */}
           {resetStep === "otp" && (
-            <form onSubmit={handleVerifyOTP} className="space-y-4">
+            <form onSubmit={handleVerifyOTP} className="space-y-5">
               <div>
-                <label htmlFor="otp-code" className="block text-xs font-semibold text-zinc-600 mb-1.5">
-                  6-Digit Verification Code
-                </label>
-                <div className="relative">
-                  <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">pin</span>
-                  <input
-                    type="text"
-                    id="otp-code"
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                    placeholder="123456"
-                    required
-                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 font-mono text-center tracking-[10px] text-lg placeholder-zinc-300 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30 focus:border-[#002f6c] transition-all"
-                  />
-                </div>
+                <label htmlFor="otp-code" className="block text-xs font-medium text-zinc-500 mb-0.5">6-Digit Verification Code</label>
+                <input
+                  type="text"
+                  id="otp-code"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="1  2  3  4  5  6"
+                  required
+                  className={inputCls + " font-mono tracking-[6px] text-center text-lg"}
+                />
               </div>
               <button type="submit" disabled={isLoading}
-                className="w-full flex justify-center items-center py-2.5 px-4 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-lg text-sm transition-all shadow-md shadow-blue-900/20 disabled:opacity-50">
+                className="w-full flex justify-center items-center py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50">
                 {isLoading ? "Verifying..." : "Verify Code"}
               </button>
               <div className="text-center">
                 <button type="button"
                   onClick={() => { setResetStep("forgot"); setError(null); setSuccess(null); setOtpCode(""); }}
-                  className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none">
+                  className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 focus:outline-none">
                   Request a new code
                 </button>
               </div>
@@ -426,56 +410,41 @@ export default function LoginPage() {
 
           {/* ─── Reset Password form ─── */}
           {resetStep === "reset" && (
-            <form onSubmit={handleResetPassword} className="space-y-4">
+            <form onSubmit={handleResetPassword} className="space-y-5">
               <div>
-                <label htmlFor="new-password" className="block text-xs font-semibold text-zinc-600 mb-1.5">New Password</label>
+                <label htmlFor="new-password" className="block text-xs font-medium text-zinc-500 mb-0.5">New Password</label>
                 <div className="relative">
-                  <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">lock</span>
-                  <input
-                    type={showNewPassword ? "text" : "password"}
-                    id="new-password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="w-full pl-10 pr-12 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30 focus:border-[#002f6c] transition-all"
-                  />
+                  <input type={showNewPassword ? "text" : "password"} id="new-password" value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" required
+                    className={inputCls + " pr-10"} />
                   <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none">
-                    <span className="material-icons text-lg select-none">{showNewPassword ? "visibility_off" : "visibility"}</span>
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none">
+                    <span className="material-icons text-base select-none">{showNewPassword ? "visibility_off" : "visibility"}</span>
                   </button>
                 </div>
               </div>
               <div>
-                <label htmlFor="confirm-password" className="block text-xs font-semibold text-zinc-600 mb-1.5">Confirm New Password</label>
+                <label htmlFor="confirm-password" className="block text-xs font-medium text-zinc-500 mb-0.5">Confirm New Password</label>
                 <div className="relative">
-                  <span className="material-icons text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 text-lg select-none">lock</span>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    id="confirm-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="w-full pl-10 pr-12 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30 focus:border-[#002f6c] transition-all"
-                  />
+                  <input type={showConfirmPassword ? "text" : "password"} id="confirm-password" value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required
+                    className={inputCls + " pr-10"} />
                   <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none">
-                    <span className="material-icons text-lg select-none">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 focus:outline-none">
+                    <span className="material-icons text-base select-none">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
                   </button>
                 </div>
               </div>
               <button type="submit" disabled={isLoading}
-                className="w-full flex justify-center items-center py-2.5 px-4 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-lg text-sm transition-all shadow-md shadow-blue-900/20 disabled:opacity-50">
-                {isLoading ? "Saving..." : "Save Password"}
+                className="w-full flex justify-center items-center py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] text-white font-bold rounded-full text-sm transition-all shadow-md disabled:opacity-50">
+                {isLoading ? "Saving..." : "Save New Password"}
               </button>
             </form>
           )}
+
         </div>
         {/* End card */}
       </div>
-      {/* End main content */}
     </div>
   );
 }
-
