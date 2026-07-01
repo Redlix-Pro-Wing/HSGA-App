@@ -231,7 +231,7 @@ export default function LoginPage() {
           <img
             src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
             alt="HSGA Logo"
-            className="h-14 w-14 sm:h-16 sm:w-16 rounded-full object-contain bg-white p-1 shadow-md select-none"
+            className="h-20 w-20 sm:h-24 sm:w-24 object-contain select-none"
           />
           <div className="leading-tight">
             <span className="text-[#002f6c] text-xs sm:text-sm font-extrabold tracking-wide block">Hindustan Scouts and Guides</span>
