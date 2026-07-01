@@ -68,26 +68,25 @@ export default function Guidelines() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[400px] bg-gradient-to-b from-blue-50/40 via-transparent to-transparent pointer-events-none -z-10" />
 
       {/* Top Banner / Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-zinc-200/80 py-4 px-6 flex items-center justify-between transition-all duration-200">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-md border-b border-zinc-200 py-3.5 px-6 flex items-center justify-between transition-all duration-200">
+        <div className="flex items-center gap-3 select-none">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
             alt="HSGA Logo"
-            className="h-10 sm:h-12 w-auto object-contain bg-white p-0.5 rounded-full shadow-sm ring-1 ring-zinc-100"
+            className="h-8 w-auto object-contain bg-white"
           />
-          <div className="leading-tight">
-            <span className="font-black text-[#002f6c] text-[11px] sm:text-xs tracking-wider uppercase block">
-              Hindustan Scouts &amp; Guides
-            </span>
-            <span className="font-extrabold text-amber-600 text-[9px] sm:text-[10px] tracking-widest uppercase block">
-              Telangana Association
-            </span>
-          </div>
+          <h1 className="font-black text-[#002f6c] text-sm tracking-wider uppercase">
+            Guidelines
+          </h1>
+          <div className="h-4 w-[1px] bg-zinc-300 mx-1" />
+          <span className="font-extrabold text-zinc-500 text-[10px] sm:text-xs tracking-widest uppercase block">
+            HSGA Telangana
+          </span>
         </div>
         <Link
           href="/"
-          className="text-xs font-semibold bg-[#002f6c] hover:bg-[#003d8f] active:scale-95 text-white py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm shadow-[#002f6c]/10"
+          className="text-xs font-bold bg-[#002f6c] hover:bg-[#002352] active:scale-95 text-white py-2.5 px-4 rounded-none transition-all duration-200 shadow-sm"
         >
           Staff Login
         </Link>
