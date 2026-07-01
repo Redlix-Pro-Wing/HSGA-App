@@ -170,7 +170,7 @@ export default function Guidelines() {
         </div>
 
         {/* Operating System Specific Guidelines Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-2">
 
           {/* Android Steps */}
           <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-250">
@@ -187,23 +187,21 @@ export default function Guidelines() {
               <ol className="space-y-4 text-xs text-zinc-600">
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
-                  <span className="leading-relaxed">Launch <strong>Google Chrome</strong> and search or visit this portal on your Android device.</span>
+                  <span className="leading-relaxed">Launch **Google Chrome** and visit this portal on your device.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
-                  <span className="leading-relaxed">Tap the <strong>&quot;Install App Directly&quot;</strong> button above, or select <strong>&quot;Add to Home Screen&quot;</strong> from browser settings.</span>
+                  <span className="leading-relaxed">Tap the **&quot;Install App Directly&quot;** button above, or open Chrome settings (<span className="font-bold text-zinc-800">⋮</span>) and select **&quot;Add to Home screen&quot;**.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
-                  <span className="leading-relaxed">Approve the installation. The official HSGA icon will automatically adapt to your desktop launcher.</span>
+                  <span className="leading-relaxed">Confirm the installation. The official HSGA logo icon will be placed on your home launcher screen.</span>
                 </li>
               </ol>
             </div>
             <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10px] font-semibold text-zinc-400">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.028M12 13.5t-3 0 3 0zm0-3a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-              </svg>
-              <span>Fully supports Chrome, Samsung Internet &amp; Edge browsers.</span>
+              <span className="material-symbols-outlined text-sm shrink-0">check_circle</span>
+              <span>Supports Chrome, Samsung Internet &amp; Edge.</span>
             </div>
           </div>
 
@@ -222,23 +220,54 @@ export default function Guidelines() {
               <ol className="space-y-4 text-xs text-zinc-600">
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
-                  <span className="leading-relaxed">Open this link explicitly using the built-in <strong>Apple Safari</strong> browser on your iPhone/iPad.</span>
+                  <span className="leading-relaxed">Open this link inside the built-in **Apple Safari** browser on your iPhone or iPad.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
-                  <span className="leading-relaxed">Tap the native <strong>Share</strong> button (box with an upward-pointing arrow icon) at the bottom or top bar.</span>
+                  <span className="leading-relaxed">Tap the native **Share** button (<span className="material-symbols-outlined text-[14px] align-middle inline-block">ios_share</span>) located in the browser navigation bar.</span>
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
-                  <span className="leading-relaxed">Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong>, then press <strong>&quot;Add&quot;</strong> in the top-right corner to complete.</span>
+                  <span className="leading-relaxed">Scroll down, tap **&quot;Add to Home Screen&quot;**, and click **&quot;Add&quot;** in the top-right corner to complete.</span>
                 </li>
               </ol>
             </div>
             <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10px] font-semibold text-zinc-400">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.028M12 13.5t-3 0 3 0zm0-3a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-              </svg>
-              <span>Requires Safari implementation compatibility on iOS.</span>
+              <span className="material-symbols-outlined text-sm shrink-0">check_circle</span>
+              <span>Requires Safari implementation on iOS.</span>
+            </div>
+          </div>
+
+          {/* Windows Steps */}
+          <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-250">
+            <div>
+              <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-zinc-100">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                  {/* Windows Icon */}
+                  <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M0 3.449L9.75 2.1v9.45H0V3.449zM0 12.45h9.75v9.45L0 20.551v-8.1zM10.8 1.95L24 0v11.55H10.8V1.95zM10.8 12.45H24v11.55l-13.2-1.95v-9.6z" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-bold text-zinc-800">Windows PC Instructions</h3>
+              </div>
+              <ol className="space-y-4 text-xs text-zinc-600">
+                <li className="flex gap-3 items-start">
+                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">1</span>
+                  <span className="leading-relaxed">Launch **Google Chrome** or **Microsoft Edge** on your computer.</span>
+                </li>
+                <li className="flex gap-3 items-start">
+                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">2</span>
+                  <span className="leading-relaxed">Click the **Install** icon (<span className="material-symbols-outlined text-[14px] align-middle inline-block">install_desktop</span>) on the right side of the URL address bar.</span>
+                </li>
+                <li className="flex gap-3 items-start">
+                  <span className="font-bold text-zinc-500 bg-zinc-100 rounded-full h-5.5 w-5.5 flex items-center justify-center shrink-0 text-[11px] ring-4 ring-zinc-50">3</span>
+                  <span className="leading-relaxed">Click **&quot;Install&quot;** to place a standalone app window shortcut directly on your PC desktop.</span>
+                </li>
+              </ol>
+            </div>
+            <div className="mt-6 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10px] font-semibold text-zinc-400">
+              <span className="material-symbols-outlined text-sm shrink-0">check_circle</span>
+              <span>Fully compatible with Windows 10 &amp; 11.</span>
             </div>
           </div>
 
