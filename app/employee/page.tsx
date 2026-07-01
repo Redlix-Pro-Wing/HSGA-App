@@ -535,19 +535,19 @@ export default function EmployeeDashboard() {
           </div>
           <nav className="flex-1 p-3 space-y-2">
             {[
-              { key: "overview", icon: "dashboard", label: "Overview" },
-              { key: "schools", icon: "domain", label: "Schools" },
-              { key: "calls", icon: "call", label: "Calls" },
-              { key: "media", icon: "perm_media", label: "Media" },
-              { key: "settings", icon: "manage_accounts", label: "Profile & Settings" },
-            ].map(({ key, icon, label }) => (
+              { key: "overview", icon: "dashboard", label: "Overview", cls: "material-icons" },
+              { key: "schools", icon: "domain", label: "Schools", cls: "material-icons" },
+              { key: "calls", icon: "call", label: "Calls", cls: "material-icons" },
+              { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
+              { key: "settings", icon: "account_circle", label: "Profile & Settings", cls: "material-symbols-outlined" },
+            ].map(({ key, icon, label, cls }) => (
               <button
                 key={key}
                 onClick={() => { setActiveTab(key as typeof activeTab); setError(null); setSuccess(null); if (key === "settings") setProfileView("view"); }}
                 title={label}
                 className={`w-full flex items-center justify-center group-hover:justify-start gap-4 px-3 py-2.5 rounded-md text-sm font-semibold transition-colors ${activeTab === key ? "bg-[#002f6c]/10 text-[#002f6c]" : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-50"}`}
               >
-                <span className="material-icons text-lg shrink-0">{icon}</span>
+                <span className={`${cls} text-lg shrink-0`}>{icon}</span>
                 <span className="hidden group-hover:inline-block text-xs whitespace-nowrap">{label}</span>
               </button>
             ))}
@@ -1224,12 +1224,12 @@ export default function EmployeeDashboard() {
       {/* ── Mobile Bottom Navigation Bar ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#F7F6F3] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
         {[
-          { key: "overview", icon: "dashboard", label: "Overview" },
-          { key: "schools", icon: "domain", label: "Schools" },
-          { key: "calls", icon: "call", label: "Calls" },
-          { key: "media", icon: "perm_media", label: "Media" },
-          { key: "settings", icon: "manage_accounts", label: "Settings" },
-        ].map(({ key, icon, label }) => (
+          { key: "overview", icon: "dashboard", label: "Overview", cls: "material-icons" },
+          { key: "schools", icon: "domain", label: "Schools", cls: "material-icons" },
+          { key: "calls", icon: "call", label: "Calls", cls: "material-icons" },
+          { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
+          { key: "settings", icon: "account_circle", label: "Settings", cls: "material-symbols-outlined" },
+        ].map(({ key, icon, label, cls }) => (
           <button
             key={key}
             onClick={() => {
@@ -1244,7 +1244,7 @@ export default function EmployeeDashboard() {
                 : "text-zinc-500 hover:text-zinc-900"
             }`}
           >
-            <span className="material-icons text-xl select-none">{icon}</span>
+            <span className={`${cls} text-xl select-none`}>{icon}</span>
             <span className="text-[10px] font-bold mt-0.5">{label}</span>
           </button>
         ))}
