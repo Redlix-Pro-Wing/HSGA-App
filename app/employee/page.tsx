@@ -536,7 +536,7 @@ export default function EmployeeDashboard() {
           <nav className="flex-1 p-3 space-y-2">
             {[
               { key: "overview", icon: "team_dashboard", label: "Overview", cls: "material-symbols-outlined" },
-              { key: "schools", icon: "school", label: "Schools", cls: "material-symbols-outlined" },
+              { key: "schools", icon: "book", label: "Schools", cls: "material-symbols-outlined" },
               { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
               { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
               { key: "settings", icon: "account_circle", label: "Profile & Settings", cls: "material-symbols-outlined" },
@@ -683,7 +683,7 @@ export default function EmployeeDashboard() {
 
             {activeTab === "schools" && (
               <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 min-h-[250px] flex flex-col items-center justify-center text-center select-none">
-                <span className="material-symbols-outlined text-4xl text-[#002f6c] mb-2 select-none">school</span>
+                <span className="material-symbols-outlined text-4xl text-[#002f6c] mb-2 select-none">book</span>
                 <h3 className="text-base font-bold text-zinc-900">Schools</h3>
                 <p className="text-xs text-zinc-500 mt-1">School details and classes information will be loaded here.</p>
               </div>
@@ -1225,7 +1225,7 @@ export default function EmployeeDashboard() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#F7F6F3] border-t border-zinc-200 flex items-center justify-around z-30 shadow-lg px-2">
         {[
           { key: "overview", icon: "team_dashboard", label: "Overview", cls: "material-symbols-outlined" },
-          { key: "schools", icon: "school", label: "Schools", cls: "material-symbols-outlined" },
+          { key: "schools", icon: "book", label: "Schools", cls: "material-symbols-outlined" },
           { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
           { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
           { key: "settings", icon: "account_circle", label: "Settings", cls: "material-symbols-outlined" },
