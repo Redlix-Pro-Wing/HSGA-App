@@ -102,6 +102,9 @@ export default function Guidelines() {
           <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 mt-5 tracking-tight leading-tight">
             Download &amp; Install the <span className="text-[#002f6c]">HSGA App</span>
           </h1>
+          <p className="text-[11px] font-semibold text-zinc-400 mt-1.5 select-none">
+            Powered by <a href="https://www.redlix.co.in" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#002f6c] transition-colors">Studio Redlix</a>
+          </p>
           <p className="text-sm sm:text-base text-zinc-600 mt-3.5 leading-relaxed max-w-xl">
             Access your state-wide Scout &amp; Guide profile, digital identity badge, and timetable directly from your home screen as a secure Progressive Web App (PWA).
           </p>
