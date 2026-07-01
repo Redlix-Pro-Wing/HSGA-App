@@ -68,7 +68,7 @@ export default function Guidelines() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[400px] bg-gradient-to-b from-blue-50/40 via-transparent to-transparent pointer-events-none -z-10" />
 
       {/* Top Banner / Header */}
-      <header className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-md border-b border-zinc-200 py-3.5 px-6 flex items-center justify-between transition-all duration-200">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/85 backdrop-blur-md border-b border-zinc-200 py-3.5 px-6 flex items-center justify-between transition-all duration-200">
         <div className="flex items-center gap-3 select-none">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -93,7 +93,7 @@ export default function Guidelines() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-5 py-8 sm:py-12 flex flex-col items-start z-10">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-5 pt-24 pb-8 sm:pt-28 sm:pb-12 flex flex-col items-start z-10">
         {/* Page title */}
         <div className="text-left w-full max-w-2xl mb-8">
           <span className="text-[10px] font-bold tracking-[0.05em] text-[#800020] bg-[#800020]/10 px-3.5 py-1 rounded-full inline-block">
@@ -173,7 +173,7 @@ export default function Guidelines() {
         </div>
 
         {/* Operating System Specific Guidelines Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-2">
 
           {/* Android Steps */}
           <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-250">
