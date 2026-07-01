@@ -34,6 +34,16 @@ export default function LoginPage() {
     setIsChecking(false);
   }, [router]);
 
+  // Lock document body scroll on mobile
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.body.classList.add("overflow-hidden", "h-full", "fixed", "w-full");
+      return () => {
+        document.body.classList.remove("overflow-hidden", "h-full", "fixed", "w-full");
+      };
+    }
+  }, []);
+
   const handleRequestOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -211,43 +221,32 @@ export default function LoginPage() {
      * │  └───────────────────────────┘  │
      * └─────────────────────────────────┘  ← light grey body ~58% height
      */
-    <div className="h-dvh w-full overflow-hidden relative flex flex-col font-sans antialiased">
+    <div className="fixed inset-0 w-full h-dvh overflow-hidden flex flex-col bg-[#e8eaf6] font-sans antialiased select-none">
 
-      {/* ── TOP: Navy header with logos ── */}
-      <div className="bg-[#002f6c] flex-none" style={{ height: "42%" }}>
-        {/* Logos row */}
-        <div className="flex items-center justify-between px-8 pt-10 pb-4">
-          {/* HSGA logo */}
+      {/* ── TOP: Header with HSGA logo (left-aligned) using overview card bg color (#F7F6F3) ── */}
+      <div className="bg-[#F7F6F3] flex-none border-b border-zinc-200/40" style={{ height: "35%" }}>
+        {/* HSGA logo — left-aligned */}
+        <div className="flex items-center px-6 sm:px-8 pt-8 sm:pt-10 pb-4 gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <div className="flex flex-col items-center gap-1">
-            <img
-              src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
-              alt="HSGA Logo"
-              className="h-16 w-16 rounded-full object-contain bg-white p-1 shadow-md select-none"
-            />
-            <span className="text-white/80 text-[9px] font-semibold tracking-wide text-center leading-tight max-w-[80px]">Hindustan Scouts &amp; Guides</span>
-          </div>
-
-          {/* Telangana Government seal */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <div className="flex flex-col items-center gap-1">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Seal_of_Telangana.svg/240px-Seal_of_Telangana.svg.png"
-              alt="Government of Telangana Seal"
-              className="h-16 w-16 rounded-full object-contain bg-white p-1 shadow-md select-none"
-            />
-            <span className="text-white/80 text-[9px] font-semibold tracking-wide text-center leading-tight max-w-[80px]">Govt. of Telangana</span>
+          <img
+            src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770199908/1769454781522_pgepvr.png"
+            alt="HSGA Logo"
+            className="h-14 w-14 sm:h-16 sm:w-16 rounded-full object-contain bg-white p-1 shadow-md select-none"
+          />
+          <div className="leading-tight">
+            <span className="text-[#002f6c] text-xs sm:text-sm font-extrabold tracking-wide block">Hindustan Scouts and Guides</span>
+            <span className="text-[#800020] text-[10px] sm:text-[11px] font-bold block">Association · Telangana</span>
           </div>
         </div>
       </div>
 
-      {/* ── BOTTOM: Light gray background ── */}
-      <div className="bg-[#ebebeb] flex-1" />
+      {/* ── BOTTOM: Page container bg color (#e8eaf6) ── */}
+      <div className="bg-[#e8eaf6] flex-1" />
 
-      {/* ── FLOATING WHITE CARD (absolutely centred across both zones) ── */}
+      {/* ── FLOATING WHITE CARD (centered and non-overflowing) ── */}
       <div className="absolute inset-x-5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-sm"
-        style={{ top: "28%" }}>
-        <div className="bg-white rounded-2xl shadow-2xl shadow-black/20 px-7 py-8">
+        style={{ top: "24dvh" }}>
+        <div className="bg-white rounded-2xl shadow-xl shadow-black/10 px-6 py-6 sm:px-8 sm:py-8 border border-zinc-100">
 
           {/* Dynamic title */}
           {resetStep === "login" && (
