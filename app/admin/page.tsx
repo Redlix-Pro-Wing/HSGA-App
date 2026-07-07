@@ -624,7 +624,7 @@ export default function AdminPage() {
 
   // Load registers when switching tabs
   useEffect(() => {
-    if (email && (activeTab === "schools-registers" || activeTab === "calls-registers" || activeTab === "media-registers")) {
+    if (email && (activeTab === "overview" || activeTab === "schools-registers" || activeTab === "calls-registers" || activeTab === "media-registers")) {
       const fetchRegistersData = async () => {
         try {
           const fetchMod = async (mod: string, setter: any) => {
@@ -1780,6 +1780,59 @@ export default function AdminPage() {
                     </div>
                   </div>
                 )}
+
+                {/* ── Dashboard Key Metrics Grid ── */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 select-none">
+                  {[
+                    { title: "Master Accounts", value: employees.length, icon: "people", color: "bg-blue-50 text-blue-800 border-blue-150" },
+                    { title: "Schools Enrolled", value: schools.length, icon: "domain", color: "bg-emerald-50 text-emerald-800 border-emerald-150" },
+                    { title: "Class Attendees", value: registersList.reduce((acc, curr) => acc + (curr.attendanceCount || 0), 0), icon: "groups", color: "bg-purple-50 text-purple-800 border-purple-150" },
+                    { title: "Active MoUs", value: mouList.filter(m => m.status === "Signed").length, icon: "history_edu", color: "bg-amber-50 text-amber-800 border-amber-150" },
+                  ].map((stat, idx) => (
+                    <div key={idx} className="p-4 rounded-lg border border-zinc-200 bg-white flex items-center justify-between shadow-sm">
+                      <div className="space-y-1">
+                        <span className="text-[10px] uppercase font-black text-zinc-500 tracking-wider block">{stat.title}</span>
+                        <span className="text-2xl font-black text-zinc-850 tracking-tight leading-none block">{stat.value}</span>
+                      </div>
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center border ${stat.color} shrink-0`}>
+                        <span className="material-icons text-lg">{stat.icon}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ── Component & Register Activity Stats List ── */}
+                <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 select-none">
+                  <div className="mb-4 pb-3 border-b border-zinc-100">
+                    <h2 className="text-base font-bold text-zinc-800">All Register Statistics</h2>
+                    <p className="text-xs text-zinc-500 mt-0.5">Live reporting counts across all employee dashboard registers and forms.</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      { label: "School Visits & Demos", count: visitsList.length, icon: "tour", color: "text-[#002f6c]" },
+                      { label: "Daily Class Registers", count: registersList.length, icon: "menu_book", color: "text-[#800020]" },
+                      { label: "Student Enrolments", count: enrolmentsList.length, icon: "assignment_ind", color: "text-emerald-700" },
+                      { label: "Uniform Distributions", count: distributionsList.length, icon: "checkroom", color: "text-blue-700" },
+                      { label: "MoU Registers", count: mouList.length, icon: "history_edu", color: "text-purple-700" },
+                      { label: "Office Calls Logs", count: officeCallsList.length, icon: "call", color: "text-amber-700" },
+                      { label: "Home Calls Logs", count: homeCallsList.length, icon: "contact_phone", color: "text-rose-700" },
+                      { label: "Public Relations Logs", count: prList.length, icon: "campaign", color: "text-teal-700" },
+                      { label: "Social Media Outreach", count: socialList.length, icon: "share", color: "text-indigo-700" },
+                      { label: "Student Training Videos", count: videosList.length, icon: "smart_display", color: "text-emerald-600" },
+                      { label: "Financial Ledgers", count: financeList.length, icon: "account_balance_wallet", color: "text-blue-600" },
+                      { label: "Reported Problems", count: problemsList.length, icon: "report_problem", color: "text-red-700" },
+                      { label: "Scout Documents", count: documentsList.length, icon: "folder_open", color: "text-purple-600" },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-zinc-150 hover:bg-zinc-50/50 transition-colors bg-zinc-50/20 text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <span className={`material-icons text-lg ${item.color} select-none`}>{item.icon}</span>
+                          <span className="font-bold text-zinc-700">{item.label}</span>
+                        </div>
+                        <span className="font-black text-sm bg-zinc-100 text-zinc-800 px-2.5 py-0.5 rounded border border-zinc-200">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Employees Table Card */}
                 <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6">
