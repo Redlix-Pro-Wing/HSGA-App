@@ -29,7 +29,7 @@ export default function EmployeeDashboard() {
   const [isChecking, setIsChecking] = useState(true);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<"overview" | "settings" | "schools" | "calls" | "media">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "settings" | "schools" | "calls" | "media" | "attendance">("overview");
 
   // Profile view state — "view" | "edit" | "id-card" | "details" | "schedule"
   const [profileView, setProfileView] = useState<"view" | "edit" | "id-card" | "details" | "schedule">("view");
@@ -197,6 +197,15 @@ export default function EmployeeDashboard() {
   const [docLink, setDocLink] = useState("");
   const [docUploadedBy, setDocUploadedBy] = useState("");
 
+  // Attendance Punch-In/Punch-Out states
+  const [isPunchedIn, setIsPunchedIn] = useState(false);
+  const [punchInTime, setPunchInTime] = useState<string | null>(null);
+  const [attendanceSessions, setAttendanceSessions] = useState<any[]>([]);
+
+  // Student-wise Attendance taking states for Daily Class Registers
+  const [selectedRegisterForAttendance, setSelectedRegisterForAttendance] = useState<any | null>(null);
+  const [attendanceStudentStates, setAttendanceStudentStates] = useState<{ [studentId: string]: boolean }>({});
+
   // Form fields
   const [designation, setDesignation] = useState("");
   const [district, setDistrict] = useState("");
@@ -294,6 +303,10 @@ export default function EmployeeDashboard() {
       setFinanceList(JSON.parse(localStorage.getItem(`finance_${email}`) || "[]"));
       setProblemsList(JSON.parse(localStorage.getItem(`problems_${email}`) || "[]"));
       setDocumentsList(JSON.parse(localStorage.getItem(`documents_${email}`) || "[]"));
+
+      setIsPunchedIn(JSON.parse(localStorage.getItem(`punched_in_${email}`) || "false"));
+      setPunchInTime(localStorage.getItem(`punch_in_time_${email}`));
+      setAttendanceSessions(JSON.parse(localStorage.getItem(`attendance_sessions_${email}`) || "[]"));
 
       // Sync online updates
       const fetchModuleData = async (moduleName: string, setter: any, localKey: string) => {
@@ -565,6 +578,83 @@ export default function EmployeeDashboard() {
     } finally {
       setIsSavingPw(false);
     }
+  };
+
+  // Attendance Punch-In / Punch-Out handlers
+  const handlePunchIn = () => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const email = employee?.email || "";
+    
+    setIsPunchedIn(true);
+    setPunchInTime(timeStr);
+    localStorage.setItem(`punched_in_${email}`, "true");
+    localStorage.setItem(`punch_in_time_${email}`, timeStr);
+    setSuccess("Successfully Punched In! Have a productive session.");
+    setError(null);
+  };
+
+  const handlePunchOut = () => {
+    if (!punchInTime) return;
+    const now = new Date();
+    const outTimeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const dateStr = now.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
+    const email = employee?.email || "";
+    
+    const session = {
+      id: Date.now().toString(),
+      date: dateStr,
+      punchIn: punchInTime,
+      punchOut: outTimeStr,
+      duration: "Completed Session",
+      status: "Present"
+    };
+
+    const updated = [session, ...attendanceSessions];
+    setAttendanceSessions(updated);
+    localStorage.setItem(`attendance_sessions_${email}`, JSON.stringify(updated));
+
+    setIsPunchedIn(false);
+    setPunchInTime(null);
+    localStorage.removeItem(`punched_in_${email}`);
+    localStorage.removeItem(`punch_in_time_${email}`);
+    setSuccess("Successfully Punched Out! Session recorded.");
+    setError(null);
+  };
+
+  const handleDeleteSession = (id: string) => {
+    const email = employee?.email || "";
+    const updated = attendanceSessions.filter(s => s.id !== id);
+    setAttendanceSessions(updated);
+    localStorage.setItem(`attendance_sessions_${email}`, JSON.stringify(updated));
+    setSuccess("Attendance record deleted.");
+  };
+
+  const handleSaveStudentAttendance = async () => {
+    if (!selectedRegisterForAttendance || !employee) return;
+    const presentCount = Object.values(attendanceStudentStates).filter(v => v === true).length;
+    try {
+      const updated = registersList.map(r => {
+        if (r.id === selectedRegisterForAttendance.id) {
+          return { ...r, attendanceCount: presentCount };
+        }
+        return r;
+      });
+      setRegistersList(updated);
+      localStorage.setItem(`registers_${employee.email}`, JSON.stringify(updated));
+
+      await fetch(`/api/employee/data/registers?id=${selectedRegisterForAttendance.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attendanceCount: presentCount }),
+      });
+      setSuccess("Student-wise attendance recorded successfully!");
+      setError(null);
+    } catch (err) {
+      console.error("Failed to sync attendance online:", err);
+    }
+    setSelectedRegisterForAttendance(null);
+    setAttendanceStudentStates({});
   };
 
   const handleAddVisit = async (e: React.FormEvent) => {
@@ -1487,6 +1577,7 @@ export default function EmployeeDashboard() {
               { key: "schools", icon: "book", label: "Schools", cls: "material-symbols-outlined" },
               { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
               { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
+              { key: "attendance", icon: "fingerprint", label: "Attendance", cls: "material-icons" },
               { key: "settings", icon: "account_circle", label: "Profile & Settings", cls: "material-symbols-outlined" },
             ].map(({ key, icon, label, cls }) => (
               <button
@@ -1537,23 +1628,41 @@ export default function EmployeeDashboard() {
             {/* ═══ TAB: Overview ═══ */}
             {activeTab === "overview" && (
               <div className="space-y-3 sm:space-y-4">
-                <div className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[220px]">
+                <div 
+                  onClick={() => {
+                    setActiveTab("attendance");
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[220px] cursor-pointer hover:border-[#002f6c]/50 hover:shadow-md transition-all duration-300 select-none group"
+                >
                   {/* Left side: Illustration */}
                   <div className="flex-1 flex justify-center sm:justify-start">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="https://ik.imagekit.io/dypkhqxip/Breathing%20exercise-cuate.svg"
                       alt="Attendance Illustration"
-                      className="h-44 sm:h-52 w-auto object-contain select-none"
+                      className="h-44 sm:h-52 w-auto object-contain select-none transition-transform duration-300 group-hover:scale-[1.03]"
                     />
                   </div>
-                  {/* Right side: Attendance Stats */}
+                  {/* Right side: Attendance Stats & Action */}
                   <div className="flex-1 flex flex-col items-center justify-center text-center pr-2 sm:pr-8">
-                    <span className="text-5xl sm:text-6xl font-semibold text-zinc-900 tracking-tight leading-none">
-                      0%
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider mb-2 ${
+                      isPunchedIn 
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200 animate-pulse" 
+                        : "bg-rose-50 text-rose-700 border border-rose-200"
+                    }`}>
+                      {isPunchedIn ? "Active: Punched In" : "Punched Out"}
                     </span>
-                    <span className="text-sm sm:text-base font-semibold text-zinc-500 mt-2">
-                      Attendance
+                    <span className="text-4xl sm:text-5xl font-black text-zinc-850 tracking-tight leading-none">
+                      {attendanceSessions.length > 0 ? "100%" : "0%"}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-500 mt-2 block">
+                      My Monthly Attendance
+                    </span>
+                    <span className="text-[10px] text-[#002f6c] font-black uppercase tracking-wider mt-4 flex items-center gap-1 group-hover:underline">
+                      Manage Attendance
+                      <span className="material-icons text-xs font-bold">arrow_forward</span>
                     </span>
                   </div>
                 </div>
@@ -2154,13 +2263,29 @@ export default function EmployeeDashboard() {
                                     <p className="text-zinc-650 font-bold text-[11px]">{item.topicCovered}</p>
                                     <span className="text-[10px] text-zinc-450 block font-semibold">Date: {item.date}</span>
                                   </div>
-                                  <div className="text-right shrink-0">
+                                  <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-black text-[10px] border border-emerald-250 select-none">
                                       {item.attendanceCount} Students
                                     </span>
                                     <button 
+                                      onClick={() => {
+                                        const schoolStudents = enrolmentsList.filter(s => s.schoolName === item.schoolName);
+                                        const initialCheck: { [key: string]: boolean } = {};
+                                        schoolStudents.forEach(s => {
+                                          initialCheck[s.id] = true;
+                                        });
+                                        setAttendanceStudentStates(initialCheck);
+                                        setSelectedRegisterForAttendance(item);
+                                        setError(null);
+                                        setSuccess(null);
+                                      }}
+                                      className="text-blue-650 hover:text-blue-800 transition-colors font-bold text-[9px] uppercase cursor-pointer hover:underline"
+                                    >
+                                      Take Attendance
+                                    </button>
+                                    <button 
                                       onClick={() => handleDeleteRegister(item.id)}
-                                      className="text-rose-650 hover:text-rose-800 transition-colors font-bold text-[10px] uppercase cursor-pointer block mt-1.5 text-right ml-auto"
+                                      className="text-rose-650 hover:text-rose-800 transition-colors font-bold text-[9px] uppercase cursor-pointer hover:underline"
                                     >
                                       Delete
                                     </button>
@@ -4513,6 +4638,121 @@ export default function EmployeeDashboard() {
                 )}
               </div>
             )}
+            {/* ═══ TAB: Attendance ═══ */}
+            {activeTab === "attendance" && (
+              <div className="space-y-6 text-left">
+                {/* Navigation Top Bar */}
+                <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-2.5 sm:p-3 select-none gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <button 
+                      onClick={() => {
+                        setActiveTab("overview");
+                        setError(null);
+                        setSuccess(null);
+                      }}
+                      className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-zinc-200 text-zinc-700 hover:text-[#002f6c] transition-colors cursor-pointer shrink-0"
+                      title="Back to Overview"
+                    >
+                      <span className="material-icons text-lg font-bold">arrow_back</span>
+                    </button>
+                    <div className="h-5 w-px bg-zinc-300 shrink-0" />
+                    <h3 className="text-[10px] sm:text-xs font-black text-zinc-800 uppercase tracking-wider truncate">
+                      Session Attendance Punch
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Main Attendance Card */}
+                <div className="bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 shadow-sm flex flex-col items-center justify-center text-center max-w-xl mx-auto space-y-6 select-none">
+                  <div className="space-y-1">
+                    <span className="material-icons text-4xl text-[#002f6c]">fingerprint</span>
+                    <h2 className="text-lg font-extrabold text-zinc-850">Mark Session Attendance</h2>
+                    <p className="text-xs text-zinc-500 max-w-xs">Punch In when you start your school session and Punch Out when you complete the session to register your logs.</p>
+                  </div>
+
+                  {/* Active Punch Info */}
+                  <div className="w-full bg-zinc-50 border border-zinc-200 rounded-lg p-4 flex flex-col items-center justify-center space-y-2">
+                    <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Current Session Status</span>
+                    {isPunchedIn ? (
+                      <div className="space-y-1.5">
+                        <span className="inline-flex px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200 animate-pulse">PUNCHED IN</span>
+                        <p className="text-xs text-zinc-500 font-semibold">Started at: <span className="font-bold text-zinc-800 font-mono">{punchInTime}</span></p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <span className="inline-flex px-3 py-1 rounded-full text-xs font-black bg-zinc-150 text-zinc-650 border border-zinc-300">NOT PUNCHED IN</span>
+                        <p className="text-[10px] text-zinc-400 font-semibold">No session currently active</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Punch Button */}
+                  <div className="pt-2">
+                    {isPunchedIn ? (
+                      <button
+                        onClick={handlePunchOut}
+                        className="w-40 h-40 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-lg shadow-rose-200 hover:shadow-xl transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer font-bold border-4 border-rose-50"
+                      >
+                        <span className="material-icons text-4xl select-none">logout</span>
+                        <span className="text-sm tracking-wide uppercase">Punch Out</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handlePunchIn}
+                        className="w-40 h-40 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white shadow-lg shadow-emerald-200 hover:shadow-xl transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer font-bold border-4 border-emerald-50"
+                      >
+                        <span className="material-icons text-4xl select-none">login</span>
+                        <span className="text-sm tracking-wide uppercase">Punch In</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Attendance Logs History */}
+                <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                  <h3 className="text-xs font-black text-zinc-850 uppercase tracking-wider mb-4 pb-2 border-b border-zinc-150">My Attendance Logs History ({attendanceSessions.length})</h3>
+                  {attendanceSessions.length === 0 ? (
+                    <div className="py-12 text-center text-zinc-400 text-xs font-medium">No session attendance recorded yet.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-zinc-200 text-left text-xs">
+                        <thead className="bg-zinc-50 text-[10px] font-extrabold uppercase text-zinc-550 tracking-wider">
+                          <tr>
+                            <th className="px-3 py-2.5">Date</th>
+                            <th className="px-3 py-2.5">Punch In</th>
+                            <th className="px-3 py-2.5">Punch Out</th>
+                            <th className="px-3 py-2.5">Duration</th>
+                            <th className="px-3 py-2.5">Status</th>
+                            <th className="px-3 py-2.5">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-200 bg-white font-medium text-zinc-700">
+                          {attendanceSessions.map((session) => (
+                            <tr key={session.id} className="hover:bg-zinc-50/50">
+                              <td className="px-3 py-3 whitespace-nowrap font-bold text-zinc-850">{session.date}</td>
+                              <td className="px-3 py-3 font-mono text-[10px]">{session.punchIn}</td>
+                              <td className="px-3 py-3 font-mono text-[10px]">{session.punchOut}</td>
+                              <td className="px-3 py-3 text-zinc-500">{session.duration}</td>
+                              <td className="px-3 py-3">
+                                <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-250 uppercase">{session.status}</span>
+                              </td>
+                              <td className="px-3 py-3">
+                                <button
+                                  onClick={() => handleDeleteSession(session.id)}
+                                  className="text-rose-600 hover:text-rose-800 font-bold hover:underline cursor-pointer"
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
           </div>
         </main>
@@ -4524,6 +4764,7 @@ export default function EmployeeDashboard() {
           { key: "schools", icon: "book", label: "Schools", cls: "material-symbols-outlined" },
           { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
           { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
+          { key: "attendance", icon: "fingerprint", label: "Attend", cls: "material-icons" },
           { key: "settings", icon: "account_circle", label: "Settings", cls: "material-symbols-outlined" },
         ].map(({ key, icon, label, cls }) => (
           <button
@@ -4583,6 +4824,89 @@ export default function EmployeeDashboard() {
             >
               Got it
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Student-wise Attendance Modal Overlay */}
+      {selectedRegisterForAttendance && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-lg border border-zinc-200 w-full max-w-md p-6 relative overflow-hidden select-none flex flex-col max-h-[90vh]">
+            {/* Top Right Close Button */}
+            <button 
+              onClick={() => {
+                setSelectedRegisterForAttendance(null);
+                setAttendanceStudentStates({});
+              }}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-650 p-1 hover:bg-zinc-100 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+            >
+              <span className="material-icons text-xl select-none">close</span>
+            </button>
+
+            {/* Icon & Title */}
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-zinc-100">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-50 border border-blue-150">
+                <span className="material-icons text-xl text-[#002f6c]">assignment_turned_in</span>
+              </div>
+              <div className="text-left">
+                <h3 className="text-sm font-extrabold text-zinc-950 leading-tight">Student-wise Attendance</h3>
+                <p className="text-[10px] text-zinc-450 font-bold uppercase mt-0.5">{selectedRegisterForAttendance.schoolName}</p>
+              </div>
+            </div>
+
+            {/* Student List Checklist */}
+            <div className="flex-1 overflow-y-auto space-y-2.5 my-2 pr-1.5 min-h-[150px]">
+              {enrolmentsList.filter(s => s.schoolName === selectedRegisterForAttendance.schoolName).length === 0 ? (
+                <div className="py-8 text-center text-zinc-400 text-xs font-semibold space-y-2">
+                  <span className="material-icons text-3xl">people_outline</span>
+                  <p>No students enrolled in this school yet.</p>
+                  <p className="text-[10px] text-zinc-400 font-medium max-w-xs mx-auto">Please go to "Student Enrolment" page to enroll students for this school before taking attendance.</p>
+                </div>
+              ) : (
+                enrolmentsList.filter(s => s.schoolName === selectedRegisterForAttendance.schoolName).map((student) => (
+                  <label key={student.id} className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-150 bg-zinc-50/20 hover:bg-zinc-50 transition-colors cursor-pointer text-xs select-none">
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold text-zinc-800">{student.studentName}</span>
+                      <span className="text-[10px] text-zinc-450 font-medium">Age: {student.age} • ID: {student.validId || "N/A"}</span>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={!!attendanceStudentStates[student.id]}
+                      onChange={(e) => {
+                        setAttendanceStudentStates({
+                          ...attendanceStudentStates,
+                          [student.id]: e.target.checked
+                        });
+                      }}
+                      className="w-4.5 h-4.5 text-[#002f6c] border-zinc-300 rounded focus:ring-[#002f6c] cursor-pointer"
+                    />
+                  </label>
+                ))
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="mt-4 pt-3 border-t border-zinc-100 flex gap-3">
+              <button 
+                type="button"
+                onClick={() => {
+                  setSelectedRegisterForAttendance(null);
+                  setAttendanceStudentStates({});
+                }}
+                className="flex-1 py-2.5 border border-zinc-350 hover:bg-zinc-50 text-zinc-655 font-bold rounded-md text-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              {enrolmentsList.filter(s => s.schoolName === selectedRegisterForAttendance.schoolName).length > 0 && (
+                <button 
+                  type="button"
+                  onClick={handleSaveStudentAttendance}
+                  className="flex-1 py-2.5 bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold rounded-md transition-colors shadow-sm cursor-pointer"
+                >
+                  Save Attendance
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

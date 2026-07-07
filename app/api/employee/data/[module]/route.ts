@@ -336,3 +336,41 @@ export async function DELETE(
     return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
   }
 }
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ module: string }> }
+) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = parseInt(searchParams.get("id") || "", 10);
+    const { module } = await params;
+    const body = await req.json();
+
+    if (!id) {
+      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    }
+
+    let record: any;
+    if (module === "registers") {
+      record = await prisma.dailyRegister.update({
+        where: { id },
+        data: {
+          attendanceCount: parseInt(body.attendanceCount, 10) || 0,
+        },
+      });
+    } else {
+      return NextResponse.json({ error: "Invalid module or method" }, { status: 400 });
+    }
+
+    const formatted = {
+      ...record,
+      id: record.id.toString(),
+    };
+
+    return NextResponse.json(formatted);
+  } catch (err: any) {
+    console.error("PATCH error:", err);
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
+  }
+}
