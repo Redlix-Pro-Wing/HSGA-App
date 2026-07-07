@@ -194,4 +194,64 @@ model PublicRelation {
   createdAt      DateTime @default(now())
 }
 
+model StudentVideo {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  date          String
+  school        String
+  title         String
+  platform      String
+  views         Int
+  likes         Int
+  link          String
+  createdAt     DateTime @default(now())
+}
+
+model FinancialRecord {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  date          String
+  head          String
+  type          String
+  amount        Float
+  billUrl       String?
+  remarks       String?
+  createdAt     DateTime @default(now())
+}
+
+model ProblemRecord {
+  id              Int      @id @default(autoincrement())
+  employeeEmail   String
+  date            String
+  category        String
+  description     String
+  supportRequired String
+  status          String
+  raisedBy        String
+  createdAt       DateTime @default(now())
+}
+
+model DocumentRecord {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  date          String
+  title         String
+  category      String
+  link          String?
+  uploadedBy    String
+  createdAt     DateTime @default(now())
+}
+
+model SocialMediaReport {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  date          String
+  platform      String
+  postTitle     String
+  reach         Int
+  likes         Int
+  link          String
+  createdAt     DateTime @default(now())
+}
+
 

@@ -55,6 +55,31 @@ export async function GET(
         where: { employeeEmail: email },
         orderBy: { createdAt: "desc" },
       });
+    } else if (module === "videos") {
+      data = await prisma.studentVideo.findMany({
+        where: { employeeEmail: email },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "finance") {
+      data = await prisma.financialRecord.findMany({
+        where: { employeeEmail: email },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "problems") {
+      data = await prisma.problemRecord.findMany({
+        where: { employeeEmail: email },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "documents") {
+      data = await prisma.documentRecord.findMany({
+        where: { employeeEmail: email },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "social") {
+      data = await prisma.socialMediaReport.findMany({
+        where: { employeeEmail: email },
+        orderBy: { createdAt: "desc" },
+      });
     } else {
       return NextResponse.json({ error: "Invalid module" }, { status: 400 });
     }
@@ -186,6 +211,66 @@ export async function POST(
           staff: body.staff,
         },
       });
+    } else if (module === "videos") {
+      record = await prisma.studentVideo.create({
+        data: {
+          employeeEmail: email,
+          date: body.date,
+          school: body.school,
+          title: body.title,
+          platform: body.platform,
+          views: parseInt(body.views, 10) || 0,
+          likes: parseInt(body.likes, 10) || 0,
+          link: body.link,
+        },
+      });
+    } else if (module === "finance") {
+      record = await prisma.financialRecord.create({
+        data: {
+          employeeEmail: email,
+          date: body.date,
+          head: body.head,
+          type: body.type,
+          amount: parseFloat(body.amount) || 0,
+          billUrl: body.billUrl,
+          remarks: body.remarks,
+        },
+      });
+    } else if (module === "problems") {
+      record = await prisma.problemRecord.create({
+        data: {
+          employeeEmail: email,
+          date: body.date,
+          category: body.category,
+          description: body.description,
+          supportRequired: body.supportRequired,
+          status: body.status,
+          raisedBy: body.raisedBy,
+        },
+      });
+    } else if (module === "documents") {
+      record = await prisma.documentRecord.create({
+        data: {
+          employeeEmail: email,
+          date: body.date,
+          title: body.title,
+          category: body.category,
+          link: body.link,
+          uploadedBy: body.uploadedBy,
+        },
+      });
+    } else if (module === "social") {
+      record = await prisma.socialMediaReport.create({
+        data: {
+          employeeEmail: email,
+          date: body.date,
+          platform: body.platform,
+          postTitle: body.postTitle,
+          reach: parseInt(body.reach, 10) || 0,
+          likes: parseInt(body.likes, 10) || 0,
+          link: body.link,
+        },
+      });
     } else {
       return NextResponse.json({ error: "Invalid module" }, { status: 400 });
     }
@@ -231,6 +316,16 @@ export async function DELETE(
       await prisma.homeCall.delete({ where: { id } });
     } else if (module === "pr") {
       await prisma.publicRelation.delete({ where: { id } });
+    } else if (module === "videos") {
+      await prisma.studentVideo.delete({ where: { id } });
+    } else if (module === "finance") {
+      await prisma.financialRecord.delete({ where: { id } });
+    } else if (module === "problems") {
+      await prisma.problemRecord.delete({ where: { id } });
+    } else if (module === "documents") {
+      await prisma.documentRecord.delete({ where: { id } });
+    } else if (module === "social") {
+      await prisma.socialMediaReport.delete({ where: { id } });
     } else {
       return NextResponse.json({ error: "Invalid module" }, { status: 400 });
     }

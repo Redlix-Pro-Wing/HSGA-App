@@ -57,7 +57,7 @@ export default function AdminPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Tab Navigation state
-  const [activeTab, setActiveTab] = useState<"overview" | "add-employee" | "schools" | "settings" | "timetable" | "schools-registers" | "calls-registers">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "add-employee" | "schools" | "settings" | "timetable" | "schools-registers" | "calls-registers" | "media-registers">("overview");
 
   // Registers list states
   const [visitsList, setVisitsList] = useState<any[]>([]);
@@ -68,8 +68,17 @@ export default function AdminPage() {
   const [officeCallsList, setOfficeCallsList] = useState<any[]>([]);
   const [homeCallsList, setHomeCallsList] = useState<any[]>([]);
   const [prList, setPrList] = useState<any[]>([]);
+  
+  // Media list states
+  const [socialList, setSocialList] = useState<any[]>([]);
+  const [videosList, setVideosList] = useState<any[]>([]);
+  const [financeList, setFinanceList] = useState<any[]>([]);
+  const [problemsList, setProblemsList] = useState<any[]>([]);
+  const [documentsList, setDocumentsList] = useState<any[]>([]);
+
   const [activeAdminSchoolModule, setActiveAdminSchoolModule] = useState<"visits" | "register" | "enrolment" | "uniforms">("visits");
   const [activeAdminCallModule, setActiveAdminCallModule] = useState<"mou" | "office" | "home" | "pr">("mou");
+  const [activeAdminMediaModule, setActiveAdminMediaModule] = useState<"social" | "videos" | "finance" | "problems" | "documents">("social");
 
   // Schools state
   const [schools, setSchools] = useState<any[]>([]);
@@ -615,7 +624,7 @@ export default function AdminPage() {
 
   // Load registers when switching tabs
   useEffect(() => {
-    if (email && (activeTab === "schools-registers" || activeTab === "calls-registers")) {
+    if (email && (activeTab === "schools-registers" || activeTab === "calls-registers" || activeTab === "media-registers")) {
       const fetchRegistersData = async () => {
         try {
           const fetchMod = async (mod: string, setter: any) => {
@@ -634,6 +643,11 @@ export default function AdminPage() {
             fetchMod("officecalls", setOfficeCallsList),
             fetchMod("homecalls", setHomeCallsList),
             fetchMod("pr", setPrList),
+            fetchMod("social", setSocialList),
+            fetchMod("videos", setVideosList),
+            fetchMod("finance", setFinanceList),
+            fetchMod("problems", setProblemsList),
+            fetchMod("documents", setDocumentsList),
           ]);
         } catch (err) {
           console.error("Error fetching registers data for admin:", err);
@@ -1670,6 +1684,23 @@ export default function AdminPage() {
               <span className="material-icons text-lg shrink-0">call</span>
               <span className="hidden group-hover:inline-block transition-all duration-300 whitespace-nowrap overflow-hidden text-xs">
                 Call Registers
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("media-registers");
+                setError(null);
+                setSuccess(null);
+              }}
+              title="Media Registers"
+              className={`w-full flex items-center justify-center group-hover:justify-start gap-4 px-3 py-2.5 rounded-md text-sm font-semibold transition-colors cursor-pointer ${activeTab === "media-registers"
+                  ? "bg-[#002f6c]/10 text-[#002f6c]"
+                  : "text-zinc-650 hover:text-zinc-950 hover:bg-zinc-50"
+                }`}
+            >
+              <span className="material-icons text-lg shrink-0">perm_media</span>
+              <span className="hidden group-hover:inline-block transition-all duration-300 whitespace-nowrap overflow-hidden text-xs">
+                Media Registers
               </span>
             </button>
             <button
@@ -3499,6 +3530,272 @@ export default function AdminPage() {
                           )}
                         </div>
                       )}
+
+                      {/* TAB CONTENT: Media Registers (Admin View) */}
+                      {activeTab === "media-registers" && (
+                        <div className="space-y-6 text-left">
+                          {/* Module Selector Header */}
+                          <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-4 flex flex-wrap gap-2 items-center justify-between select-none">
+                            <div className="flex flex-wrap gap-1.5">
+                              {[
+                                { key: "social", label: "Social Media", icon: "share" },
+                                { key: "videos", label: "Student Videos", icon: "smart_display" },
+                                { key: "finance", label: "Financial Register", icon: "account_balance_wallet" },
+                                { key: "problems", label: "Problem Register", icon: "report_problem" },
+                                { key: "documents", label: "Documents", icon: "folder_open" },
+                              ].map((item) => (
+                                <button
+                                  key={item.key}
+                                  onClick={() => setActiveAdminMediaModule(item.key as any)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                                    activeAdminMediaModule === item.key
+                                      ? "bg-[#002f6c] text-white shadow-sm"
+                                      : "text-zinc-650 hover:bg-zinc-100"
+                                  }`}
+                                >
+                                  <span className="material-icons text-sm">{item.icon}</span>
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              onClick={async () => {
+                                setError(null);
+                                setSuccess("Refreshing registers data...");
+                                try {
+                                  const fetchMod = async (mod: string, setter: any) => {
+                                    const res = await fetch(`/api/admin/data/${mod}`);
+                                    if (res.ok) setter(await res.json());
+                                  };
+                                  await Promise.all([
+                                    fetchMod("social", setSocialList),
+                                    fetchMod("videos", setVideosList),
+                                    fetchMod("finance", setFinanceList),
+                                    fetchMod("problems", setProblemsList),
+                                    fetchMod("documents", setDocumentsList),
+                                  ]);
+                                  setSuccess("Media registers refreshed successfully!");
+                                } catch (err) {
+                                  setError("Failed to refresh media registers.");
+                                }
+                              }}
+                              className="flex items-center gap-1 py-1 px-3 border border-zinc-300 rounded hover:bg-zinc-50 text-zinc-650 text-xs font-bold transition-colors select-none"
+                            >
+                              <span className="material-icons text-sm">refresh</span>
+                              Refresh Data
+                            </button>
+                          </div>
+
+                          {/* ──── ADMIN MEDIA SUB-MODULE 1: Social Media ──── */}
+                          {activeAdminMediaModule === "social" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Social Media Reports ({socialList.length})</h3>
+                              {socialList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No social media reports logged yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">Platform</th>
+                                      <th className="px-3 py-2.5">Post Title</th>
+                                      <th className="px-3 py-2.5">Reach</th>
+                                      <th className="px-3 py-2.5">Likes</th>
+                                      <th className="px-3 py-2.5">Link</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {socialList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3">
+                                          <span className="inline-flex px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-250 text-[9px] font-bold uppercase">{item.platform}</span>
+                                        </td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.postTitle}</td>
+                                        <td className="px-3 py-3">{item.reach}</td>
+                                        <td className="px-3 py-3">{item.likes}</td>
+                                        <td className="px-3 py-3 text-blue-600 max-w-[150px] truncate"><a href={item.link} target="_blank" rel="noopener noreferrer" className="hover:underline">{item.link}</a></td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN MEDIA SUB-MODULE 2: Student Videos ──── */}
+                          {activeAdminMediaModule === "videos" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Recorded Student scout videos ({videosList.length})</h3>
+                              {videosList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No video records logged yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">School</th>
+                                      <th className="px-3 py-2.5">Video Title</th>
+                                      <th className="px-3 py-2.5">Platform</th>
+                                      <th className="px-3 py-2.5">Views</th>
+                                      <th className="px-3 py-2.5">Likes</th>
+                                      <th className="px-3 py-2.5">Video Link</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {videosList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.school}</td>
+                                        <td className="px-3 py-3">{item.title}</td>
+                                        <td className="px-3 py-3">
+                                          <span className="inline-flex px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-850 border border-emerald-250 text-[9px] font-bold uppercase">{item.platform}</span>
+                                        </td>
+                                        <td className="px-3 py-3">{item.views}</td>
+                                        <td className="px-3 py-3">{item.likes}</td>
+                                        <td className="px-3 py-3 text-blue-600 max-w-[150px] truncate"><a href={item.link} target="_blank" rel="noopener noreferrer" className="hover:underline">{item.link}</a></td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN MEDIA SUB-MODULE 3: Financial Register ──── */}
+                          {activeAdminMediaModule === "finance" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Financial Ledger Transactions ({financeList.length})</h3>
+                              {financeList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No ledger records found.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">Head / Particulars</th>
+                                      <th className="px-3 py-2.5">Type</th>
+                                      <th className="px-3 py-2.5">Amount</th>
+                                      <th className="px-3 py-2.5">Bill Uploaded</th>
+                                      <th className="px-3 py-2.5">Remarks</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {financeList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.head}</td>
+                                        <td className="px-3 py-3">
+                                          <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                                            item.type === "Income" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200"
+                                          }`}>{item.type}</span>
+                                        </td>
+                                        <td className="px-3 py-3 font-bold">₹{item.amount}</td>
+                                        <td className="px-3 py-3 font-mono text-zinc-500 text-[10px]">{item.billUrl || "N/A"}</td>
+                                        <td className="px-3 py-3 text-zinc-550">{item.remarks || "-"}</td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN MEDIA SUB-MODULE 4: Problem Register ──── */}
+                          {activeAdminMediaModule === "problems" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Reported school/district problems ({problemsList.length})</h3>
+                              {problemsList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No issues logged yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">Category</th>
+                                      <th className="px-3 py-2.5">Issue Description</th>
+                                      <th className="px-3 py-2.5">Support Required</th>
+                                      <th className="px-3 py-2.5">Status</th>
+                                      <th className="px-3 py-2.5">Raised By</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {problemsList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.category}</td>
+                                        <td className="px-3 py-3 text-zinc-800">{item.description}</td>
+                                        <td className="px-3 py-3">
+                                          <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.supportRequired === "Yes" ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-zinc-100 text-zinc-550"}`}>{item.supportRequired}</span>
+                                        </td>
+                                        <td className="px-3 py-3">
+                                          <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                                            item.status === "Resolved" ? "bg-emerald-50 text-emerald-800 border border-emerald-250" :
+                                            item.status === "In Progress" ? "bg-blue-50 text-blue-800 border border-blue-200" :
+                                            "bg-rose-50 text-rose-805 border border-rose-200"
+                                          }`}>{item.status}</span>
+                                        </td>
+                                        <td className="px-3 py-3">{item.raisedBy}</td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN MEDIA SUB-MODULE 5: Documents ──── */}
+                          {activeAdminMediaModule === "documents" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Uploaded Scouting Documents ({documentsList.length})</h3>
+                              {documentsList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No documents uploaded yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">Document Title</th>
+                                      <th className="px-3 py-2.5">Category</th>
+                                      <th className="px-3 py-2.5">Reference / Link</th>
+                                      <th className="px-3 py-2.5">Uploaded By</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {documentsList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.title}</td>
+                                        <td className="px-3 py-3">
+                                          <span className="inline-flex px-1.5 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200 text-[9px] font-bold uppercase">{item.category}</span>
+                                        </td>
+                                        <td className="px-3 py-3 text-blue-600 max-w-[180px] truncate">
+                                          {item.link && (item.link.startsWith("http://") || item.link.startsWith("https://")) ? (
+                                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="hover:underline">{item.link}</a>
+                                          ) : (
+                                            <span className="font-mono text-[10px] text-zinc-500">{item.link}</span>
+                                          )}
+                                        </td>
+                                        <td className="px-3 py-3">{item.uploadedBy}</td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </main>
       </div>
@@ -3510,6 +3807,7 @@ export default function AdminPage() {
               { key: "schools", icon: "domain", label: "Schools" },
               { key: "schools-registers", icon: "school", label: "Sch Reg" },
               { key: "calls-registers", icon: "call", label: "Call Reg" },
+              { key: "media-registers", icon: "perm_media", label: "Med Reg" },
               { key: "settings", icon: "settings", label: "Settings" },
             ].map(({ key, icon, label }) => (
               <button

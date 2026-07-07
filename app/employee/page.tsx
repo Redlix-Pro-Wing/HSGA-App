@@ -146,6 +146,57 @@ export default function EmployeeDashboard() {
   const [prOutcome, setPrOutcome] = useState("");
   const [prStaff, setPrStaff] = useState("");
 
+  // Sub-modules state in Media Tab
+  const [activeMediaModule, setActiveMediaModule] = useState<string | null>(null);
+  const [showMediaAddForm, setShowMediaAddForm] = useState(false);
+
+  // Lists for Media
+  const [socialList, setSocialList] = useState<any[]>([]);
+  const [videosList, setVideosList] = useState<any[]>([]);
+  const [financeList, setFinanceList] = useState<any[]>([]);
+  const [problemsList, setProblemsList] = useState<any[]>([]);
+  const [documentsList, setDocumentsList] = useState<any[]>([]);
+
+  // Form field states for Social Media
+  const [smDate, setSmDate] = useState("");
+  const [smPlatform, setSmPlatform] = useState("Facebook");
+  const [smTitle, setSmTitle] = useState("");
+  const [smReach, setSmReach] = useState("");
+  const [smLikes, setSmLikes] = useState("");
+  const [smLink, setSmLink] = useState("");
+
+  // Form field states for Student Videos
+  const [svDate, setSvDate] = useState("");
+  const [svSchool, setSvSchool] = useState("");
+  const [svTitle, setSvTitle] = useState("");
+  const [svPlatform, setSvPlatform] = useState("YouTube");
+  const [svViews, setSvViews] = useState("");
+  const [svLikes, setSvLikes] = useState("");
+  const [svLink, setSvLink] = useState("");
+
+  // Form field states for Financial Register
+  const [finDate, setFinDate] = useState("");
+  const [finHead, setFinHead] = useState("");
+  const [finType, setFinType] = useState("Income");
+  const [finAmount, setFinAmount] = useState("");
+  const [finBillUploaded, setFinBillUploaded] = useState(""); // Holds file name or mock file URL
+  const [finRemarks, setFinRemarks] = useState("");
+
+  // Form field states for Problem Register
+  const [probDate, setProbDate] = useState("");
+  const [probCategory, setProbCategory] = useState("Infrastructure");
+  const [probDescription, setProbDescription] = useState("");
+  const [probSupportRequired, setProbSupportRequired] = useState("Yes");
+  const [probStatus, setProbStatus] = useState("Open");
+  const [probRaisedBy, setProbRaisedBy] = useState("");
+
+  // Form field states for Documents
+  const [docDate, setDocDate] = useState("");
+  const [docTitle, setDocTitle] = useState("");
+  const [docCategory, setDocCategory] = useState("Syllabus");
+  const [docLink, setDocLink] = useState("");
+  const [docUploadedBy, setDocUploadedBy] = useState("");
+
   // Form fields
   const [designation, setDesignation] = useState("");
   const [district, setDistrict] = useState("");
@@ -238,6 +289,11 @@ export default function EmployeeDashboard() {
       setOfficeCallsList(JSON.parse(localStorage.getItem(`officecalls_${email}`) || "[]"));
       setHomeCallsList(JSON.parse(localStorage.getItem(`homecalls_${email}`) || "[]"));
       setPrList(JSON.parse(localStorage.getItem(`pr_${email}`) || "[]"));
+      setSocialList(JSON.parse(localStorage.getItem(`social_${email}`) || "[]"));
+      setVideosList(JSON.parse(localStorage.getItem(`videos_${email}`) || "[]"));
+      setFinanceList(JSON.parse(localStorage.getItem(`finance_${email}`) || "[]"));
+      setProblemsList(JSON.parse(localStorage.getItem(`problems_${email}`) || "[]"));
+      setDocumentsList(JSON.parse(localStorage.getItem(`documents_${email}`) || "[]"));
 
       // Sync online updates
       const fetchModuleData = async (moduleName: string, setter: any, localKey: string) => {
@@ -261,6 +317,11 @@ export default function EmployeeDashboard() {
       fetchModuleData("officecalls", setOfficeCallsList, `officecalls_${email}`);
       fetchModuleData("homecalls", setHomeCallsList, `homecalls_${email}`);
       fetchModuleData("pr", setPrList, `pr_${email}`);
+      fetchModuleData("social", setSocialList, `social_${email}`);
+      fetchModuleData("videos", setVideosList, `videos_${email}`);
+      fetchModuleData("finance", setFinanceList, `finance_${email}`);
+      fetchModuleData("problems", setProblemsList, `problems_${email}`);
+      fetchModuleData("documents", setDocumentsList, `documents_${email}`);
 
       const loadAllSchools = async () => {
         try {
@@ -916,6 +977,296 @@ export default function EmployeeDashboard() {
         const updated = prList.filter(item => item.id !== id);
         setPrList(updated);
         localStorage.setItem(`pr_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddSocial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!employee) return;
+    const body = {
+      employeeEmail: employee.email,
+      date: smDate,
+      platform: smPlatform,
+      postTitle: smTitle,
+      reach: smReach,
+      likes: smLikes,
+      link: smLink,
+    };
+    try {
+      const res = await fetch("/api/employee/data/social", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const newRecord = await res.json();
+        const updated = [newRecord, ...socialList];
+        setSocialList(updated);
+        localStorage.setItem(`social_${employee.email}`, JSON.stringify(updated));
+      } else {
+        const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+        const updated = [mockRecord, ...socialList];
+        setSocialList(updated);
+        localStorage.setItem(`social_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+      const updated = [mockRecord, ...socialList];
+      setSocialList(updated);
+      localStorage.setItem(`social_${employee.email}`, JSON.stringify(updated));
+    }
+    setSmDate("");
+    setSmPlatform("Facebook");
+    setSmTitle("");
+    setSmReach("");
+    setSmLikes("");
+    setSmLink("");
+    setShowMediaAddForm(false);
+  };
+
+  const handleDeleteSocial = async (id: string) => {
+    if (!employee) return;
+    try {
+      const res = await fetch(`/api/employee/data/social?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        const updated = socialList.filter(item => item.id !== id);
+        setSocialList(updated);
+        localStorage.setItem(`social_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!employee) return;
+    const body = {
+      employeeEmail: employee.email,
+      date: svDate,
+      school: svSchool,
+      title: svTitle,
+      platform: svPlatform,
+      views: svViews,
+      likes: svLikes,
+      link: svLink,
+    };
+    try {
+      const res = await fetch("/api/employee/data/videos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const newRecord = await res.json();
+        const updated = [newRecord, ...videosList];
+        setVideosList(updated);
+        localStorage.setItem(`videos_${employee.email}`, JSON.stringify(updated));
+      } else {
+        const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+        const updated = [mockRecord, ...videosList];
+        setVideosList(updated);
+        localStorage.setItem(`videos_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+      const updated = [mockRecord, ...videosList];
+      setVideosList(updated);
+      localStorage.setItem(`videos_${employee.email}`, JSON.stringify(updated));
+    }
+    setSvDate("");
+    setSvSchool("");
+    setSvTitle("");
+    setSvPlatform("YouTube");
+    setSvViews("");
+    setSvLikes("");
+    setSvLink("");
+    setShowMediaAddForm(false);
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    if (!employee) return;
+    try {
+      const res = await fetch(`/api/employee/data/videos?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        const updated = videosList.filter(item => item.id !== id);
+        setVideosList(updated);
+        localStorage.setItem(`videos_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddFinance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!employee) return;
+    const body = {
+      employeeEmail: employee.email,
+      date: finDate,
+      head: finHead,
+      type: finType,
+      amount: finAmount,
+      billUrl: finBillUploaded || "N/A",
+      remarks: finRemarks,
+    };
+    try {
+      const res = await fetch("/api/employee/data/finance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const newRecord = await res.json();
+        const updated = [newRecord, ...financeList];
+        setFinanceList(updated);
+        localStorage.setItem(`finance_${employee.email}`, JSON.stringify(updated));
+      } else {
+        const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+        const updated = [mockRecord, ...financeList];
+        setFinanceList(updated);
+        localStorage.setItem(`finance_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+      const updated = [mockRecord, ...financeList];
+      setFinanceList(updated);
+      localStorage.setItem(`finance_${employee.email}`, JSON.stringify(updated));
+    }
+    setFinDate("");
+    setFinHead("");
+    setFinType("Income");
+    setFinAmount("");
+    setFinBillUploaded("");
+    setFinRemarks("");
+    setShowMediaAddForm(false);
+  };
+
+  const handleDeleteFinance = async (id: string) => {
+    if (!employee) return;
+    try {
+      const res = await fetch(`/api/employee/data/finance?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        const updated = financeList.filter(item => item.id !== id);
+        setFinanceList(updated);
+        localStorage.setItem(`finance_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddProblem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!employee) return;
+    const body = {
+      employeeEmail: employee.email,
+      date: probDate,
+      category: probCategory,
+      description: probDescription,
+      supportRequired: probSupportRequired,
+      status: probStatus,
+      raisedBy: probRaisedBy,
+    };
+    try {
+      const res = await fetch("/api/employee/data/problems", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const newRecord = await res.json();
+        const updated = [newRecord, ...problemsList];
+        setProblemsList(updated);
+        localStorage.setItem(`problems_${employee.email}`, JSON.stringify(updated));
+      } else {
+        const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+        const updated = [mockRecord, ...problemsList];
+        setProblemsList(updated);
+        localStorage.setItem(`problems_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+      const updated = [mockRecord, ...problemsList];
+      setProblemsList(updated);
+      localStorage.setItem(`problems_${employee.email}`, JSON.stringify(updated));
+    }
+    setProbDate("");
+    setProbCategory("Infrastructure");
+    setProbDescription("");
+    setProbSupportRequired("Yes");
+    setProbStatus("Open");
+    setProbRaisedBy("");
+    setShowMediaAddForm(false);
+  };
+
+  const handleDeleteProblem = async (id: string) => {
+    if (!employee) return;
+    try {
+      const res = await fetch(`/api/employee/data/problems?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        const updated = problemsList.filter(item => item.id !== id);
+        setProblemsList(updated);
+        localStorage.setItem(`problems_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!employee) return;
+    const body = {
+      employeeEmail: employee.email,
+      date: docDate,
+      title: docTitle,
+      category: docCategory,
+      link: docLink || "N/A",
+      uploadedBy: docUploadedBy,
+    };
+    try {
+      const res = await fetch("/api/employee/data/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const newRecord = await res.json();
+        const updated = [newRecord, ...documentsList];
+        setDocumentsList(updated);
+        localStorage.setItem(`documents_${employee.email}`, JSON.stringify(updated));
+      } else {
+        const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+        const updated = [mockRecord, ...documentsList];
+        setDocumentsList(updated);
+        localStorage.setItem(`documents_${employee.email}`, JSON.stringify(updated));
+      }
+    } catch (err) {
+      const mockRecord = { id: Date.now().toString(), ...body, createdAt: new Date().toISOString() };
+      const updated = [mockRecord, ...documentsList];
+      setDocumentsList(updated);
+      localStorage.setItem(`documents_${employee.email}`, JSON.stringify(updated));
+    }
+    setDocDate("");
+    setDocTitle("");
+    setDocCategory("Syllabus");
+    setDocLink("");
+    setDocUploadedBy("");
+    setShowMediaAddForm(false);
+  };
+
+  const handleDeleteDocument = async (id: string) => {
+    if (!employee) return;
+    try {
+      const res = await fetch(`/api/employee/data/documents?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        const updated = documentsList.filter(item => item.id !== id);
+        setDocumentsList(updated);
+        localStorage.setItem(`documents_${employee.email}`, JSON.stringify(updated));
       }
     } catch (err) {
       console.error(err);
@@ -2909,120 +3260,721 @@ export default function EmployeeDashboard() {
 
             {activeTab === "media" && (
               <div className="space-y-3 sm:space-y-4">
-                {/* 5-Box Grid (Overview/Schools/Calls Style) */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                  {[
-                    {
-                      title: "Social Media",
-                      icon: "share",
-                      color: "text-amber-500 bg-amber-50 border-amber-100",
-                      description: "Manage state outreach, official announcements, and shared media channels.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="100" cy="75" r="28" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <circle cx="100" cy="75" r="12" stroke="#E6E6E6" strokeWidth="1"/>
-                          <circle cx="70" cy="55" r="6" fill="#002f6c"/>
-                          <circle cx="130" cy="55" r="6" fill="#800020"/>
-                          <circle cx="100" cy="110" r="6" fill="#002f6c"/>
-                          <line x1="75" y1="58" x2="95" y2="70" stroke="#3F3D56" strokeWidth="1.5"/>
-                          <line x1="125" y1="58" x2="105" y2="70" stroke="#3F3D56" strokeWidth="1.5"/>
-                          <line x1="100" y1="104" x2="100" y2="85" stroke="#3F3D56" strokeWidth="1.5"/>
+                {activeMediaModule === null ? (
+                  <>
+                    {/* Media Overview Banner */}
+                    <div className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[160px] select-none">
+                      <div className="flex-1 flex justify-center sm:justify-start">
+                        <svg viewBox="0 0 200 150" className="h-32 sm:h-36 w-auto object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="40" y="35" width="120" height="85" rx="6" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2.5"/>
+                          <rect x="50" y="45" width="100" height="50" rx="2" fill="#E6E6E6"/>
+                          <circle cx="100" cy="70" r="14" fill="#800020" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M96 64 L108 70 L96 76 Z" fill="#FFFFFF"/>
+                          <rect x="50" y="102" width="25" height="8" rx="1.5" fill="#002f6c"/>
+                          <rect x="80" y="102" width="40" height="8" rx="1.5" fill="#3F3D56"/>
                         </svg>
-                      )
-                    },
-                    {
-                      title: "Student Videos",
-                      icon: "smart_display",
-                      color: "text-emerald-500 bg-emerald-50 border-emerald-100",
-                      description: "Upload and organize student scout training sessions and class activity videos.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="55" y="40" width="90" height="70" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <rect x="60" y="46" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <rect x="60" y="62" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <rect x="60" y="78" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <rect x="60" y="94" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <rect x="134" y="46" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <rect x="134" y="62" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <rect x="134" y="78" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <rect x="134" y="94" width="6" height="8" rx="0.5" fill="#E6E6E6" />
-                          <path d="M92 62 L115 75 L92 88 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Financial Register",
-                      icon: "account_balance_wallet",
-                      color: "text-blue-500 bg-blue-50 border-blue-100",
-                      description: "Track uniform distribution costs, class activity receipts, and branch funds.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="60" y="35" width="80" height="80" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <circle cx="100" cy="75" r="16" fill="#800020" opacity="0.8"/>
-                          <circle cx="100" cy="75" r="12" stroke="#FFFFFF" strokeWidth="1.5"/>
-                          <path d="M95 70 H105 M95 75 H105 M98 70 L98 83 M102 70 A4 4 0 0 1 102 78 L95 83" fill="none" stroke="#FFFFFF" strokeWidth="1.5"/>
-                          <line x1="70" y1="45" x2="130" y2="45" stroke="#E6E6E6" strokeWidth="2"/>
-                          <line x1="70" y1="105" x2="130" y2="105" stroke="#E6E6E6" strokeWidth="2"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Problem Register",
-                      icon: "report_problem",
-                      color: "text-rose-500 bg-rose-50 border-rose-100",
-                      description: "Report class disruptions, equipment shortages, or campus infrastructure issues.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="60" y="25" width="80" height="100" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <path d="M100 45 L118 78 H82 Z" fill="#800020" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
-                          <circle cx="100" cy="74" r="1.5" fill="#FFFFFF"/>
-                          <line x1="100" y1="56" x2="100" y2="68" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
-                          <line x1="75" y1="90" x2="125" y2="90" stroke="#E6E6E6" strokeWidth="2.5"/>
-                          <line x1="75" y1="105" x2="110" y2="105" stroke="#E6E6E6" strokeWidth="2.5"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Documents",
-                      icon: "folder_open",
-                      color: "text-purple-500 bg-purple-50 border-purple-100",
-                      description: "View state guidelines, syllabus booklets, and class reporting forms.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M80 30 H135 L145 42 V115 H80 Z" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="2"/>
-                          <path d="M60 45 H115 L125 57 V130 H60 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <path d="M115 45 V57 H125" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
-                          <line x1="75" y1="70" x2="110" y2="70" stroke="#E6E6E6" strokeWidth="2"/>
-                          <line x1="75" y1="85" x2="115" y2="85" stroke="#E6E6E6" strokeWidth="2"/>
-                          <line x1="75" y1="100" x2="105" y2="100" stroke="#E6E6E6" strokeWidth="2"/>
-                        </svg>
-                      )
-                    },
-                  ].map((box, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => {
-                        setSelectedModule(box);
-                      }}
-                      className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
-                    >
-                      {/* Top right corner arrow */}
-                      <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
-                        north_east
-                      </span>
-
-                      {/* SVG Illustration Placeholder */}
-                      <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
-                        {box.svg}
                       </div>
-
-                      {/* Title */}
-                      <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
-                        {box.title}
-                      </span>
+                      <div className="flex-1 flex flex-col items-center justify-center text-center pr-2 sm:pr-8">
+                        <span className="text-4xl font-extrabold text-zinc-900 tracking-tight leading-none">
+                          Media & Logs
+                        </span>
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-2 block">
+                          Official Records
+                        </span>
+                      </div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* 5-Box Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                      {[
+                        {
+                          key: "social",
+                          title: "Social Media",
+                          icon: "share",
+                          color: "text-amber-500 bg-amber-50 border-amber-100",
+                          description: "Manage state outreach, official announcements, and shared media channels.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="100" cy="75" r="28" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <circle cx="100" cy="75" r="12" stroke="#E6E6E6" strokeWidth="1"/>
+                              <circle cx="70" cy="55" r="6" fill="#002f6c"/>
+                              <circle cx="130" cy="55" r="6" fill="#800020"/>
+                              <circle cx="100" cy="110" r="6" fill="#002f6c"/>
+                              <line x1="75" y1="58" x2="95" y2="70" stroke="#3F3D56" strokeWidth="1.5"/>
+                              <line x1="125" y1="58" x2="105" y2="70" stroke="#3F3D56" strokeWidth="1.5"/>
+                              <line x1="100" y1="104" x2="100" y2="85" stroke="#3F3D56" strokeWidth="1.5"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          key: "videos",
+                          title: "Student Videos",
+                          icon: "smart_display",
+                          color: "text-emerald-500 bg-emerald-50 border-emerald-100",
+                          description: "Upload and organize student scout training sessions and class activity videos.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="55" y="40" width="90" height="70" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <rect x="60" y="46" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <rect x="60" y="62" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <rect x="60" y="78" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <rect x="60" y="94" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <rect x="134" y="46" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <rect x="134" y="62" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <rect x="134" y="78" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <rect x="134" y="94" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                              <path d="M92 62 L115 75 L92 88 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          key: "finance",
+                          title: "Financial Register",
+                          icon: "account_balance_wallet",
+                          color: "text-blue-500 bg-blue-50 border-blue-100",
+                          description: "Track uniform distribution costs, class activity receipts, and branch funds.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="60" y="35" width="80" height="80" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <circle cx="100" cy="75" r="16" fill="#800020" opacity="0.8"/>
+                              <circle cx="100" cy="75" r="12" stroke="#FFFFFF" strokeWidth="1.5"/>
+                              <path d="M95 70 H105 M95 75 H105 M98 70 L98 83 M102 70 A4 4 0 0 1 102 78 L95 83" fill="none" stroke="#FFFFFF" strokeWidth="1.5"/>
+                              <line x1="70" y1="45" x2="130" y2="45" stroke="#E6E6E6" strokeWidth="2"/>
+                              <line x1="70" y1="105" x2="130" y2="105" stroke="#E6E6E6" strokeWidth="2"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          key: "problems",
+                          title: "Problem Register",
+                          icon: "report_problem",
+                          color: "text-rose-500 bg-rose-50 border-rose-100",
+                          description: "Report class disruptions, equipment shortages, or campus infrastructure issues.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="60" y="25" width="80" height="100" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <path d="M100 45 L118 78 H82 Z" fill="#800020" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                              <circle cx="100" cy="74" r="1.5" fill="#FFFFFF"/>
+                              <line x1="100" y1="56" x2="100" y2="68" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+                              <line x1="75" y1="90" x2="125" y2="90" stroke="#E6E6E6" strokeWidth="2.5"/>
+                              <line x1="75" y1="105" x2="110" y2="105" stroke="#E6E6E6" strokeWidth="2.5"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          key: "documents",
+                          title: "Documents",
+                          icon: "folder_open",
+                          color: "text-purple-500 bg-purple-50 border-purple-100",
+                          description: "View state guidelines, syllabus booklets, and class reporting forms.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M80 30 H135 L145 42 V115 H80 Z" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="2"/>
+                              <path d="M60 45 H115 L125 57 V130 H60 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <path d="M115 45 V57 H125" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
+                              <line x1="75" y1="70" x2="110" y2="70" stroke="#E6E6E6" strokeWidth="2"/>
+                              <line x1="75" y1="85" x2="115" y2="85" stroke="#E6E6E6" strokeWidth="2"/>
+                              <line x1="75" y1="100" x2="105" y2="100" stroke="#E6E6E6" strokeWidth="2"/>
+                            </svg>
+                          )
+                        },
+                      ].map((box) => (
+                        <div
+                          key={box.key}
+                          onClick={() => {
+                            setActiveMediaModule(box.key);
+                            setShowMediaAddForm(false);
+                            setError(null);
+                            setSuccess(null);
+                          }}
+                          className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
+                        >
+                          <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                            north_east
+                          </span>
+                          <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                            {box.svg}
+                          </div>
+                          <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                            {box.title}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-4 text-left">
+                    {/* Breadcrumb Header */}
+                    <div className="flex items-center justify-between border-b border-zinc-200 pb-3 select-none">
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                        <button
+                          onClick={() => {
+                            setActiveMediaModule(null);
+                            setShowMediaAddForm(false);
+                            setError(null);
+                            setSuccess(null);
+                          }}
+                          className="font-medium text-zinc-450 hover:text-[#002f6c] hover:underline"
+                        >
+                          Media registers
+                        </button>
+                        <span className="text-zinc-300">/</span>
+                        <span className="font-extrabold text-[#002f6c]">
+                          {activeMediaModule === "social" && "Social Media"}
+                          {activeMediaModule === "videos" && "Student Videos"}
+                          {activeMediaModule === "finance" && "Financial Register"}
+                          {activeMediaModule === "problems" && "Problem Register"}
+                          {activeMediaModule === "documents" && "Documents"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowMediaAddForm(!showMediaAddForm);
+                          setError(null);
+                          setSuccess(null);
+                        }}
+                        className="bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold py-1.5 px-3 rounded flex items-center gap-1 transition-colors"
+                      >
+                        <span className="material-icons text-sm">{showMediaAddForm ? "remove" : "add"}</span>
+                        {showMediaAddForm ? "Back to logs" : "Add log"}
+                      </button>
+                    </div>
+
+                    {/* ──── MEDIA FORMS ──── */}
+                    {showMediaAddForm && (
+                      <div className="bg-white border border-zinc-200 rounded-lg p-5 shadow-sm max-w-xl mx-auto select-none">
+                        <h3 className="text-sm font-extrabold text-zinc-850 mb-4 pb-2 border-b border-zinc-100 flex items-center gap-1.5 uppercase tracking-wide">
+                          <span className="material-icons text-base text-[#002f6c]">playlist_add</span>
+                          Add New Record
+                        </h3>
+
+                        {/* 1. SOCIAL MEDIA FORM */}
+                        {activeMediaModule === "social" && (
+                          <form onSubmit={handleAddSocial} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Date</label>
+                                <input type="date" required value={smDate} onChange={(e) => setSmDate(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#002f6c]" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Platform</label>
+                                <select value={smPlatform} onChange={(e) => setSmPlatform(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#002f6c]">
+                                  <option value="Facebook">Facebook</option>
+                                  <option value="Instagram">Instagram</option>
+                                  <option value="YouTube">YouTube</option>
+                                  <option value="WhatsApp">WhatsApp</option>
+                                  <option value="Twitter/X">Twitter/X</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1">Post Title</label>
+                              <input type="text" required placeholder="e.g. Scout Jamboree Launch Post" value={smTitle} onChange={(e) => setSmTitle(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Reach</label>
+                                <input type="number" required placeholder="e.g. 1500" value={smReach} onChange={(e) => setSmReach(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Likes</label>
+                                <input type="number" required placeholder="e.g. 240" value={smLikes} onChange={(e) => setSmLikes(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1">Post Link (URL)</label>
+                              <input type="url" required placeholder="https://..." value={smLink} onChange={(e) => setSmLink(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                            </div>
+                            <button type="submit" className="w-full py-2 bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold rounded shadow transition-colors">Submit Record</button>
+                          </form>
+                        )}
+
+                        {/* 2. STUDENT VIDEOS FORM */}
+                        {activeMediaModule === "videos" && (
+                          <form onSubmit={handleAddVideo} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Date</label>
+                                <input type="date" required value={svDate} onChange={(e) => setSvDate(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">School</label>
+                                <select required value={svSchool} onChange={(e) => setSvSchool(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none">
+                                  <option value="">-- Choose School --</option>
+                                  {registeredSchools.map((sch) => (
+                                    <option key={sch.id} value={sch.schoolName}>{sch.schoolName}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Video Title</label>
+                                <input type="text" required placeholder="e.g. Uniform Knots Training" value={svTitle} onChange={(e) => setSvTitle(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Platform</label>
+                                <select value={svPlatform} onChange={(e) => setSvPlatform(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none">
+                                  <option value="YouTube">YouTube</option>
+                                  <option value="Google Drive">Google Drive</option>
+                                  <option value="Instagram">Instagram</option>
+                                  <option value="Local File">Local File</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Views</label>
+                                <input type="number" required placeholder="e.g. 500" value={svViews} onChange={(e) => setSvViews(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Likes</label>
+                                <input type="number" required placeholder="e.g. 85" value={svLikes} onChange={(e) => setSvLikes(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1">Video Link (URL)</label>
+                              <input type="url" required placeholder="https://..." value={svLink} onChange={(e) => setSvLink(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                            </div>
+                            <button type="submit" className="w-full py-2 bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold rounded shadow transition-colors">Submit Record</button>
+                          </form>
+                        )}
+
+                        {/* 3. FINANCIAL REGISTER FORM */}
+                        {activeMediaModule === "finance" && (
+                          <form onSubmit={handleAddFinance} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Date</label>
+                                <input type="date" required value={finDate} onChange={(e) => setFinDate(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Type</label>
+                                <select value={finType} onChange={(e) => setFinType(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none">
+                                  <option value="Income">Income / Credit</option>
+                                  <option value="Expense">Expense / Debit</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Head / Particulars</label>
+                                <input type="text" required placeholder="e.g. Scout Camp Uniforms" value={finHead} onChange={(e) => setFinHead(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Amount (₹)</label>
+                                <input type="number" required step="any" placeholder="e.g. 4500" value={finAmount} onChange={(e) => setFinAmount(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1">Remarks</label>
+                              <input type="text" placeholder="Remarks (optional)" value={finRemarks} onChange={(e) => setFinRemarks(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                            </div>
+
+                            {/* Drag & Drop File Zone */}
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1.5">Bill Upload (Drag & Drop)</label>
+                              <div
+                                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                onDragLeave={() => setIsDragging(false)}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  setIsDragging(false);
+                                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                                    setFinBillUploaded(e.dataTransfer.files[0].name);
+                                  }
+                                }}
+                                className={`border-2 border-dashed rounded-lg p-5 flex flex-col items-center justify-center transition-all ${
+                                  isDragging ? "border-[#002f6c] bg-[#002f6c]/5 scale-[0.99]" : "border-zinc-300 hover:border-zinc-400 bg-zinc-50"
+                                }`}
+                              >
+                                <span className="material-icons text-2xl text-zinc-400 mb-1">receipt_long</span>
+                                <p className="text-[10px] font-bold text-zinc-600">Drag & drop your receipt bill here or</p>
+                                <label className="text-[10px] font-black text-[#002f6c] hover:underline cursor-pointer mt-0.5">
+                                  Browse Files
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      if (e.target.files && e.target.files[0]) {
+                                        setFinBillUploaded(e.target.files[0].name);
+                                      }
+                                    }}
+                                  />
+                                </label>
+                                {finBillUploaded && (
+                                  <div className="mt-2.5 flex items-center gap-1 bg-emerald-50 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-250">
+                                    <span className="material-icons text-xs">check_circle</span>
+                                    {finBillUploaded}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <button type="submit" className="w-full py-2 bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold rounded shadow transition-colors">Submit Financial Record</button>
+                          </form>
+                        )}
+
+                        {/* 4. PROBLEM REGISTER FORM */}
+                        {activeMediaModule === "problems" && (
+                          <form onSubmit={handleAddProblem} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Date</label>
+                                <input type="date" required value={probDate} onChange={(e) => setProbDate(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Category</label>
+                                <select value={probCategory} onChange={(e) => setProbCategory(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none">
+                                  <option value="Infrastructure">Infrastructure</option>
+                                  <option value="Materials Shortage">Materials Shortage</option>
+                                  <option value="Attendance / Scouter">Attendance / Scouter</option>
+                                  <option value="Administrative Support">Administrative Support</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1">Issue Description</label>
+                              <textarea required placeholder="Explain the problem in detail..." value={probDescription} onChange={(e) => setProbDescription(e.target.value)} rows={3} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Support Required</label>
+                                <select value={probSupportRequired} onChange={(e) => setProbSupportRequired(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none">
+                                  <option value="Yes">Yes</option>
+                                  <option value="No">No</option>
+                                  <option value="Pending">Pending</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Status</label>
+                                <select value={probStatus} onChange={(e) => setProbStatus(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none">
+                                  <option value="Open">Open</option>
+                                  <option value="In Progress">In Progress</option>
+                                  <option value="Resolved">Resolved</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Raised By</label>
+                                <input type="text" required placeholder="Name / Designation" value={probRaisedBy} onChange={(e) => setProbRaisedBy(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                            </div>
+                            <button type="submit" className="w-full py-2 bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold rounded shadow transition-colors">Submit Issue</button>
+                          </form>
+                        )}
+
+                        {/* 5. DOCUMENTS FORM */}
+                        {activeMediaModule === "documents" && (
+                          <form onSubmit={handleAddDocument} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Date</label>
+                                <input type="date" required value={docDate} onChange={(e) => setDocDate(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Category</label>
+                                <select value={docCategory} onChange={(e) => setDocCategory(e.target.value)} className="w-full px-3 py-2 bg-white border border-zinc-300 rounded text-xs focus:outline-none">
+                                  <option value="Syllabus">Syllabus</option>
+                                  <option value="Circular">Circular</option>
+                                  <option value="Permission Letter">Permission Letter</option>
+                                  <option value="Reporting Form">Reporting Form</option>
+                                  <option value="Scout Photos">Scout Photos</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Document Title</label>
+                                <input type="text" required placeholder="e.g. Scouting Syllabus 2026" value={docTitle} onChange={(e) => setDocTitle(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold text-zinc-600 mb-1">Uploaded By</label>
+                                <input type="text" required placeholder="Employee Name / Email" value={docUploadedBy} onChange={(e) => setDocUploadedBy(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1">Reference / Link (URL or dropped filename)</label>
+                              <input type="text" placeholder="https://... or auto-filled by drop" value={docLink} onChange={(e) => setDocLink(e.target.value)} className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:outline-none" />
+                            </div>
+
+                            {/* Drag & Drop Zone */}
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-600 mb-1.5">Upload Document File (Drag & Drop)</label>
+                              <div
+                                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                onDragLeave={() => setIsDragging(false)}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  setIsDragging(false);
+                                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                                    const f = e.dataTransfer.files[0];
+                                    setDocLink(f.name);
+                                  }
+                                }}
+                                className={`border-2 border-dashed rounded-lg p-5 flex flex-col items-center justify-center transition-all ${
+                                  isDragging ? "border-[#002f6c] bg-[#002f6c]/5 scale-[0.99]" : "border-zinc-300 hover:border-zinc-400 bg-zinc-50"
+                                }`}
+                              >
+                                <span className="material-icons text-2xl text-zinc-400 mb-1">description</span>
+                                <p className="text-[10px] font-bold text-zinc-600">Drag & drop your document file here or</p>
+                                <label className="text-[10px] font-black text-[#002f6c] hover:underline cursor-pointer mt-0.5">
+                                  Browse Files
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      if (e.target.files && e.target.files[0]) {
+                                        setDocLink(e.target.files[0].name);
+                                      }
+                                    }}
+                                  />
+                                </label>
+                                {docLink && (
+                                  <div className="mt-2.5 flex items-center gap-1 bg-emerald-50 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-250">
+                                    <span className="material-icons text-xs">check_circle</span>
+                                    {docLink}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <button type="submit" className="w-full py-2 bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold rounded shadow transition-colors">Submit Document</button>
+                          </form>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ──── MEDIA TABLES/LISTS ──── */}
+                    {!showMediaAddForm && (
+                      <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto select-none">
+                        {/* 1. SOCIAL MEDIA LOGS */}
+                        {activeMediaModule === "social" && (
+                          <>
+                            <h4 className="text-xs font-bold text-zinc-800 mb-3 uppercase tracking-wide">Social Media Logged Records ({socialList.length})</h4>
+                            {socialList.length === 0 ? (
+                              <div className="py-8 text-center text-zinc-400 text-xs">No social media records found.</div>
+                            ) : (
+                              <table className="min-w-full divide-y divide-zinc-200 text-left text-xs">
+                                <thead className="bg-zinc-50 font-extrabold text-[10px] uppercase text-zinc-500 tracking-wider">
+                                  <tr>
+                                    <th className="px-3 py-2">Date</th>
+                                    <th className="px-3 py-2">Platform</th>
+                                    <th className="px-3 py-2">Post Title</th>
+                                    <th className="px-3 py-2">Reach</th>
+                                    <th className="px-3 py-2">Likes</th>
+                                    <th className="px-3 py-2">Link</th>
+                                    <th className="px-3 py-2">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-200 bg-white font-medium text-zinc-700">
+                                  {socialList.map((item) => (
+                                    <tr key={item.id}>
+                                      <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                      <td className="px-3 py-2.5">
+                                        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 uppercase">{item.platform}</span>
+                                      </td>
+                                      <td className="px-3 py-2.5 font-bold text-zinc-900">{item.postTitle}</td>
+                                      <td className="px-3 py-2.5">{item.reach}</td>
+                                      <td className="px-3 py-2.5">{item.likes}</td>
+                                      <td className="px-3 py-2.5 truncate max-w-[150px]"><a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{item.link}</a></td>
+                                      <td className="px-3 py-2.5">
+                                        <button onClick={() => handleDeleteSocial(item.id)} className="text-rose-600 hover:text-rose-800 hover:underline text-[10px] font-bold">Delete</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </>
+                        )}
+
+                        {/* 2. STUDENT VIDEOS LOGS */}
+                        {activeMediaModule === "videos" && (
+                          <>
+                            <h4 className="text-xs font-bold text-zinc-800 mb-3 uppercase tracking-wide">Student Videos Recorded ({videosList.length})</h4>
+                            {videosList.length === 0 ? (
+                              <div className="py-8 text-center text-zinc-400 text-xs">No video records found.</div>
+                            ) : (
+                              <table className="min-w-full divide-y divide-zinc-200 text-left text-xs">
+                                <thead className="bg-zinc-50 font-extrabold text-[10px] uppercase text-zinc-500 tracking-wider">
+                                  <tr>
+                                    <th className="px-3 py-2">Date</th>
+                                    <th className="px-3 py-2">School</th>
+                                    <th className="px-3 py-2">Video Title</th>
+                                    <th className="px-3 py-2">Platform</th>
+                                    <th className="px-3 py-2">Views</th>
+                                    <th className="px-3 py-2">Likes</th>
+                                    <th className="px-3 py-2">Video Link</th>
+                                    <th className="px-3 py-2">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-200 bg-white font-medium text-zinc-700">
+                                  {videosList.map((item) => (
+                                    <tr key={item.id}>
+                                      <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                      <td className="px-3 py-2.5 font-bold text-zinc-900">{item.school}</td>
+                                      <td className="px-3 py-2.5">{item.title}</td>
+                                      <td className="px-3 py-2.5">
+                                        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-250 uppercase">{item.platform}</span>
+                                      </td>
+                                      <td className="px-3 py-2.5">{item.views}</td>
+                                      <td className="px-3 py-2.5">{item.likes}</td>
+                                      <td className="px-3 py-2.5 truncate max-w-[150px]"><a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{item.link}</a></td>
+                                      <td className="px-3 py-2.5">
+                                        <button onClick={() => handleDeleteVideo(item.id)} className="text-rose-600 hover:text-rose-800 hover:underline text-[10px] font-bold">Delete</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </>
+                        )}
+
+                        {/* 3. FINANCIAL REGISTER LOGS */}
+                        {activeMediaModule === "finance" && (
+                          <>
+                            <h4 className="text-xs font-bold text-zinc-800 mb-3 uppercase tracking-wide">Financial Register Ledgers ({financeList.length})</h4>
+                            {financeList.length === 0 ? (
+                              <div className="py-8 text-center text-zinc-400 text-xs">No financial records found.</div>
+                            ) : (
+                              <table className="min-w-full divide-y divide-zinc-200 text-left text-xs">
+                                <thead className="bg-zinc-50 font-extrabold text-[10px] uppercase text-zinc-500 tracking-wider">
+                                  <tr>
+                                    <th className="px-3 py-2">Date</th>
+                                    <th className="px-3 py-2">Head / Particulars</th>
+                                    <th className="px-3 py-2">Type</th>
+                                    <th className="px-3 py-2">Amount</th>
+                                    <th className="px-3 py-2">Bill Uploaded</th>
+                                    <th className="px-3 py-2">Remarks</th>
+                                    <th className="px-3 py-2">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-200 bg-white font-medium text-zinc-700">
+                                  {financeList.map((item) => (
+                                    <tr key={item.id}>
+                                      <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                      <td className="px-3 py-2.5 font-bold text-zinc-900">{item.head}</td>
+                                      <td className="px-3 py-2.5">
+                                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                                          item.type === "Income" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200"
+                                        }`}>
+                                          {item.type}
+                                        </span>
+                                      </td>
+                                      <td className="px-3 py-2.5 font-extrabold">₹{item.amount}</td>
+                                      <td className="px-3 py-2.5 text-zinc-500 font-mono text-[10px]">{item.billUrl || "N/A"}</td>
+                                      <td className="px-3 py-2.5 text-zinc-500">{item.remarks || "-"}</td>
+                                      <td className="px-3 py-2.5">
+                                        <button onClick={() => handleDeleteFinance(item.id)} className="text-rose-600 hover:text-rose-800 hover:underline text-[10px] font-bold">Delete</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </>
+                        )}
+
+                        {/* 4. PROBLEM REGISTER LOGS */}
+                        {activeMediaModule === "problems" && (
+                          <>
+                            <h4 className="text-xs font-bold text-zinc-800 mb-3 uppercase tracking-wide">Problems Reported Logs ({problemsList.length})</h4>
+                            {problemsList.length === 0 ? (
+                              <div className="py-8 text-center text-zinc-400 text-xs">No problem logs found.</div>
+                            ) : (
+                              <table className="min-w-full divide-y divide-zinc-200 text-left text-xs">
+                                <thead className="bg-zinc-50 font-extrabold text-[10px] uppercase text-zinc-500 tracking-wider">
+                                  <tr>
+                                    <th className="px-3 py-2">Date</th>
+                                    <th className="px-3 py-2">Category</th>
+                                    <th className="px-3 py-2">Issue Description</th>
+                                    <th className="px-3 py-2">Support Required</th>
+                                    <th className="px-3 py-2">Status</th>
+                                    <th className="px-3 py-2">Raised By</th>
+                                    <th className="px-3 py-2">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-200 bg-white font-medium text-zinc-700">
+                                  {problemsList.map((item) => (
+                                    <tr key={item.id}>
+                                      <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                      <td className="px-3 py-2.5">
+                                        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#800020]/10 text-[#800020] border border-[#800020]/20 uppercase">{item.category}</span>
+                                      </td>
+                                      <td className="px-3 py-2.5 text-zinc-800">{item.description}</td>
+                                      <td className="px-3 py-2.5">
+                                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.supportRequired === "Yes" ? "bg-amber-50 text-amber-800 border border-amber-200" : "bg-zinc-100 text-zinc-550"}`}>{item.supportRequired}</span>
+                                      </td>
+                                      <td className="px-3 py-2.5">
+                                        <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                                          item.status === "Resolved" ? "bg-emerald-50 text-emerald-800 border border-emerald-250" :
+                                          item.status === "In Progress" ? "bg-blue-50 text-blue-800 border border-blue-200" :
+                                          "bg-rose-50 text-rose-805 border border-rose-200"
+                                        }`}>{item.status}</span>
+                                      </td>
+                                      <td className="px-3 py-2.5">{item.raisedBy}</td>
+                                      <td className="px-3 py-2.5">
+                                        <button onClick={() => handleDeleteProblem(item.id)} className="text-rose-600 hover:text-rose-800 hover:underline text-[10px] font-bold">Delete</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </>
+                        )}
+
+                        {/* 5. DOCUMENTS LOGS */}
+                        {activeMediaModule === "documents" && (
+                          <>
+                            <h4 className="text-xs font-bold text-zinc-800 mb-3 uppercase tracking-wide">Scout Documents Repository ({documentsList.length})</h4>
+                            {documentsList.length === 0 ? (
+                              <div className="py-8 text-center text-zinc-400 text-xs">No documents registered.</div>
+                            ) : (
+                              <table className="min-w-full divide-y divide-zinc-200 text-left text-xs">
+                                <thead className="bg-zinc-50 font-extrabold text-[10px] uppercase text-zinc-500 tracking-wider">
+                                  <tr>
+                                    <th className="px-3 py-2">Date</th>
+                                    <th className="px-3 py-2">Document Title</th>
+                                    <th className="px-3 py-2">Category</th>
+                                    <th className="px-3 py-2">Reference / Link</th>
+                                    <th className="px-3 py-2">Uploaded By</th>
+                                    <th className="px-3 py-2">Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-200 bg-white font-medium text-zinc-700">
+                                  {documentsList.map((item) => (
+                                    <tr key={item.id}>
+                                      <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                      <td className="px-3 py-2.5 font-bold text-zinc-900">{item.title}</td>
+                                      <td className="px-3 py-2.5">
+                                        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-50 text-purple-800 border border-purple-200 uppercase">{item.category}</span>
+                                      </td>
+                                      <td className="px-3 py-2.5 text-blue-600 max-w-[180px] truncate">
+                                        {item.link && (item.link.startsWith("http://") || item.link.startsWith("https://")) ? (
+                                          <a href={item.link} target="_blank" rel="noopener noreferrer" className="hover:underline">{item.link}</a>
+                                        ) : (
+                                          <span className="font-mono text-[10px] text-zinc-500">{item.link}</span>
+                                        )}
+                                      </td>
+                                      <td className="px-3 py-2.5">{item.uploadedBy}</td>
+                                      <td className="px-3 py-2.5">
+                                        <button onClick={() => handleDeleteDocument(item.id)} className="text-rose-600 hover:text-rose-800 hover:underline text-[10px] font-bold">Delete</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

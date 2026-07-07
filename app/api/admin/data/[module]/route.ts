@@ -40,6 +40,26 @@ export async function GET(
       data = await prisma.publicRelation.findMany({
         orderBy: { createdAt: "desc" },
       });
+    } else if (module === "videos") {
+      data = await prisma.studentVideo.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "finance") {
+      data = await prisma.financialRecord.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "problems") {
+      data = await prisma.problemRecord.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "documents") {
+      data = await prisma.documentRecord.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (module === "social") {
+      data = await prisma.socialMediaReport.findMany({
+        orderBy: { createdAt: "desc" },
+      });
     } else {
       return NextResponse.json({ error: "Invalid module" }, { status: 400 });
     }
