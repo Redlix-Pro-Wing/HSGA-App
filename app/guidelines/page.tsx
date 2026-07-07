@@ -135,13 +135,23 @@ export default function Guidelines() {
               </p>
 
               {!isInstalled && (
-                <button
-                  onClick={handleInstallClick}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 mb-4 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-base select-none">download</span>
-                  {isInstallable ? "Install App Directly" : "Install App (Android)"}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mb-4">
+                  <button
+                    onClick={handleInstallClick}
+                    className="flex items-center justify-center gap-2 py-3 px-6 bg-[#002f6c] hover:bg-[#003d8f] active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base select-none">download</span>
+                    {isInstallable ? "Install App Directly" : "Install App (PWA)"}
+                  </button>
+                  <a
+                    href="/hsga-app.apk"
+                    download="hsga-app.apk"
+                    className="flex items-center justify-center gap-2 py-3 px-6 bg-[#800020] hover:bg-[#990026] active:scale-[0.98] text-white font-semibold rounded-none text-sm shadow-sm transition-all duration-200 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-base select-none">android</span>
+                    Direct Install (.APK)
+                  </a>
+                </div>
               )}
 
               {isInstalled && (
