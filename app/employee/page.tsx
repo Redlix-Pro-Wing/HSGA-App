@@ -99,6 +99,53 @@ export default function EmployeeDashboard() {
   const [indGender, setIndGender] = useState("Male");
   const [indAmount, setIndAmount] = useState("");
 
+  // Sub-modules state in Calls Tab
+  const [activeCallModule, setActiveCallModule] = useState<string | null>(null);
+  const [showCallAddForm, setShowCallAddForm] = useState(false);
+
+  // Local storage lists for Calls
+  const [mouList, setMouList] = useState<any[]>([]);
+  const [officeCallsList, setOfficeCallsList] = useState<any[]>([]);
+  const [homeCallsList, setHomeCallsList] = useState<any[]>([]);
+  const [prList, setPrList] = useState<any[]>([]);
+
+  // Form field states for MoU
+  const [mouSchool, setMouSchool] = useState("");
+  const [mouPrincipal, setMouPrincipal] = useState("");
+  const [mouDateInit, setMouDateInit] = useState("");
+  const [mouStrength, setMouStrength] = useState("");
+  const [mouStatus, setMouStatus] = useState("Pending");
+  const [mouSignedDate, setMouSignedDate] = useState("");
+  const [mouFollowUp, setMouFollowUp] = useState("");
+  const [mouStaff, setMouStaff] = useState("");
+
+  // Form field states for Office Calls
+  const [ocDate, setOcDate] = useState("");
+  const [ocSchool, setOcSchool] = useState("");
+  const [ocPrincipal, setOcPrincipal] = useState("");
+  const [ocPhone, setOcPhone] = useState("");
+  const [ocPurpose, setOcPurpose] = useState("");
+  const [ocResponse, setOcResponse] = useState("");
+  const [ocMeetingFixed, setOcMeetingFixed] = useState(false);
+  const [ocFollowUpReq, setOcFollowUpReq] = useState(false);
+
+  // Form field states for Home Calls
+  const [hcDate, setHcDate] = useState("");
+  const [hcSchool, setHcSchool] = useState("");
+  const [hcPersonContacted, setHcPersonContacted] = useState("");
+  const [hcPurpose, setHcPurpose] = useState("");
+  const [hcResponse, setHcResponse] = useState("");
+  const [hcFollowUp, setHcFollowUp] = useState(false);
+  const [hcStaff, setHcStaff] = useState("");
+
+  // Form field states for Public Relations
+  const [prDate, setPrDate] = useState("");
+  const [prPersonBodyMet, setPrPersonBodyMet] = useState("");
+  const [prCategory, setPrCategory] = useState("Government");
+  const [prPurpose, setPrPurpose] = useState("");
+  const [prOutcome, setPrOutcome] = useState("");
+  const [prStaff, setPrStaff] = useState("");
+
   // Form fields
   const [designation, setDesignation] = useState("");
   const [district, setDistrict] = useState("");
@@ -185,6 +232,12 @@ export default function EmployeeDashboard() {
       setRegistersList(JSON.parse(localStorage.getItem(`registers_${email}`) || "[]"));
       setEnrolmentsList(JSON.parse(localStorage.getItem(`enrolments_${email}`) || "[]"));
       setDistributionsList(JSON.parse(localStorage.getItem(`distributions_${email}`) || "[]"));
+
+      // Load calls sub-modules data
+      setMouList(JSON.parse(localStorage.getItem(`mou_${email}`) || "[]"));
+      setOfficeCallsList(JSON.parse(localStorage.getItem(`officecalls_${email}`) || "[]"));
+      setHomeCallsList(JSON.parse(localStorage.getItem(`homecalls_${email}`) || "[]"));
+      setPrList(JSON.parse(localStorage.getItem(`pr_${email}`) || "[]"));
 
       const loadAllSchools = async () => {
         try {
@@ -550,6 +603,160 @@ export default function EmployeeDashboard() {
       localStorage.setItem(`distributions_${employee.email}`, JSON.stringify(updated));
     }
     setShowAddForm(false);
+  };
+
+  const handleAddMou = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mouSchool) return;
+    const record = {
+      id: Date.now().toString(),
+      school: mouSchool,
+      principal: mouPrincipal,
+      dateInitiated: mouDateInit || new Date().toISOString().split("T")[0],
+      studentStrength: parseInt(mouStrength, 10) || 0,
+      status: mouStatus,
+      signedDate: mouSignedDate || "",
+      nextFollowUp: mouFollowUp || "",
+      staff: mouStaff || employee?.name || "",
+      createdAt: new Date().toLocaleDateString(),
+    };
+    const updated = [record, ...mouList];
+    setMouList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`mou_${employee.email}`, JSON.stringify(updated));
+    }
+    // Reset form fields
+    setMouSchool("");
+    setMouPrincipal("");
+    setMouDateInit("");
+    setMouStrength("");
+    setMouStatus("Pending");
+    setMouSignedDate("");
+    setMouFollowUp("");
+    setMouStaff("");
+    setShowCallAddForm(false);
+  };
+
+  const handleDeleteMou = (id: string) => {
+    const updated = mouList.filter(item => item.id !== id);
+    setMouList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`mou_${employee.email}`, JSON.stringify(updated));
+    }
+  };
+
+  const handleAddOfficeCall = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ocSchool) return;
+    const record = {
+      id: Date.now().toString(),
+      date: ocDate || new Date().toISOString().split("T")[0],
+      school: ocSchool,
+      principal: ocPrincipal,
+      phone: ocPhone,
+      purpose: ocPurpose,
+      response: ocResponse,
+      meetingFixed: ocMeetingFixed,
+      followUpReq: ocFollowUpReq,
+      createdAt: new Date().toLocaleDateString(),
+    };
+    const updated = [record, ...officeCallsList];
+    setOfficeCallsList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`officecalls_${employee.email}`, JSON.stringify(updated));
+    }
+    // Reset form fields
+    setOcDate("");
+    setOcSchool("");
+    setOcPrincipal("");
+    setOcPhone("");
+    setOcPurpose("");
+    setOcResponse("");
+    setOcMeetingFixed(false);
+    setOcFollowUpReq(false);
+    setShowCallAddForm(false);
+  };
+
+  const handleDeleteOfficeCall = (id: string) => {
+    const updated = officeCallsList.filter(item => item.id !== id);
+    setOfficeCallsList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`officecalls_${employee.email}`, JSON.stringify(updated));
+    }
+  };
+
+  const handleAddHomeCall = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hcSchool) return;
+    const record = {
+      id: Date.now().toString(),
+      date: hcDate || new Date().toISOString().split("T")[0],
+      school: hcSchool,
+      personContacted: hcPersonContacted,
+      purpose: hcPurpose,
+      response: hcResponse,
+      followUp: hcFollowUp,
+      staff: hcStaff || employee?.name || "",
+      createdAt: new Date().toLocaleDateString(),
+    };
+    const updated = [record, ...homeCallsList];
+    setHomeCallsList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`homecalls_${employee.email}`, JSON.stringify(updated));
+    }
+    // Reset form fields
+    setHcDate("");
+    setHcSchool("");
+    setHcPersonContacted("");
+    setHcPurpose("");
+    setHcResponse("");
+    setHcFollowUp(false);
+    setHcStaff("");
+    setShowCallAddForm(false);
+  };
+
+  const handleDeleteHomeCall = (id: string) => {
+    const updated = homeCallsList.filter(item => item.id !== id);
+    setHomeCallsList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`homecalls_${employee.email}`, JSON.stringify(updated));
+    }
+  };
+
+  const handleAddPr = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prPersonBodyMet) return;
+    const record = {
+      id: Date.now().toString(),
+      date: prDate || new Date().toISOString().split("T")[0],
+      personBodyMet: prPersonBodyMet,
+      category: prCategory,
+      purpose: prPurpose,
+      outcome: prOutcome,
+      staff: prStaff || employee?.name || "",
+      createdAt: new Date().toLocaleDateString(),
+    };
+    const updated = [record, ...prList];
+    setPrList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`pr_${employee.email}`, JSON.stringify(updated));
+    }
+    // Reset form fields
+    setPrDate("");
+    setPrPersonBodyMet("");
+    setPrCategory("Government");
+    setPrPurpose("");
+    setPrOutcome("");
+    setPrStaff("");
+    setShowCallAddForm(false);
+  };
+
+  const handleDeletePr = (id: string) => {
+    const updated = prList.filter(item => item.id !== id);
+    setPrList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`pr_${employee.email}`, JSON.stringify(updated));
+    }
   };
 
   if (isChecking) {
@@ -1739,98 +1946,775 @@ export default function EmployeeDashboard() {
 
             {activeTab === "calls" && (
               <div className="space-y-3 sm:space-y-4">
-                {/* 4-Box Grid (Overview/Schools Style) */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  {[
-                    {
-                      title: "MoU Register",
-                      icon: "history_edu",
-                      color: "text-amber-500 bg-amber-50 border-amber-100",
-                      description: "Access and review signed Memorandums of Understanding for local school associations.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="60" y="25" width="80" height="100" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <circle cx="115" cy="100" r="10" fill="#800020" opacity="0.8"/>
-                          <circle cx="115" cy="100" r="6" stroke="#FFFFFF" strokeWidth="1"/>
-                          <line x1="75" y1="45" x2="125" y2="45" stroke="#E6E6E6" strokeWidth="2.5"/>
-                          <line x1="75" y1="60" x2="125" y2="60" stroke="#E6E6E6" strokeWidth="2.5"/>
-                          <line x1="75" y1="75" x2="105" y2="75" stroke="#E6E6E6" strokeWidth="2.5"/>
-                          <path d="M75 105 Q85 95 95 105 T105 100" fill="none" stroke="#002f6c" strokeWidth="2" strokeLinecap="round"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Office Calls",
-                      icon: "call",
-                      color: "text-emerald-500 bg-emerald-50 border-emerald-100",
-                      description: "Log official administrative phone discussions and internal office calls.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="65" y="65" width="70" height="45" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <rect x="75" y="75" width="10" height="10" rx="1" fill="#E6E6E6"/>
-                          <rect x="90" y="75" width="10" height="10" rx="1" fill="#E6E6E6"/>
-                          <rect x="75" y="90" width="10" height="10" rx="1" fill="#E6E6E6"/>
-                          <rect x="90" y="90" width="10" height="10" rx="1" fill="#E6E6E6"/>
-                          <path d="M50 50 C55 35 145 35 150 50 L140 60 C135 50 65 50 60 60 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
-                          <path d="M125 90 Q145 105 135 120 T115 110" fill="none" stroke="#800020" strokeWidth="2"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Home Calls",
-                      icon: "contact_phone",
-                      color: "text-blue-500 bg-blue-50 border-blue-100",
-                      description: "Record phone log details and consultation responses with scout families.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M60 110 V70 L100 40 L140 70 V110 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <rect x="90" y="85" width="20" height="25" fill="#800020"/>
-                          <circle cx="80" cy="65" r="4" fill="#002f6c"/>
-                          <circle cx="120" cy="65" r="4" fill="#002f6c"/>
-                          <path d="M120 30 C120 15 150 15 150 30 C150 35 140 40 135 45 L135 50 L130 45 C120 45 120 35 120 30 Z" fill="#002f6c"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Public Relations",
-                      icon: "campaign",
-                      color: "text-rose-500 bg-rose-50 border-rose-100",
-                      description: "Manage outreach reports, announcements, and local community relations.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M65 75 L125 50 V100 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
-                          <path d="M125 50 C130 50 135 60 135 75 C135 90 130 100 125 100" fill="none" stroke="#3F3D56" strokeWidth="2"/>
-                          <rect x="75" y="85" width="12" height="25" rx="1" fill="#800020" stroke="#3F3D56" strokeWidth="2" transform="rotate(15 75 85)"/>
-                          <path d="M148 60 A20 20 0 0 1 148 90" stroke="#002f6c" strokeWidth="2" strokeLinecap="round"/>
-                          <path d="M158 50 A35 35 0 0 1 158 100" stroke="#002f6c" strokeWidth="3" strokeLinecap="round"/>
-                        </svg>
-                      )
-                    },
-                  ].map((box, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => {
-                        setSelectedModule(box);
-                      }}
-                      className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
-                    >
-                      {/* Top right corner arrow */}
-                      <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
-                        north_east
-                      </span>
+                {activeCallModule === null ? (
+                  <>
+                    {/* 4-Box Grid (Overview/Schools/Calls Style) */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      {[
+                        {
+                          title: "MoU Register",
+                          icon: "history_edu",
+                          color: "text-amber-500 bg-amber-50 border-amber-100",
+                          description: "Access and review signed Memorandums of Understanding for local school associations.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="60" y="25" width="80" height="100" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <circle cx="115" cy="100" r="10" fill="#800020" opacity="0.8"/>
+                              <circle cx="115" cy="100" r="6" stroke="#FFFFFF" strokeWidth="1"/>
+                              <line x1="75" y1="45" x2="125" y2="45" stroke="#E6E6E6" strokeWidth="2.5"/>
+                              <line x1="75" y1="60" x2="125" y2="60" stroke="#E6E6E6" strokeWidth="2.5"/>
+                              <line x1="75" y1="75" x2="105" y2="75" stroke="#E6E6E6" strokeWidth="2.5"/>
+                              <path d="M75 105 Q85 95 95 105 T105 100" fill="none" stroke="#002f6c" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          title: "Office Calls",
+                          icon: "call",
+                          color: "text-emerald-500 bg-emerald-50 border-emerald-100",
+                          description: "Log official administrative phone discussions and internal office calls.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="65" y="65" width="70" height="45" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <rect x="75" y="75" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                              <rect x="90" y="75" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                              <rect x="75" y="90" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                              <rect x="90" y="90" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                              <path d="M50 50 C55 35 145 35 150 50 L140 60 C135 50 65 50 60 60 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
+                              <path d="M125 90 Q145 105 135 120 T115 110" fill="none" stroke="#800020" strokeWidth="2"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          title: "Home Calls",
+                          icon: "contact_phone",
+                          color: "text-blue-500 bg-blue-50 border-blue-100",
+                          description: "Record phone log details and consultation responses with scout families.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M60 110 V70 L100 40 L140 70 V110 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <rect x="90" y="85" width="20" height="25" fill="#800020"/>
+                              <circle cx="80" cy="65" r="4" fill="#002f6c"/>
+                              <circle cx="120" cy="65" r="4" fill="#002f6c"/>
+                              <path d="M120 30 C120 15 150 15 150 30 C150 35 140 40 135 45 L135 50 L130 45 C120 45 120 35 120 30 Z" fill="#002f6c"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          title: "Public Relations",
+                          icon: "campaign",
+                          color: "text-rose-500 bg-rose-50 border-rose-100",
+                          description: "Manage outreach reports, announcements, and local community relations.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M65 75 L125 50 V100 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                              <path d="M125 50 C130 50 135 60 135 75 C135 90 130 100 125 100" fill="none" stroke="#3F3D56" strokeWidth="2"/>
+                              <rect x="75" y="85" width="12" height="25" rx="1" fill="#800020" stroke="#3F3D56" strokeWidth="2" transform="rotate(15 75 85)"/>
+                              <path d="M148 60 A20 20 0 0 1 148 90" stroke="#002f6c" strokeWidth="2" strokeLinecap="round"/>
+                              <path d="M158 50 A35 35 0 0 1 158 100" stroke="#002f6c" strokeWidth="3" strokeLinecap="round"/>
+                            </svg>
+                          )
+                        },
+                      ].map((box, idx) => (
+                        <div 
+                          key={idx}
+                          onClick={() => {
+                            const callKeys = ["mou", "office", "home", "pr"];
+                            setActiveCallModule(callKeys[idx]);
+                            setShowCallAddForm(false);
+                          }}
+                          className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
+                        >
+                          {/* Top right corner arrow */}
+                          <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                            north_east
+                          </span>
 
-                      {/* SVG Illustration Placeholder */}
-                      <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
-                        {box.svg}
-                      </div>
+                          {/* SVG Illustration Placeholder */}
+                          <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                            {box.svg}
+                          </div>
 
-                      {/* Title */}
-                      <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
-                        {box.title}
-                      </span>
+                          {/* Title */}
+                          <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                            {box.title}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Navigation Top Bar */}
+                    <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-3 select-none">
+                      <button 
+                        onClick={() => setActiveCallModule(null)}
+                        className="flex items-center gap-1 text-xs font-bold text-zinc-700 hover:text-[#002f6c] transition-colors"
+                      >
+                        <span className="material-icons text-sm">arrow_back</span>
+                        Back to Menu
+                      </button>
+                      <h3 className="text-xs font-black text-zinc-800 uppercase tracking-wider">
+                        {activeCallModule === "mou" && "MoU Register"}
+                        {activeCallModule === "office" && "Office Calls Logger"}
+                        {activeCallModule === "home" && "Home Calls Logger"}
+                        {activeCallModule === "pr" && "Public Relations Tracker"}
+                      </h3>
+                      <button
+                        onClick={() => setShowCallAddForm(!showCallAddForm)}
+                        className="flex items-center gap-1 py-1 px-3 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-[10px] font-bold shadow-sm transition-colors uppercase tracking-wider"
+                      >
+                        <span className="material-icons text-xs font-bold">{showCallAddForm ? "close" : "add"}</span>
+                        {showCallAddForm ? "Cancel" : "Add Record"}
+                      </button>
+                    </div>
+
+                    {/* ──── CALL SUB-MODULE 1: MoU Register ──── */}
+                    {activeCallModule === "mou" && (
+                      <div className="space-y-4 text-left">
+                        {showCallAddForm && (
+                          <form onSubmit={handleAddMou} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                            <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">Record New Memorandum of Understanding</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">School</label>
+                                <select 
+                                  required 
+                                  value={mouSchool} 
+                                  onChange={(e) => setMouSchool(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900 font-medium"
+                                >
+                                  <option value="">-- Select Registered School --</option>
+                                  {registeredSchools.map((sch) => (
+                                    <option key={sch.id} value={sch.name}>{sch.name}</option>
+                                  ))}
+                                  <option value="Other Manual School">Other School (Manual Entry)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Principal Name</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={mouPrincipal} 
+                                  onChange={(e) => setMouPrincipal(e.target.value)}
+                                  placeholder="e.g. Dr. K. Rao" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Date Initiated</label>
+                                <input 
+                                  type="date" 
+                                  required 
+                                  value={mouDateInit} 
+                                  onChange={(e) => setMouDateInit(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Student Strength</label>
+                                <input 
+                                  type="number" 
+                                  required 
+                                  min="0"
+                                  placeholder="e.g. 120"
+                                  value={mouStrength} 
+                                  onChange={(e) => setMouStrength(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">MoU Status</label>
+                                <select 
+                                  value={mouStatus} 
+                                  onChange={(e) => setMouStatus(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                >
+                                  <option value="Pending">Pending</option>
+                                  <option value="In Progress">In Progress</option>
+                                  <option value="Signed">Signed</option>
+                                  <option value="Terminated">Terminated</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Signed Date (If applicable)</label>
+                                <input 
+                                  type="date" 
+                                  value={mouSignedDate} 
+                                  onChange={(e) => setMouSignedDate(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Next Follow-up Date</label>
+                                <input 
+                                  type="date" 
+                                  value={mouFollowUp} 
+                                  onChange={(e) => setMouFollowUp(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Staff Member</label>
+                                <input 
+                                  type="text" 
+                                  value={mouStaff} 
+                                  onChange={(e) => setMouStaff(e.target.value)}
+                                  placeholder={employee?.name || "Enter staff name"} 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                              <button 
+                                type="button" 
+                                onClick={() => setShowCallAddForm(false)}
+                                className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" 
+                                className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                              >
+                                Save MoU
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* MoU Table List display */}
+                        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                          <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">MoU Log History ({mouList.length})</h4>
+                          {mouList.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-400 text-xs font-medium">No MoU records registered yet. Click Add Record to insert one.</div>
+                          ) : (
+                            <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                              <thead className="bg-zinc-50 text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                                <tr>
+                                  <th className="px-3 py-2">School</th>
+                                  <th className="px-3 py-2">Principal Name</th>
+                                  <th className="px-3 py-2">Date Initiated</th>
+                                  <th className="px-3 py-2">Student Strength</th>
+                                  <th className="px-3 py-2">MoU Status</th>
+                                  <th className="px-3 py-2 font-semibold">Signed Date</th>
+                                  <th className="px-3 py-2">Next Follow-up</th>
+                                  <th className="px-3 py-2">Staff</th>
+                                  <th className="px-3 py-2 text-center">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                {mouList.map((item) => (
+                                  <tr key={item.id} className="hover:bg-zinc-50/50">
+                                    <td className="px-3 py-2.5 font-bold text-zinc-900">{item.school}</td>
+                                    <td className="px-3 py-2.5">{item.principal}</td>
+                                    <td className="px-3 py-2.5 whitespace-nowrap">{item.dateInitiated}</td>
+                                    <td className="px-3 py-2.5 text-center">{item.studentStrength}</td>
+                                    <td className="px-3 py-2.5">
+                                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                                        item.status === "Signed" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                                        item.status === "In Progress" ? "bg-blue-50 text-blue-700 border border-blue-200" :
+                                        item.status === "Terminated" ? "bg-rose-50 text-rose-700 border border-rose-200" :
+                                        "bg-amber-50 text-amber-700 border border-amber-200"
+                                      }`}>
+                                        {item.status}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2.5 whitespace-nowrap">{item.signedDate || "-"}</td>
+                                    <td className="px-3 py-2.5 whitespace-nowrap">{item.nextFollowUp || "-"}</td>
+                                    <td className="px-3 py-2.5">{item.staff}</td>
+                                    <td className="px-3 py-2.5 text-center">
+                                      <button 
+                                        onClick={() => handleDeleteMou(item.id)}
+                                        className="text-rose-650 hover:text-rose-800 transition-colors font-black text-[10px] uppercase cursor-pointer"
+                                      >
+                                        Delete
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ──── CALL SUB-MODULE 2: Office Calls ──── */}
+                    {activeCallModule === "office" && (
+                      <div className="space-y-4 text-left">
+                        {showCallAddForm && (
+                          <form onSubmit={handleAddOfficeCall} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                            <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">Log New Office Call</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Date</label>
+                                <input 
+                                  type="date" 
+                                  required 
+                                  value={ocDate} 
+                                  onChange={(e) => setOcDate(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">School</label>
+                                <select 
+                                  required 
+                                  value={ocSchool} 
+                                  onChange={(e) => setOcSchool(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900 font-medium"
+                                >
+                                  <option value="">-- Select School --</option>
+                                  {registeredSchools.map((sch) => (
+                                    <option key={sch.id} value={sch.name}>{sch.name}</option>
+                                  ))}
+                                  <option value="Other Manual School">Other School (Manual Entry)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Principal Name</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={ocPrincipal} 
+                                  onChange={(e) => setOcPrincipal(e.target.value)}
+                                  placeholder="Principal Name" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Phone Number</label>
+                                <input 
+                                  type="tel" 
+                                  required 
+                                  value={ocPhone} 
+                                  onChange={(e) => setOcPhone(e.target.value)}
+                                  placeholder="e.g. 9876543210" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Purpose</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={ocPurpose} 
+                                  onChange={(e) => setOcPurpose(e.target.value)}
+                                  placeholder="e.g. MoU follow-up, Uniform check" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Response</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={ocResponse} 
+                                  onChange={(e) => setOcResponse(e.target.value)}
+                                  placeholder="e.g. Principal agreed, Will visit" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex gap-6 pt-1 select-none">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={ocMeetingFixed} 
+                                  onChange={(e) => setOcMeetingFixed(e.target.checked)}
+                                  className="h-4 w-4 text-[#002f6c] focus:ring-[#002f6c] border-zinc-300 rounded cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-zinc-700">Meeting Fixed</span>
+                              </label>
+
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={ocFollowUpReq} 
+                                  onChange={(e) => setOcFollowUpReq(e.target.checked)}
+                                  className="h-4 w-4 text-[#002f6c] focus:ring-[#002f6c] border-zinc-300 rounded cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-zinc-700">Follow-up Required</span>
+                              </label>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                              <button 
+                                type="button" 
+                                onClick={() => setShowCallAddForm(false)}
+                                className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" 
+                                className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                              >
+                                Log Office Call
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* Office Calls Table display */}
+                        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                          <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">Office Call Records ({officeCallsList.length})</h4>
+                          {officeCallsList.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-400 text-xs font-medium">No office call records logged yet. Click Add Record to start.</div>
+                          ) : (
+                            <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                              <thead className="bg-zinc-50 text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                                <tr>
+                                  <th className="px-3 py-2">Date</th>
+                                  <th className="px-3 py-2">School</th>
+                                  <th className="px-3 py-2">Principal</th>
+                                  <th className="px-3 py-2">Phone Number</th>
+                                  <th className="px-3 py-2">Purpose</th>
+                                  <th className="px-3 py-2">Response</th>
+                                  <th className="px-3 py-2">Meeting Fixed</th>
+                                  <th className="px-3 py-2 font-semibold">Follow-up Required</th>
+                                  <th className="px-3 py-2 text-center">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                {officeCallsList.map((item) => (
+                                  <tr key={item.id} className="hover:bg-zinc-50/50">
+                                    <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                    <td className="px-3 py-2.5 font-bold text-zinc-900">{item.school}</td>
+                                    <td className="px-3 py-2.5">{item.principal}</td>
+                                    <td className="px-3 py-2.5 whitespace-nowrap">{item.phone}</td>
+                                    <td className="px-3 py-2.5">{item.purpose}</td>
+                                    <td className="px-3 py-2.5">{item.response}</td>
+                                    <td className="px-3 py-2.5">
+                                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.meetingFixed ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"}`}>
+                                        {item.meetingFixed ? "Yes" : "No"}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2.5">
+                                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.followUpReq ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-zinc-100 text-zinc-505 border border-zinc-200"}`}>
+                                        {item.followUpReq ? "Yes" : "No"}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2.5 text-center">
+                                      <button 
+                                        onClick={() => handleDeleteOfficeCall(item.id)}
+                                        className="text-rose-650 hover:text-rose-800 transition-colors font-black text-[10px] uppercase cursor-pointer"
+                                      >
+                                        Delete
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ──── CALL SUB-MODULE 3: Home Calls ──── */}
+                    {activeCallModule === "home" && (
+                      <div className="space-y-4 text-left">
+                        {showCallAddForm && (
+                          <form onSubmit={handleAddHomeCall} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                            <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">Log New Home Call</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Date</label>
+                                <input 
+                                  type="date" 
+                                  required 
+                                  value={hcDate} 
+                                  onChange={(e) => setHcDate(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">School</label>
+                                <select 
+                                  required 
+                                  value={hcSchool} 
+                                  onChange={(e) => setHcSchool(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900 font-medium"
+                                >
+                                  <option value="">-- Select School --</option>
+                                  {registeredSchools.map((sch) => (
+                                    <option key={sch.id} value={sch.name}>{sch.name}</option>
+                                  ))}
+                                  <option value="Other Manual School">Other School (Manual Entry)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Person Contacted</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={hcPersonContacted} 
+                                  onChange={(e) => setHcPersonContacted(e.target.value)}
+                                  placeholder="e.g. Student Father / Mother" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Purpose</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={hcPurpose} 
+                                  onChange={(e) => setHcPurpose(e.target.value)}
+                                  placeholder="e.g. Class attendance check" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Response</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={hcResponse} 
+                                  onChange={(e) => setHcResponse(e.target.value)}
+                                  placeholder="e.g. Promised to send child tomorrow" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Staff Member</label>
+                                <input 
+                                  type="text" 
+                                  value={hcStaff} 
+                                  onChange={(e) => setHcStaff(e.target.value)}
+                                  placeholder={employee?.name || "Enter staff name"} 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="pt-1 select-none">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={hcFollowUp} 
+                                  onChange={(e) => setHcFollowUp(e.target.checked)}
+                                  className="h-4 w-4 text-[#002f6c] focus:ring-[#002f6c] border-zinc-300 rounded cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-zinc-700">Follow-up Required</span>
+                              </label>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                              <button 
+                                type="button" 
+                                onClick={() => setShowCallAddForm(false)}
+                                className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" 
+                                className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                              >
+                                Log Home Call
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* Home Calls Table display */}
+                        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                          <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">Home Call Records ({homeCallsList.length})</h4>
+                          {homeCallsList.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-400 text-xs font-medium">No home calls logged yet. Click Add Record to start.</div>
+                          ) : (
+                            <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                              <thead className="bg-zinc-50 text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                                <tr>
+                                  <th className="px-3 py-2">Date</th>
+                                  <th className="px-3 py-2">School</th>
+                                  <th className="px-3 py-2">Person Contacted</th>
+                                  <th className="px-3 py-2">Purpose</th>
+                                  <th className="px-3 py-2">Response</th>
+                                  <th className="px-3 py-2">Follow-up</th>
+                                  <th className="px-3 py-2 font-semibold">Staff</th>
+                                  <th className="px-3 py-2 text-center">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                {homeCallsList.map((item) => (
+                                  <tr key={item.id} className="hover:bg-zinc-50/50">
+                                    <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                    <td className="px-3 py-2.5 font-bold text-zinc-900">{item.school}</td>
+                                    <td className="px-3 py-2.5">{item.personContacted}</td>
+                                    <td className="px-3 py-2.5">{item.purpose}</td>
+                                    <td className="px-3 py-2.5">{item.response}</td>
+                                    <td className="px-3 py-2.5">
+                                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.followUp ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"}`}>
+                                        {item.followUp ? "Yes" : "No"}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2.5">{item.staff}</td>
+                                    <td className="px-3 py-2.5 text-center">
+                                      <button 
+                                        onClick={() => handleDeleteHomeCall(item.id)}
+                                        className="text-rose-650 hover:text-rose-800 transition-colors font-black text-[10px] uppercase cursor-pointer"
+                                      >
+                                        Delete
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ──── CALL SUB-MODULE 4: Public Relations ──── */}
+                    {activeCallModule === "pr" && (
+                      <div className="space-y-4 text-left">
+                        {showCallAddForm && (
+                          <form onSubmit={handleAddPr} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                            <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">Record PR Engagement / Meeting</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Date</label>
+                                <input 
+                                  type="date" 
+                                  required 
+                                  value={prDate} 
+                                  onChange={(e) => setPrDate(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Person / Body Met</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={prPersonBodyMet} 
+                                  onChange={(e) => setPrPersonBodyMet(e.target.value)}
+                                  placeholder="e.g. Press Reporter / Sarpanch" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1 font-semibold select-none">Category</label>
+                                <select 
+                                  value={prCategory} 
+                                  onChange={(e) => setPrCategory(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900 font-medium"
+                                >
+                                  <option value="Government">Government Officials</option>
+                                  <option value="Press / Media">Press / Media</option>
+                                  <option value="NGO / Trust">NGO / Social Trust</option>
+                                  <option value="Community Leader">Community Leaders</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Purpose</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={prPurpose} 
+                                  onChange={(e) => setPrPurpose(e.target.value)}
+                                  placeholder="e.g. Scout week press release" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Outcome</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={prOutcome} 
+                                  onChange={(e) => setPrOutcome(e.target.value)}
+                                  placeholder="e.g. Published in local daily news" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Staff Member</label>
+                                <input 
+                                  type="text" 
+                                  value={prStaff} 
+                                  onChange={(e) => setPrStaff(e.target.value)}
+                                  placeholder={employee?.name || "Enter staff name"} 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                              <button 
+                                type="button" 
+                                onClick={() => setShowCallAddForm(false)}
+                                className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" 
+                                className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                              >
+                                Log PR Engagement
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* PR Table List display */}
+                        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                          <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">PR Records List ({prList.length})</h4>
+                          {prList.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-400 text-xs font-medium">No PR engagement records logged yet. Click Add Record to start.</div>
+                          ) : (
+                            <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                              <thead className="bg-zinc-50 text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                                <tr>
+                                  <th className="px-3 py-2">Date</th>
+                                  <th className="px-3 py-2">Person / Body Met</th>
+                                  <th className="px-3 py-2 font-semibold">Category</th>
+                                  <th className="px-3 py-2">Purpose</th>
+                                  <th className="px-3 py-2">Outcome</th>
+                                  <th className="px-3 py-2">Staff</th>
+                                  <th className="px-3 py-2 text-center">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                {prList.map((item) => (
+                                  <tr key={item.id} className="hover:bg-zinc-50/50">
+                                    <td className="px-3 py-2.5 whitespace-nowrap">{item.date}</td>
+                                    <td className="px-3 py-2.5 font-bold text-zinc-900">{item.personBodyMet}</td>
+                                    <td className="px-3 py-2.5">
+                                      <span className="inline-flex px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-bold uppercase">
+                                        {item.category}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2.5">{item.purpose}</td>
+                                    <td className="px-3 py-2.5">{item.outcome}</td>
+                                    <td className="px-3 py-2.5">{item.staff}</td>
+                                    <td className="px-3 py-2.5 text-center">
+                                      <button 
+                                        onClick={() => handleDeletePr(item.id)}
+                                        className="text-rose-650 hover:text-rose-800 transition-colors font-black text-[10px] uppercase cursor-pointer"
+                                      >
+                                        Delete
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
