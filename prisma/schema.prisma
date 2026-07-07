@@ -254,4 +254,17 @@ model SocialMediaReport {
   createdAt     DateTime @default(now())
 }
 
+model AttendanceLog {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  employeeName  String
+  date          String
+  status        String
+  punchIn       String?
+  punchOut      String?
+  sessionName   String
+  slotNum       String
+  createdAt     DateTime @default(now())
+}
+
 

@@ -201,6 +201,10 @@ export default function EmployeeDashboard() {
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [punchInTime, setPunchInTime] = useState<string | null>(null);
   const [attendanceSessions, setAttendanceSessions] = useState<any[]>([]);
+  // Per-session attendance logs from DB (for the schedule view)
+  const [sessionAttendanceLogs, setSessionAttendanceLogs] = useState<any[]>([]);
+  const [isMarkingAttendance, setIsMarkingAttendance] = useState<string | null>(null);
+
 
   // Student-wise Attendance taking states for Daily Class Registers
   const [selectedRegisterForAttendance, setSelectedRegisterForAttendance] = useState<any | null>(null);
@@ -336,7 +340,22 @@ export default function EmployeeDashboard() {
       fetchModuleData("problems", setProblemsList, `problems_${email}`);
       fetchModuleData("documents", setDocumentsList, `documents_${email}`);
 
+      // Fetch session attendance logs from DB
+      const loadSessionAttendance = async () => {
+        try {
+          const res = await fetch(`/api/employee/data/attendance?email=${encodeURIComponent(email)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setSessionAttendanceLogs(data);
+          }
+        } catch (err) {
+          console.error("Failed to fetch session attendance logs:", err);
+        }
+      };
+      loadSessionAttendance();
+
       const loadAllSchools = async () => {
+
         try {
           const res = await fetch("/api/admin/schools");
           if (res.ok) {
@@ -371,6 +390,36 @@ export default function EmployeeDashboard() {
       loadSchoolsCount();
     }
   }, [employee, activeTab]);
+
+  // Auto-mark absent for any past session today with no attendance log
+  useEffect(() => {
+    if (!timetableEntry || !employee) return;
+    const getIST = () => { const d = new Date(); return new Date(d.getTime() + d.getTimezoneOffset()*60000 + 3600000*5.5); };
+    const nowIST = getIST();
+    const currentMinutes = nowIST.getHours()*60 + nowIST.getMinutes();
+    const DAYS_ORDER = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+    const dayName = DAYS_ORDER[nowIST.getDay()];
+    if (dayName === "sunday") return;
+    const slotsConfig = [{num:"1",end:630},{num:"2",end:750},{num:"3",end:930},{num:"4",end:1050}];
+    const dateStr = nowIST.toISOString().split("T")[0];
+    const email = employee.email;
+    const autoMarkAbsent = async () => {
+      for (const slot of slotsConfig) {
+        if (currentMinutes < slot.end) continue;
+        const fieldKey = `${dayName}_${slot.num}`;
+        const sessionName = timetableEntry[fieldKey];
+        if (!sessionName || sessionName.toLowerCase() === "free" || sessionName.trim() === "") continue;
+        const existing = sessionAttendanceLogs.find((l) => l.date === dateStr && l.slotNum === slot.num);
+        if (existing) continue;
+        try {
+          const res = await fetch("/api/employee/data/attendance", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({employeeEmail:email,employeeName:employee.name,date:dateStr,status:"Absent",punchIn:null,punchOut:null,sessionName,slotNum:slot.num}) });
+          if (res.ok) { const newLog = await res.json(); setSessionAttendanceLogs((prev) => [newLog, ...prev]); }
+        } catch(err) { console.error("Failed to auto-mark absent:", err); }
+      }
+    };
+    autoMarkAbsent();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timetableEntry, employee]);
 
   // Compute upcoming session for the week in Indian Standard Time (IST)
   const upcomingSession = useMemo(() => {
@@ -1512,29 +1561,63 @@ export default function EmployeeDashboard() {
             </div>
           ) : (
             <div className="space-y-4 max-w-md mx-auto pb-10">
-              {dayClasses.map((item) => (
-                <div 
-                  key={item.slotNum} 
-                  className="bg-white border border-zinc-200 shadow-sm rounded-xl p-4 flex flex-col gap-2 hover:shadow transition-shadow relative overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-[#002f6c]" />
+              {dayClasses.map((item) => {
+                const getISTNow = () => { const d = new Date(); return new Date(d.getTime() + d.getTimezoneOffset()*60000 + 3600000*5.5); };
+                const SLOT_WINDOWS = {"1":{start:510,end:630},"2":{start:630,end:750},"3":{start:810,end:930},"4":{start:930,end:1050}};
+                const DAY_ORDER_S = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+                const nowS = getISTNow();
+                const curMins = nowS.getHours()*60 + nowS.getMinutes();
+                const todayKey = DAY_ORDER_S[nowS.getDay()];
+                const dateStrS = nowS.toISOString().split("T")[0];
+                const isToday = selectedDay.dayNameLong === todayKey;
+                const sw = (SLOT_WINDOWS as any)[item.slotNum];
+                const isActive = isToday && sw && curMins >= sw.start && curMins <= sw.end;
+                const existingLog = sessionAttendanceLogs.find((l: any) => l.date === dateStrS && l.slotNum === item.slotNum);
+                const handleMarkAttendance = async () => {
+                  if (!employee || existingLog || !isActive) return;
+                  setIsMarkingAttendance(item.slotNum);
+                  const now2 = getISTNow();
+                  const timeStr = now2.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+                  try {
+                    const res = await fetch("/api/employee/data/attendance",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({employeeEmail:employee.email,employeeName:employee.name,date:dateStrS,status:"Present",punchIn:timeStr,punchOut:null,sessionName:item.schoolName,slotNum:item.slotNum})});
+                    if (res.ok) { const newLog = await res.json(); setSessionAttendanceLogs((prev) => [newLog, ...prev]); }
+                  } catch(err) { console.error("Failed to mark attendance:", err); }
+                  finally { setIsMarkingAttendance(null); }
+                };
+                return (
+                <div key={item.slotNum} className="bg-white border border-zinc-200 shadow-sm rounded-xl p-4 flex flex-col gap-2 hover:shadow transition-shadow relative overflow-hidden">
+                  <div className={`absolute top-0 left-0 right-0 h-1 ${isActive ? "bg-emerald-500" : "bg-[#002f6c]"}`} />
                   <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
-                    <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase">
-                      {item.slotLabel}
-                    </span>
-                    <span className="text-[9px] font-extrabold text-[#800020] bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded">
-                      Slot {item.slotNum}
-                    </span>
+                    <span className="text-[10px] font-bold text-zinc-400 tracking-wider uppercase">{item.slotLabel}</span>
+                    <span className="text-[9px] font-extrabold text-[#800020] bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded">Slot {item.slotNum}</span>
                   </div>
-                  <h4 className="text-sm sm:text-base font-bold text-zinc-900 leading-tight">
-                    {item.schoolName}
-                  </h4>
+                  <h4 className="text-sm sm:text-base font-bold text-zinc-900 leading-tight">{item.schoolName}</h4>
                   <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-semibold mt-1">
                     <span className="material-icons text-sm text-zinc-400 select-none">location_on</span>
                     <span>Classroom / School Campus</span>
                   </div>
+                  <div className="mt-2 pt-2 border-t border-zinc-100">
+                    {existingLog ? (
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black border ${existingLog.status === "Present" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200"}`}>
+                        <span className="material-icons text-xs select-none">{existingLog.status === "Present" ? "check_circle" : "cancel"}</span>
+                        {existingLog.status === "Present" ? `Present · ${existingLog.punchIn || ""}` : "Absent · Not marked"}
+                      </span>
+                    ) : isActive ? (
+                      <button onClick={handleMarkAttendance} disabled={isMarkingAttendance === item.slotNum} className="w-full flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-lg transition-all shadow-sm disabled:opacity-50 cursor-pointer">
+                        <span className="material-icons text-sm select-none">fingerprint</span>
+                        {isMarkingAttendance === item.slotNum ? "Marking..." : "Mark Attendance"}
+                      </button>
+                    ) : isToday && sw && curMins < sw.start ? (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400"><span className="material-icons text-xs select-none">schedule</span>Opens at {item.slotLabel.split(" - ")[0]}</span>
+                    ) : isToday && sw && curMins > sw.end ? (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-rose-500"><span className="material-icons text-xs select-none">cancel</span>Absent · Window closed</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400"><span className="material-icons text-xs select-none">event</span>Scheduled</span>
+                    )}
+                  </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </main>
@@ -1577,7 +1660,6 @@ export default function EmployeeDashboard() {
               { key: "schools", icon: "book", label: "Schools", cls: "material-symbols-outlined" },
               { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
               { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
-              { key: "attendance", icon: "fingerprint", label: "Attendance", cls: "material-icons" },
               { key: "settings", icon: "account_circle", label: "Profile & Settings", cls: "material-symbols-outlined" },
             ].map(({ key, icon, label, cls }) => (
               <button
@@ -1719,10 +1801,10 @@ export default function EmployeeDashboard() {
 
                 {/* Quick Access 4-Box Grid */}
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
-                  {/* Card 1: Applications */}
+                  {/* Card 1: Attendance */}
                   <div 
                     onClick={() => {
-                      setActiveTab("calls");
+                      setActiveTab("attendance");
                       setError(null);
                       setSuccess(null);
                     }}
@@ -1730,21 +1812,18 @@ export default function EmployeeDashboard() {
                   >
                     <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
                       <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="60" cy="70" r="8" fill="#3F3D56"/>
-                        <path d="M60 78c-8 0-14 6-14 14v18h28V92c0-8-6-14-14-14z" fill="#3F3D56"/>
-                        <path d="M54 110h12v15H54z" fill="#3F3D56"/>
-                        <rect x="90" y="30" width="80" height="60" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                        <rect x="95" y="35" width="70" height="5" rx="1" fill="#E6E6E6"/>
-                        <circle cx="102" cy="55" r="10" fill="#E6E6E6"/>
-                        <path d="M102 55 L102 45 A10 10 0 0 1 112 55 Z" fill="#002f6c"/>
-                        <rect x="120" y="50" width="8" height="25" rx="1" fill="#800020"/>
-                        <rect x="132" y="45" width="8" height="30" rx="1" fill="#002f6c"/>
-                        <rect x="144" y="58" width="8" height="17" rx="1" fill="#3F3D56"/>
-                        <path d="M52 125h6v3h-6zM62 125h6v3h-6z" fill="#3F3D56"/>
+                        <rect x="70" y="30" width="60" height="75" rx="30" fill="#E6E6E6" opacity="0.3"/>
+                        <path d="M100 40 A15 15 0 0 1 115 55 M100 35 A20 20 0 0 1 120 55 M100 45 A10 10 0 0 1 110 55" stroke="#002f6c" strokeWidth="2.5" strokeLinecap="round"/>
+                        <path d="M100 50 A5 5 0 0 1 105 55 M100 55 A1 1 0 0 1 100 56" stroke="#800020" strokeWidth="2.5" strokeLinecap="round"/>
+                        <path d="M85 55 A15 15 0 0 1 100 40 M80 55 A20 20 0 0 1 100 35 M90 55 A10 10 0 0 1 100 45" stroke="#002f6c" strokeWidth="2.5" strokeLinecap="round"/>
+                        <path d="M95 55 A5 5 0 0 1 100 50" stroke="#800020" strokeWidth="2.5" strokeLinecap="round"/>
+                        <rect x="65" y="85" width="70" height="35" rx="6" fill="#3F3D56"/>
+                        <circle cx="100" cy="102" r="6" fill="#4CAF50"/>
+                        <path d="M96 102l3 3 5-5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
                     <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
-                      Applications
+                      Attendance
                     </span>
                   </div>
 
@@ -4753,7 +4832,6 @@ export default function EmployeeDashboard() {
           { key: "schools", icon: "book", label: "Schools", cls: "material-symbols-outlined" },
           { key: "calls", icon: "forms_add_on", label: "Calls", cls: "material-symbols-outlined" },
           { key: "media", icon: "perm_media", label: "Media", cls: "material-icons" },
-          { key: "attendance", icon: "fingerprint", label: "Attend", cls: "material-icons" },
           { key: "settings", icon: "account_circle", label: "Settings", cls: "material-symbols-outlined" },
         ].map(({ key, icon, label, cls }) => (
           <button

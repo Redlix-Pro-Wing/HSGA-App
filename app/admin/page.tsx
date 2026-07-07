@@ -38,6 +38,152 @@ type GoogleWindow = typeof window & {
   };
 };
 
+
+function AttendanceRegistersPanel() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterEmail, setFilterEmail] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"" | "Present" | "Absent">("");
+
+  const loadLogs = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filterEmail) params.append("email", filterEmail);
+      if (filterDate) params.append("date", filterDate);
+      if (filterStatus) params.append("status", filterStatus);
+      const res = await fetch(`/api/admin/attendance?${params.toString()}`);
+      if (res.ok) { const data = await res.json(); setLogs(data); }
+    } catch (err) { console.error("Failed to load attendance logs:", err); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { loadLogs(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleFilter = (e: React.FormEvent) => { e.preventDefault(); loadLogs(); };
+  const clearFilters = () => { setFilterEmail(""); setFilterDate(""); setFilterStatus(""); setTimeout(loadLogs, 50); };
+
+  const presentCount = logs.filter(l => l.status === "Present").length;
+  const absentCount = logs.filter(l => l.status === "Absent").length;
+
+  return (
+    <div className="space-y-6 text-left">
+      {/* Header */}
+      <div className="bg-white border border-zinc-200 shadow-sm rounded-xl p-5">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
+              <span className="material-icons text-[#002f6c] text-xl select-none">fingerprint</span>
+              Attendance Logs
+            </h2>
+            <p className="text-xs text-zinc-500 mt-0.5">All employee session attendance records</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <span className="material-icons text-sm text-emerald-700 select-none">check_circle</span>
+              <span className="text-xs font-black text-emerald-800">{presentCount} Present</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 border border-rose-200 rounded-lg">
+              <span className="material-icons text-sm text-rose-700 select-none">cancel</span>
+              <span className="text-xs font-black text-rose-800">{absentCount} Absent</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <form onSubmit={handleFilter} className="mt-4 flex flex-wrap gap-2 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Employee Email</label>
+            <input
+              value={filterEmail}
+              onChange={e => setFilterEmail(e.target.value)}
+              placeholder="Search by email..."
+              className="border border-zinc-200 rounded-lg px-3 py-1.5 text-xs text-zinc-800 w-56 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Date</label>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+              className="border border-zinc-200 rounded-lg px-3 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Status</label>
+            <select
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value as any)}
+              className="border border-zinc-200 rounded-lg px-3 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#002f6c]/30"
+            >
+              <option value="">All</option>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+            </select>
+          </div>
+          <button type="submit" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#002f6c] text-white text-xs font-bold rounded-lg hover:bg-[#001f4c] transition-colors cursor-pointer">
+            <span className="material-icons text-sm select-none">search</span>Apply
+          </button>
+          <button type="button" onClick={clearFilters} className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 text-zinc-700 text-xs font-bold rounded-lg hover:bg-zinc-200 transition-colors cursor-pointer">
+            <span className="material-icons text-sm select-none">clear</span>Clear
+          </button>
+        </form>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-zinc-200 shadow-sm rounded-xl overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-zinc-400 gap-2">
+            <span className="material-icons animate-spin text-2xl select-none">refresh</span>
+            <span className="text-sm font-semibold">Loading...</span>
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-400 gap-3">
+            <span className="material-icons text-4xl select-none">event_busy</span>
+            <p className="text-sm font-semibold">No attendance records found</p>
+            <p className="text-xs text-zinc-400">Records appear here once employees mark attendance on the schedule page</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-zinc-50 border-b border-zinc-200">
+                <tr>
+                  {["Employee", "Email", "Date", "Slot", "Session", "Status", "Punch In", "Punch Out"].map(h => (
+                    <th key={h} className="px-3 py-3 font-black text-zinc-600 text-[10px] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {logs.map((log, idx) => (
+                  <tr key={log.id || idx} className="hover:bg-zinc-50 transition-colors">
+                    <td className="px-3 py-3 font-semibold text-zinc-900 whitespace-nowrap">{log.employeeName}</td>
+                    <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c] whitespace-nowrap">{log.employeeEmail}</td>
+                    <td className="px-3 py-3 text-zinc-600 whitespace-nowrap">{log.date}</td>
+                    <td className="px-3 py-3 text-center">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#002f6c]/10 text-[#002f6c] font-black text-[10px]">{log.slotNum}</span>
+                    </td>
+                    <td className="px-3 py-3 text-zinc-700 max-w-[140px] truncate font-semibold">{log.sessionName}</td>
+                    <td className="px-3 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border ${log.status === "Present" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200"}`}>
+                        <span className="material-icons text-[10px] select-none">{log.status === "Present" ? "check_circle" : "cancel"}</span>
+                        {log.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 font-mono text-zinc-500 whitespace-nowrap">{log.punchIn || "—"}</td>
+                    <td className="px-3 py-3 font-mono text-zinc-500 whitespace-nowrap">{log.punchOut || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(true);
@@ -57,7 +203,8 @@ export default function AdminPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Tab Navigation state
-  const [activeTab, setActiveTab] = useState<"overview" | "add-employee" | "schools" | "settings" | "timetable" | "schools-registers" | "calls-registers" | "media-registers">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "add-employee" | "schools" | "settings" | "timetable" | "schools-registers" | "calls-registers" | "media-registers" | "attendance-registers">("overview");
+
 
   // Registers list states
   const [visitsList, setVisitsList] = useState<any[]>([]);
@@ -1718,6 +1865,23 @@ export default function AdminPage() {
               <span className="material-icons text-lg shrink-0">calendar_today</span>
               <span className="hidden group-hover:inline-block transition-all duration-300 whitespace-nowrap overflow-hidden text-xs">
                 Time Table
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("attendance-registers");
+                setError(null);
+                setSuccess(null);
+              }}
+              title="Attendance Logs"
+              className={`w-full flex items-center justify-center group-hover:justify-start gap-4 px-3 py-2.5 rounded-md text-sm font-semibold transition-colors cursor-pointer ${activeTab === "attendance-registers"
+                  ? "bg-[#002f6c]/10 text-[#002f6c]"
+                  : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-50"
+                }`}
+            >
+              <span className="material-icons text-lg shrink-0">fingerprint</span>
+              <span className="hidden group-hover:inline-block transition-all duration-300 whitespace-nowrap overflow-hidden text-xs">
+                Attendance Logs
               </span>
             </button>
             <button
@@ -3849,6 +4013,11 @@ export default function AdminPage() {
                           )}
                         </div>
                       )}
+
+                      {/* TAB CONTENT: Attendance Registers (Admin View) */}
+                      {activeTab === "attendance-registers" && (
+                        <AttendanceRegistersPanel />
+                      )}
                     </div>
                   </main>
       </div>
@@ -3861,6 +4030,7 @@ export default function AdminPage() {
               { key: "schools-registers", icon: "school", label: "Sch Reg" },
               { key: "calls-registers", icon: "call", label: "Call Reg" },
               { key: "media-registers", icon: "perm_media", label: "Med Reg" },
+              { key: "attendance-registers", icon: "fingerprint", label: "Attend" },
               { key: "settings", icon: "settings", label: "Settings" },
             ].map(({ key, icon, label }) => (
               <button

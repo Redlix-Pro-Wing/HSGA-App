@@ -80,6 +80,11 @@ export async function GET(
         where: { employeeEmail: email },
         orderBy: { createdAt: "desc" },
       });
+    } else if (module === "attendance") {
+      data = await prisma.attendanceLog.findMany({
+        where: { employeeEmail: email },
+        orderBy: { createdAt: "desc" },
+      });
     } else {
       return NextResponse.json({ error: "Invalid module" }, { status: 400 });
     }
@@ -269,6 +274,19 @@ export async function POST(
           reach: parseInt(body.reach, 10) || 0,
           likes: parseInt(body.likes, 10) || 0,
           link: body.link,
+        },
+      });
+    } else if (module === "attendance") {
+      record = await prisma.attendanceLog.create({
+        data: {
+          employeeEmail: email,
+          employeeName: body.employeeName || "",
+          date: body.date,
+          status: body.status,
+          punchIn: body.punchIn || null,
+          punchOut: body.punchOut || null,
+          sessionName: body.sessionName,
+          slotNum: body.slotNum,
         },
       });
     } else {
