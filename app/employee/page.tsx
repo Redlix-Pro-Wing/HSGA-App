@@ -51,6 +51,11 @@ export default function EmployeeDashboard() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
+  // Schools count and detail state for Schools tab
+  const [schoolsCount, setSchoolsCount] = useState<number>(0);
+  const [isFetchingSchoolsCount, setIsFetchingSchoolsCount] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<any>(null);
+
   // Form fields
   const [designation, setDesignation] = useState("");
   const [district, setDistrict] = useState("");
@@ -128,6 +133,27 @@ export default function EmployeeDashboard() {
       loadTimetable();
     }
   }, [employee, profileView, selectedDayIdx]);
+
+  // Load enrolled schools count automatically when schools tab opens
+  useEffect(() => {
+    if (employee && activeTab === "schools") {
+      const loadSchoolsCount = async () => {
+        setIsFetchingSchoolsCount(true);
+        try {
+          const res = await fetch("/api/admin/schools");
+          if (res.ok) {
+            const data = await res.json();
+            setSchoolsCount(data.length);
+          }
+        } catch (err) {
+          console.error("Error loading schools list count:", err);
+        } finally {
+          setIsFetchingSchoolsCount(false);
+        }
+      };
+      loadSchoolsCount();
+    }
+  }, [employee, activeTab]);
 
   // Compute upcoming session for the week in Indian Standard Time (IST)
   const upcomingSession = useMemo(() => {
@@ -682,30 +708,480 @@ export default function EmployeeDashboard() {
                     </div>
                   </div>
                 )}
+
+                {/* Quick Access 4-Box Grid */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
+                  {/* Card 1: Applications */}
+                  <div 
+                    onClick={() => {
+                      setActiveTab("calls");
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px]"
+                  >
+                    <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                      <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="60" cy="70" r="8" fill="#3F3D56"/>
+                        <path d="M60 78c-8 0-14 6-14 14v18h28V92c0-8-6-14-14-14z" fill="#3F3D56"/>
+                        <path d="M54 110h12v15H54z" fill="#3F3D56"/>
+                        <rect x="90" y="30" width="80" height="60" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                        <rect x="95" y="35" width="70" height="5" rx="1" fill="#E6E6E6"/>
+                        <circle cx="102" cy="55" r="10" fill="#E6E6E6"/>
+                        <path d="M102 55 L102 45 A10 10 0 0 1 112 55 Z" fill="#002f6c"/>
+                        <rect x="120" y="50" width="8" height="25" rx="1" fill="#800020"/>
+                        <rect x="132" y="45" width="8" height="30" rx="1" fill="#002f6c"/>
+                        <rect x="144" y="58" width="8" height="17" rx="1" fill="#3F3D56"/>
+                        <path d="M52 125h6v3h-6zM62 125h6v3h-6z" fill="#3F3D56"/>
+                      </svg>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                      Applications
+                    </span>
+                  </div>
+
+                  {/* Card 2: Daily Schedule */}
+                  <div 
+                    onClick={() => {
+                      const d = new Date();
+                      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                      const nowIST = new Date(utc + (3600000 * 5.5));
+                      setSelectedDayIdx(nowIST.getDay());
+                      setProfileView("schedule");
+                    }}
+                    className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px]"
+                  >
+                    <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                      <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="40" y="30" width="80" height="60" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                        <line x1="40" y1="45" x2="120" y2="45" stroke="#3F3D56" strokeWidth="2"/>
+                        <circle cx="50" cy="37" r="2.5" fill="#800020"/>
+                        <circle cx="60" cy="37" r="2.5" fill="#800020"/>
+                        <circle cx="70" cy="37" r="2.5" fill="#800020"/>
+                        <path d="M48 56l3 3 5-5" stroke="#002f6c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M68 56l3 3 5-5" stroke="#002f6c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M88 56l3 3 5-5" stroke="#002f6c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M48 76l3 3 5-5" stroke="#002f6c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M68 76l3 3 5-5" stroke="#002f6c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="145" cy="75" r="8" fill="#3F3D56"/>
+                        <path d="M145 83c-8 0-14 6-14 14v18h28V97c0-8-6-14-14-14z" fill="#3F3D56"/>
+                        <path d="M139 115h12v10H139z" fill="#3F3D56"/>
+                      </svg>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                      Daily Schedule
+                    </span>
+                  </div>
+
+                  {/* Card 3: Schools */}
+                  <div 
+                    onClick={() => {
+                      setActiveTab("schools");
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px]"
+                  >
+                    <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                      <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="50" y="45" width="100" height="65" rx="2" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                        <path d="M45 45 L100 20 L155 45 Z" fill="#800020" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                        <circle cx="100" cy="35" r="6" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                        <line x1="100" y1="35" x2="100" y2="31" stroke="#3F3D56" strokeWidth="1"/>
+                        <line x1="100" y1="35" x2="103" y2="35" stroke="#3F3D56" strokeWidth="1"/>
+                        <rect x="62" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
+                        <rect x="128" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
+                        <path d="M90 110 V85 C90 80 110 80 110 85 V110 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
+                        <rect x="78" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                        <rect x="110" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                        <line x1="100" y1="20" x2="100" y2="5" stroke="#3F3D56" strokeWidth="1.5"/>
+                        <path d="M100 5 L115 10 L100 15 Z" fill="#002f6c"/>
+                      </svg>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                      Schools
+                    </span>
+                  </div>
+
+                  {/* Card 4: ID Card */}
+                  <div 
+                    onClick={() => {
+                      setActiveTab("settings");
+                      setProfileView("id-card");
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px]"
+                  >
+                    <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                      <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="80" y="35" width="75" height="55" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                        <line x1="85" y1="62" x2="150" y2="62" stroke="#E6E6E6" strokeWidth="1"/>
+                        <line x1="85" y1="72" x2="130" y2="72" stroke="#E6E6E6" strokeWidth="1"/>
+                        <rect x="90" y="42" width="15" height="15" rx="1" fill="#002f6c" opacity="0.8"/>
+                        <rect x="110" y="42" width="35" height="4" fill="#800020"/>
+                        <rect x="110" y="50" width="25" height="3" fill="#3F3D56"/>
+                        <circle cx="50" cy="70" r="8" fill="#3F3D56"/>
+                        <path d="M50 78c-8 0-14 6-14 14v18h28V92c0-8-6-14-14-14z" fill="#3F3D56"/>
+                        <path d="M44 110h12v15H44z" fill="#3F3D56"/>
+                      </svg>
+                    </div>
+                    <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                      ID Card
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
             {activeTab === "schools" && (
-              <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 min-h-[250px] flex flex-col items-center justify-center text-center select-none">
-                <span className="material-symbols-outlined text-4xl text-[#002f6c] mb-2 select-none">book</span>
-                <h3 className="text-base font-bold text-zinc-900">Schools</h3>
-                <p className="text-xs text-zinc-500 mt-1">School details and classes information will be loaded here.</p>
+              <div className="space-y-3 sm:space-y-4">
+                {/* School Enrolled Header Card (Overview Style) */}
+                <div className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[220px] select-none">
+                  {/* Left side: Illustration */}
+                  <div className="flex-1 flex justify-center sm:justify-start">
+                    <svg viewBox="0 0 200 150" className="h-44 sm:h-52 w-auto object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="50" y="45" width="100" height="65" rx="2" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                      <path d="M45 45 L100 20 L155 45 Z" fill="#800020" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                      <circle cx="100" cy="35" r="6" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                      <line x1="100" y1="35" x2="100" y2="31" stroke="#3F3D56" strokeWidth="1"/>
+                      <line x1="100" y1="35" x2="103" y2="35" stroke="#3F3D56" strokeWidth="1"/>
+                      <rect x="62" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
+                      <rect x="128" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
+                      <path d="M90 110 V85 C90 80 110 80 110 85 V110 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
+                      <rect x="78" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                      <rect x="110" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                      <line x1="100" y1="20" x2="100" y2="5" stroke="#3F3D56" strokeWidth="1.5"/>
+                      <path d="M100 5 L115 10 L100 15 Z" fill="#002f6c"/>
+                    </svg>
+                  </div>
+                  {/* Right side: Live Schools Count Stats */}
+                  <div className="flex-1 flex flex-col items-center justify-center text-center pr-2 sm:pr-8">
+                    {isFetchingSchoolsCount ? (
+                      <span className="material-icons animate-spin text-4xl text-[#002f6c] select-none">sync</span>
+                    ) : (
+                      <span className="text-5xl sm:text-6xl font-semibold text-zinc-900 tracking-tight leading-none">
+                        {schoolsCount}
+                      </span>
+                    )}
+                    <span className="text-sm sm:text-base font-semibold text-zinc-500 mt-2">
+                      Schools Enrolled
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4-Box Grid (Overview Style) */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
+                  {[
+                    {
+                      title: "School Visits and Demonstrations",
+                      icon: "hail",
+                      color: "text-amber-500 bg-amber-50 border-amber-100",
+                      description: "Track and log school visitation notes and scout demonstrations.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="75" y="30" width="75" height="50" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M75 55 h75" stroke="#E6E6E6" strokeWidth="1"/>
+                          <path d="M85 70 L105 50 L125 65 L145 42" stroke="#002f6c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <circle cx="145" cy="42" r="3" fill="#800020"/>
+                          <circle cx="50" cy="65" r="8" fill="#3F3D56"/>
+                          <path d="M50 73c-7 0-12 5-12 12v15h24V85c0-7-5-12-12-12z" fill="#3F3D56"/>
+                          <path d="M44 100h12v15H44z" fill="#3F3D56"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Daily Class Register",
+                      icon: "fact_check",
+                      color: "text-emerald-500 bg-emerald-50 border-emerald-100",
+                      description: "Mark attendee rosters and manage daily session logs.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="60" y="25" width="80" height="100" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <rect x="90" y="15" width="20" height="10" rx="1" fill="#3F3D56"/>
+                          <line x1="75" y1="45" x2="125" y2="45" stroke="#E6E6E6" strokeWidth="2"/>
+                          <line x1="75" y1="65" x2="125" y2="65" stroke="#E6E6E6" strokeWidth="2"/>
+                          <line x1="75" y1="85" x2="125" y2="85" stroke="#E6E6E6" strokeWidth="2"/>
+                          <line x1="75" y1="105" x2="125" y2="105" stroke="#E6E6E6" strokeWidth="2"/>
+                          <circle cx="75" cy="45" r="4" fill="#002f6c"/>
+                          <circle cx="75" cy="65" r="4" fill="#800020"/>
+                          <circle cx="75" cy="85" r="4" fill="#002f6c"/>
+                          <circle cx="75" cy="105" r="4" fill="#E6E6E6"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Student Enrolment",
+                      icon: "person_add",
+                      color: "text-blue-500 bg-blue-50 border-blue-100",
+                      description: "Register new praveshika or komal/dhruv padh candidates.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="100" cy="55" r="30" fill="#E6E6E6" opacity="0.5"/>
+                          <path d="M100 25 L145 42 L100 59 L55 42 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                          <rect x="80" y="55" width="40" height="20" fill="#800020" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M100 42 L125 55 L125 70" fill="none" stroke="#800020" strokeWidth="1.5" strokeLinecap="round"/>
+                          <circle cx="125" cy="70" r="2.5" fill="#800020"/>
+                          <circle cx="100" cy="98" r="8" fill="#3F3D56"/>
+                          <path d="M100 106c-8 0-14 6-14 14v10h28v-10c0-8-6-14-14-14z" fill="#3F3D56"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Uniform Distribution",
+                      icon: "checkroom",
+                      color: "text-rose-500 bg-rose-50 border-rose-100",
+                      description: "Monitor distribution logs of uniforms and state scarfs.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M100 35 C100 25 110 25 110 30 C110 35 100 35 100 42" fill="none" stroke="#3F3D56" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M70 50 L100 45 L130 50 L145 65 L130 70 L125 65 V110 H75 V65 L70 70 L55 65 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                          <path d="M95 46 L100 65 L105 46 Z" fill="#800020"/>
+                          <path d="M97 65 L100 95 L103 65 Z" fill="#002f6c"/>
+                        </svg>
+                      )
+                    },
+                  ].map((box, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        setSelectedModule(box);
+                      }}
+                      className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
+                    >
+                      {/* Top right corner arrow */}
+                      <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                        north_east
+                      </span>
+
+                      {/* SVG Illustration Placeholder */}
+                      <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                        {box.svg}
+                      </div>
+
+                      {/* Title */}
+                      <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                        {box.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {activeTab === "calls" && (
-              <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 min-h-[250px] flex flex-col items-center justify-center text-center select-none">
-                <span className="material-symbols-outlined text-4xl text-[#002f6c] mb-2 select-none">forms_add_on</span>
-                <h3 className="text-base font-bold text-zinc-900">Calls</h3>
-                <p className="text-xs text-zinc-500 mt-1">Call details and call history records will be loaded here.</p>
+              <div className="space-y-3 sm:space-y-4">
+                {/* 4-Box Grid (Overview/Schools Style) */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {[
+                    {
+                      title: "MoU Register",
+                      icon: "history_edu",
+                      color: "text-amber-500 bg-amber-50 border-amber-100",
+                      description: "Access and review signed Memorandums of Understanding for local school associations.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="60" y="25" width="80" height="100" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <circle cx="115" cy="100" r="10" fill="#800020" opacity="0.8"/>
+                          <circle cx="115" cy="100" r="6" stroke="#FFFFFF" strokeWidth="1"/>
+                          <line x1="75" y1="45" x2="125" y2="45" stroke="#E6E6E6" strokeWidth="2.5"/>
+                          <line x1="75" y1="60" x2="125" y2="60" stroke="#E6E6E6" strokeWidth="2.5"/>
+                          <line x1="75" y1="75" x2="105" y2="75" stroke="#E6E6E6" strokeWidth="2.5"/>
+                          <path d="M75 105 Q85 95 95 105 T105 100" fill="none" stroke="#002f6c" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Office Calls",
+                      icon: "call",
+                      color: "text-emerald-500 bg-emerald-50 border-emerald-100",
+                      description: "Log official administrative phone discussions and internal office calls.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="65" y="65" width="70" height="45" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <rect x="75" y="75" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                          <rect x="90" y="75" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                          <rect x="75" y="90" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                          <rect x="90" y="90" width="10" height="10" rx="1" fill="#E6E6E6"/>
+                          <path d="M50 50 C55 35 145 35 150 50 L140 60 C135 50 65 50 60 60 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M125 90 Q145 105 135 120 T115 110" fill="none" stroke="#800020" strokeWidth="2"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Home Calls",
+                      icon: "contact_phone",
+                      color: "text-blue-500 bg-blue-50 border-blue-100",
+                      description: "Record phone log details and consultation responses with scout families.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M60 110 V70 L100 40 L140 70 V110 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <rect x="90" y="85" width="20" height="25" fill="#800020"/>
+                          <circle cx="80" cy="65" r="4" fill="#002f6c"/>
+                          <circle cx="120" cy="65" r="4" fill="#002f6c"/>
+                          <path d="M120 30 C120 15 150 15 150 30 C150 35 140 40 135 45 L135 50 L130 45 C120 45 120 35 120 30 Z" fill="#002f6c"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Public Relations",
+                      icon: "campaign",
+                      color: "text-rose-500 bg-rose-50 border-rose-100",
+                      description: "Manage outreach reports, announcements, and local community relations.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M65 75 L125 50 V100 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                          <path d="M125 50 C130 50 135 60 135 75 C135 90 130 100 125 100" fill="none" stroke="#3F3D56" strokeWidth="2"/>
+                          <rect x="75" y="85" width="12" height="25" rx="1" fill="#800020" stroke="#3F3D56" strokeWidth="2" transform="rotate(15 75 85)"/>
+                          <path d="M148 60 A20 20 0 0 1 148 90" stroke="#002f6c" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M158 50 A35 35 0 0 1 158 100" stroke="#002f6c" strokeWidth="3" strokeLinecap="round"/>
+                        </svg>
+                      )
+                    },
+                  ].map((box, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        setSelectedModule(box);
+                      }}
+                      className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
+                    >
+                      {/* Top right corner arrow */}
+                      <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                        north_east
+                      </span>
+
+                      {/* SVG Illustration Placeholder */}
+                      <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                        {box.svg}
+                      </div>
+
+                      {/* Title */}
+                      <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                        {box.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {activeTab === "media" && (
-              <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 min-h-[250px] flex flex-col items-center justify-center text-center select-none">
-                <span className="material-icons text-4xl text-[#002f6c] mb-2 select-none">perm_media</span>
-                <h3 className="text-base font-bold text-zinc-900">Media</h3>
-                <p className="text-xs text-zinc-500 mt-1">Upload and view photos, videos, and class documents here.</p>
+              <div className="space-y-3 sm:space-y-4">
+                {/* 5-Box Grid (Overview/Schools/Calls Style) */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                  {[
+                    {
+                      title: "Social Media",
+                      icon: "share",
+                      color: "text-amber-500 bg-amber-50 border-amber-100",
+                      description: "Manage state outreach, official announcements, and shared media channels.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="100" cy="75" r="28" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <circle cx="100" cy="75" r="12" stroke="#E6E6E6" strokeWidth="1"/>
+                          <circle cx="70" cy="55" r="6" fill="#002f6c"/>
+                          <circle cx="130" cy="55" r="6" fill="#800020"/>
+                          <circle cx="100" cy="110" r="6" fill="#002f6c"/>
+                          <line x1="75" y1="58" x2="95" y2="70" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <line x1="125" y1="58" x2="105" y2="70" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <line x1="100" y1="104" x2="100" y2="85" stroke="#3F3D56" strokeWidth="1.5"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Student Videos",
+                      icon: "smart_display",
+                      color: "text-emerald-500 bg-emerald-50 border-emerald-100",
+                      description: "Upload and organize student scout training sessions and class activity videos.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="55" y="40" width="90" height="70" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <rect x="60" y="46" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <rect x="60" y="62" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <rect x="60" y="78" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <rect x="60" y="94" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <rect x="134" y="46" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <rect x="134" y="62" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <rect x="134" y="78" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <rect x="134" y="94" width="6" height="8" rx="0.5" fill="#E6E6E6" />
+                          <path d="M92 62 L115 75 L92 88 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Financial Register",
+                      icon: "account_balance_wallet",
+                      color: "text-blue-500 bg-blue-50 border-blue-100",
+                      description: "Track uniform distribution costs, class activity receipts, and branch funds.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="60" y="35" width="80" height="80" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <circle cx="100" cy="75" r="16" fill="#800020" opacity="0.8"/>
+                          <circle cx="100" cy="75" r="12" stroke="#FFFFFF" strokeWidth="1.5"/>
+                          <path d="M95 70 H105 M95 75 H105 M98 70 L98 83 M102 70 A4 4 0 0 1 102 78 L95 83" fill="none" stroke="#FFFFFF" strokeWidth="1.5"/>
+                          <line x1="70" y1="45" x2="130" y2="45" stroke="#E6E6E6" strokeWidth="2"/>
+                          <line x1="70" y1="105" x2="130" y2="105" stroke="#E6E6E6" strokeWidth="2"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Problem Register",
+                      icon: "report_problem",
+                      color: "text-rose-500 bg-rose-50 border-rose-100",
+                      description: "Report class disruptions, equipment shortages, or campus infrastructure issues.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="60" y="25" width="80" height="100" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M100 45 L118 78 H82 Z" fill="#800020" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                          <circle cx="100" cy="74" r="1.5" fill="#FFFFFF"/>
+                          <line x1="100" y1="56" x2="100" y2="68" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+                          <line x1="75" y1="90" x2="125" y2="90" stroke="#E6E6E6" strokeWidth="2.5"/>
+                          <line x1="75" y1="105" x2="110" y2="105" stroke="#E6E6E6" strokeWidth="2.5"/>
+                        </svg>
+                      )
+                    },
+                    {
+                      title: "Documents",
+                      icon: "folder_open",
+                      color: "text-purple-500 bg-purple-50 border-purple-100",
+                      description: "View state guidelines, syllabus booklets, and class reporting forms.",
+                      svg: (
+                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M80 30 H135 L145 42 V115 H80 Z" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M60 45 H115 L125 57 V130 H60 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M115 45 V57 H125" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
+                          <line x1="75" y1="70" x2="110" y2="70" stroke="#E6E6E6" strokeWidth="2"/>
+                          <line x1="75" y1="85" x2="115" y2="85" stroke="#E6E6E6" strokeWidth="2"/>
+                          <line x1="75" y1="100" x2="105" y2="100" stroke="#E6E6E6" strokeWidth="2"/>
+                        </svg>
+                      )
+                    },
+                  ].map((box, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        setSelectedModule(box);
+                      }}
+                      className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
+                    >
+                      {/* Top right corner arrow */}
+                      <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                        north_east
+                      </span>
+
+                      {/* SVG Illustration Placeholder */}
+                      <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                        {box.svg}
+                      </div>
+
+                      {/* Title */}
+                      <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                        {box.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -1253,6 +1729,47 @@ export default function EmployeeDashboard() {
           </button>
         ))}
       </nav>
+
+      {/* Module Details Modal Overlay */}
+      {selectedModule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-lg border border-zinc-200 w-full max-w-md p-6 relative overflow-hidden select-none">
+            {/* Top Right Close Button */}
+            <button 
+              onClick={() => setSelectedModule(null)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 p-1 hover:bg-zinc-100 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+            >
+              <span className="material-icons text-xl select-none">close</span>
+            </button>
+
+            {/* Icon */}
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center border ${selectedModule.color.split(" ")[1]} ${selectedModule.color.split(" ")[2]} mb-4`}>
+              <span className={`material-symbols-outlined text-2xl ${selectedModule.color.split(" ")[0]}`}>{selectedModule.icon}</span>
+            </div>
+
+            {/* Content */}
+            <h3 className="text-base font-extrabold text-zinc-950 leading-tight mb-2">
+              {selectedModule.title}
+            </h3>
+            <p className="text-xs text-zinc-500 font-semibold mb-6">
+              {selectedModule.description}
+            </p>
+
+            <div className="bg-[#e8eaf6]/40 border border-zinc-200/50 rounded-lg p-3 text-[11px] text-zinc-655 font-semibold leading-relaxed flex gap-2">
+              <span className="material-icons text-base text-[#002f6c] shrink-0 select-none">info</span>
+              <span>This class management module is currently being configured for your state association credentials. Live reporting data will sync automatically.</span>
+            </div>
+
+            {/* Close action */}
+            <button 
+              onClick={() => setSelectedModule(null)}
+              className="w-full mt-6 py-2.5 bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold rounded-md transition-colors shadow-sm cursor-pointer"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
