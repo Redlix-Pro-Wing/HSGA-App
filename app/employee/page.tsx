@@ -1884,25 +1884,36 @@ export default function EmployeeDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {/* Navigation Top Bar */}
-                    <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-3 select-none">
-                      <button 
-                        onClick={() => setActiveSchoolModule(null)}
-                        className="flex items-center gap-1 text-xs font-bold text-zinc-700 hover:text-[#002f6c] transition-colors"
-                      >
-                        <span className="material-icons text-sm">arrow_back</span>
-                        Back to Menu
-                      </button>
-                      <h3 className="text-xs font-black text-zinc-800 uppercase tracking-wider">
-                        {activeSchoolModule === "visits" && "School Visits & Demonstrations"}
-                        {activeSchoolModule === "register" && "Daily Class Register"}
-                        {activeSchoolModule === "enrolment" && "Student Enrolment"}
-                        {activeSchoolModule === "uniforms" && "Uniform Distribution"}
-                      </h3>
+                    <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-2 sm:p-3 select-none gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <button 
+                          onClick={() => {
+                            setActiveSchoolModule(null);
+                            setError(null);
+                            setSuccess(null);
+                          }}
+                          className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-zinc-200 text-zinc-700 hover:text-[#002f6c] transition-colors cursor-pointer shrink-0"
+                          title="Back"
+                        >
+                          <span className="material-icons text-lg font-bold">arrow_back</span>
+                        </button>
+                        <div className="h-5 w-px bg-zinc-300 shrink-0" />
+                        <h3 className="text-[10px] sm:text-xs font-black text-zinc-800 uppercase tracking-wider truncate">
+                          {activeSchoolModule === "visits" && "School Visits & Demonstrations"}
+                          {activeSchoolModule === "register" && "Daily Class Register"}
+                          {activeSchoolModule === "enrolment" && "Student Enrolment"}
+                          {activeSchoolModule === "uniforms" && "Uniform Distribution"}
+                        </h3>
+                      </div>
                       <button
-                        onClick={() => setShowAddForm(!showAddForm)}
-                        className="flex items-center gap-1 py-1 px-3 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-[10px] font-bold shadow-sm transition-colors uppercase tracking-wider"
+                        onClick={() => {
+                          setShowAddForm(!showAddForm);
+                          setError(null);
+                          setSuccess(null);
+                        }}
+                        className="flex items-center gap-1 py-1 px-2.5 sm:px-3 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-[9px] sm:text-[10px] font-bold shadow-sm transition-colors uppercase tracking-wider shrink-0"
                       >
-                        <span className="material-icons text-xs font-bold">{showAddForm ? "close" : "add"}</span>
+                        <span className="material-icons text-xs sm:text-sm font-bold">{showAddForm ? "close" : "add"}</span>
                         {showAddForm ? "Cancel" : "Add Record"}
                       </button>
                     </div>
@@ -2586,25 +2597,36 @@ export default function EmployeeDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {/* Navigation Top Bar */}
-                    <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-3 select-none">
-                      <button 
-                        onClick={() => setActiveCallModule(null)}
-                        className="flex items-center gap-1 text-xs font-bold text-zinc-700 hover:text-[#002f6c] transition-colors"
-                      >
-                        <span className="material-icons text-sm">arrow_back</span>
-                        Back to Menu
-                      </button>
-                      <h3 className="text-xs font-black text-zinc-800 uppercase tracking-wider">
-                        {activeCallModule === "mou" && "MoU Register"}
-                        {activeCallModule === "office" && "Office Calls Logger"}
-                        {activeCallModule === "home" && "Home Calls Logger"}
-                        {activeCallModule === "pr" && "Public Relations Tracker"}
-                      </h3>
+                    <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-2 sm:p-3 select-none gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <button 
+                          onClick={() => {
+                            setActiveCallModule(null);
+                            setError(null);
+                            setSuccess(null);
+                          }}
+                          className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-zinc-200 text-zinc-700 hover:text-[#002f6c] transition-colors cursor-pointer shrink-0"
+                          title="Back"
+                        >
+                          <span className="material-icons text-lg font-bold">arrow_back</span>
+                        </button>
+                        <div className="h-5 w-px bg-zinc-300 shrink-0" />
+                        <h3 className="text-[10px] sm:text-xs font-black text-zinc-800 uppercase tracking-wider truncate">
+                          {activeCallModule === "mou" && "MoU Register"}
+                          {activeCallModule === "office" && "Office Calls Logger"}
+                          {activeCallModule === "home" && "Home Calls Logger"}
+                          {activeCallModule === "pr" && "Public Relations Tracker"}
+                        </h3>
+                      </div>
                       <button
-                        onClick={() => setShowCallAddForm(!showCallAddForm)}
-                        className="flex items-center gap-1 py-1 px-3 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-[10px] font-bold shadow-sm transition-colors uppercase tracking-wider"
+                        onClick={() => {
+                          setShowCallAddForm(!showCallAddForm);
+                          setError(null);
+                          setSuccess(null);
+                        }}
+                        className="flex items-center gap-1 py-1 px-2.5 sm:px-3 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-[9px] sm:text-[10px] font-bold shadow-sm transition-colors uppercase tracking-wider shrink-0"
                       >
-                        <span className="material-icons text-xs font-bold">{showCallAddForm ? "close" : "add"}</span>
+                        <span className="material-icons text-xs sm:text-sm font-bold">{showCallAddForm ? "close" : "add"}</span>
                         {showCallAddForm ? "Cancel" : "Add Record"}
                       </button>
                     </div>
@@ -3404,28 +3426,29 @@ export default function EmployeeDashboard() {
                   </>
                 ) : (
                   <div className="space-y-4 text-left">
-                    {/* Breadcrumb Header */}
-                    <div className="flex items-center justify-between border-b border-zinc-200 pb-3 select-none">
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                        <button
+                    {/* Navigation Top Bar */}
+                    <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-2.5 sm:p-3 select-none gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <button 
                           onClick={() => {
                             setActiveMediaModule(null);
                             setShowMediaAddForm(false);
                             setError(null);
                             setSuccess(null);
                           }}
-                          className="font-medium text-zinc-450 hover:text-[#002f6c] hover:underline"
+                          className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-zinc-200 text-zinc-700 hover:text-[#002f6c] transition-colors cursor-pointer shrink-0"
+                          title="Back"
                         >
-                          Media registers
+                          <span className="material-icons text-lg font-bold">arrow_back</span>
                         </button>
-                        <span className="text-zinc-300">/</span>
-                        <span className="font-extrabold text-[#002f6c]">
+                        <div className="h-5 w-px bg-zinc-300 shrink-0" />
+                        <h3 className="text-[10px] sm:text-xs font-black text-zinc-800 uppercase tracking-wider truncate">
                           {activeMediaModule === "social" && "Social Media"}
                           {activeMediaModule === "videos" && "Student Videos"}
                           {activeMediaModule === "finance" && "Financial Register"}
                           {activeMediaModule === "problems" && "Problem Register"}
                           {activeMediaModule === "documents" && "Documents"}
-                        </span>
+                        </h3>
                       </div>
                       <button
                         onClick={() => {
@@ -3433,10 +3456,10 @@ export default function EmployeeDashboard() {
                           setError(null);
                           setSuccess(null);
                         }}
-                        className="bg-[#002f6c] hover:bg-[#002352] text-white text-xs font-bold py-1.5 px-3 rounded flex items-center gap-1 transition-colors"
+                        className="flex items-center gap-1 py-1 px-2.5 sm:px-3 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-[9px] sm:text-[10px] font-bold shadow-sm transition-colors uppercase tracking-wider shrink-0"
                       >
-                        <span className="material-icons text-sm">{showMediaAddForm ? "remove" : "add"}</span>
-                        {showMediaAddForm ? "Back to logs" : "Add log"}
+                        <span className="material-icons text-xs sm:text-sm font-bold">{showMediaAddForm ? "close" : "add"}</span>
+                        {showMediaAddForm ? "Cancel" : "Add Record"}
                       </button>
                     </div>
 
