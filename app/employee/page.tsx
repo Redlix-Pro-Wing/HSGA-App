@@ -1647,22 +1647,11 @@ export default function EmployeeDashboard() {
                   </div>
                   {/* Right side: Attendance Stats & Action */}
                   <div className="flex-1 flex flex-col items-center justify-center text-center pr-2 sm:pr-8">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider mb-2 ${
-                      isPunchedIn 
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200 animate-pulse" 
-                        : "bg-rose-50 text-rose-700 border border-rose-200"
-                    }`}>
-                      {isPunchedIn ? "Active: Punched In" : "Punched Out"}
-                    </span>
-                    <span className="text-4xl sm:text-5xl font-black text-zinc-850 tracking-tight leading-none">
+                    <span className="text-5xl sm:text-6xl font-semibold text-zinc-900 tracking-tight leading-none">
                       {attendanceSessions.length > 0 ? "100%" : "0%"}
                     </span>
-                    <span className="text-xs font-bold text-zinc-500 mt-2 block">
-                      My Monthly Attendance
-                    </span>
-                    <span className="text-[10px] text-[#002f6c] font-black uppercase tracking-wider mt-4 flex items-center gap-1 group-hover:underline">
-                      Manage Attendance
-                      <span className="material-icons text-xs font-bold">arrow_forward</span>
+                    <span className="text-sm sm:text-base font-semibold text-zinc-500 mt-2">
+                      Attendance
                     </span>
                   </div>
                 </div>
