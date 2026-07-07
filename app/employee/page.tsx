@@ -56,6 +56,49 @@ export default function EmployeeDashboard() {
   const [isFetchingSchoolsCount, setIsFetchingSchoolsCount] = useState(false);
   const [selectedModule, setSelectedModule] = useState<any>(null);
 
+  // Sub-modules state in Schools Tab
+  const [activeSchoolModule, setActiveSchoolModule] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  // Local storage lists
+  const [visitsList, setVisitsList] = useState<any[]>([]);
+  const [registersList, setRegistersList] = useState<any[]>([]);
+  const [enrolmentsList, setEnrolmentsList] = useState<any[]>([]);
+  const [distributionsList, setDistributionsList] = useState<any[]>([]);
+  const [registeredSchools, setRegisteredSchools] = useState<any[]>([]);
+
+  // Form field states for School Visits
+  const [visitSchoolName, setVisitSchoolName] = useState("");
+  const [visitDistrict, setVisitDistrict] = useState("");
+  const [visitDemo, setVisitDemo] = useState(false);
+  const [visitVisited, setVisitVisited] = useState(false);
+  const [visitPrincipal, setVisitPrincipal] = useState("");
+  const [visitPhone, setVisitPhone] = useState("");
+  const [visitAddress, setVisitAddress] = useState("");
+
+  // Form field states for Daily Registers
+  const [regSchoolName, setRegSchoolName] = useState("");
+  const [regDate, setRegDate] = useState("");
+  const [regTopic, setRegTopic] = useState("");
+  const [regAttendance, setRegAttendance] = useState("");
+
+  // Form field states for Student Enrolment
+  const [studName, setStudName] = useState("");
+  const [studAge, setStudAge] = useState("");
+  const [studSchool, setStudSchool] = useState("");
+  const [studId, setStudId] = useState("");
+
+  // Form field states for Uniform Distribution
+  const [distSchool, setDistSchool] = useState("");
+  const [distType, setDistType] = useState<"bulk" | "individual">("bulk");
+  const [bulkMaleCount, setBulkMaleCount] = useState("");
+  const [bulkFemaleCount, setBulkFemaleCount] = useState("");
+  const [bulkAmount, setBulkAmount] = useState("");
+  const [indStudentName, setIndStudentName] = useState("");
+  const [indClass, setIndClass] = useState("");
+  const [indGender, setIndGender] = useState("Male");
+  const [indAmount, setIndAmount] = useState("");
+
   // Form fields
   const [designation, setDesignation] = useState("");
   const [district, setDistrict] = useState("");
@@ -133,6 +176,30 @@ export default function EmployeeDashboard() {
       loadTimetable();
     }
   }, [employee, profileView, selectedDayIdx]);
+
+  // Load local registers from localStorage and fetch registered schools
+  useEffect(() => {
+    if (employee) {
+      const email = employee.email;
+      setVisitsList(JSON.parse(localStorage.getItem(`visits_${email}`) || "[]"));
+      setRegistersList(JSON.parse(localStorage.getItem(`registers_${email}`) || "[]"));
+      setEnrolmentsList(JSON.parse(localStorage.getItem(`enrolments_${email}`) || "[]"));
+      setDistributionsList(JSON.parse(localStorage.getItem(`distributions_${email}`) || "[]"));
+
+      const loadAllSchools = async () => {
+        try {
+          const res = await fetch("/api/admin/schools");
+          if (res.ok) {
+            const data = await res.json();
+            setRegisteredSchools(data);
+          }
+        } catch (err) {
+          console.error("Error loading schools list:", err);
+        }
+      };
+      loadAllSchools();
+    }
+  }, [employee]);
 
   // Load enrolled schools count automatically when schools tab opens
   useEffect(() => {
@@ -361,6 +428,128 @@ export default function EmployeeDashboard() {
     } finally {
       setIsSavingPw(false);
     }
+  };
+
+  const handleAddVisit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!visitSchoolName) return;
+    const newVisit = {
+      id: Date.now().toString(),
+      schoolName: visitSchoolName,
+      district: visitDistrict,
+      demonstration: visitDemo,
+      visited: visitVisited,
+      principalName: visitPrincipal,
+      phone: visitPhone,
+      address: visitAddress,
+      createdAt: new Date().toLocaleDateString(),
+    };
+    const updated = [newVisit, ...visitsList];
+    setVisitsList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`visits_${employee.email}`, JSON.stringify(updated));
+    }
+    
+    // Reset form fields
+    setVisitSchoolName("");
+    setVisitDistrict("");
+    setVisitDemo(false);
+    setVisitVisited(false);
+    setVisitPrincipal("");
+    setVisitPhone("");
+    setVisitAddress("");
+    setShowAddForm(false);
+  };
+
+  const handleAddRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regSchoolName) return;
+    const newReg = {
+      id: Date.now().toString(),
+      schoolName: regSchoolName,
+      date: regDate || new Date().toISOString().split("T")[0],
+      topicCovered: regTopic,
+      attendanceCount: parseInt(regAttendance, 10) || 0,
+      createdAt: new Date().toLocaleDateString(),
+    };
+    const updated = [newReg, ...registersList];
+    setRegistersList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`registers_${employee.email}`, JSON.stringify(updated));
+    }
+    
+    // Reset form fields
+    setRegSchoolName("");
+    setRegDate("");
+    setRegTopic("");
+    setRegAttendance("");
+    setShowAddForm(false);
+  };
+
+  const handleAddStudent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!studName || !studSchool) return;
+    const newStud = {
+      id: Date.now().toString(),
+      studentName: studName,
+      age: parseInt(studAge, 10) || 0,
+      schoolName: studSchool,
+      validId: studId,
+      createdAt: new Date().toLocaleDateString(),
+    };
+    const updated = [newStud, ...enrolmentsList];
+    setEnrolmentsList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`enrolments_${employee.email}`, JSON.stringify(updated));
+    }
+    
+    // Reset form fields
+    setStudName("");
+    setStudAge("");
+    setStudSchool("");
+    setStudId("");
+    setShowAddForm(false);
+  };
+
+  const handleAddDistribution = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!distSchool) return;
+    
+    const record: any = {
+      id: Date.now().toString(),
+      schoolName: distSchool,
+      distributionType: distType,
+      createdAt: new Date().toLocaleDateString(),
+    };
+    
+    if (distType === "bulk") {
+      record.maleCount = parseInt(bulkMaleCount, 10) || 0;
+      record.femaleCount = parseInt(bulkFemaleCount, 10) || 0;
+      record.amount = parseFloat(bulkAmount) || 0;
+      
+      // Reset bulk fields
+      setBulkMaleCount("");
+      setBulkFemaleCount("");
+      setBulkAmount("");
+    } else {
+      record.studentName = indStudentName;
+      record.class = indClass;
+      record.gender = indGender;
+      record.amount = parseFloat(indAmount) || 0;
+      
+      // Reset individual fields
+      setIndStudentName("");
+      setIndClass("");
+      setIndGender("Male");
+      setIndAmount("");
+    }
+    
+    const updated = [record, ...distributionsList];
+    setDistributionsList(updated);
+    if (typeof window !== "undefined" && employee) {
+      localStorage.setItem(`distributions_${employee.email}`, JSON.stringify(updated));
+    }
+    setShowAddForm(false);
   };
 
   if (isChecking) {
@@ -836,136 +1025,715 @@ export default function EmployeeDashboard() {
 
             {activeTab === "schools" && (
               <div className="space-y-3 sm:space-y-4">
-                {/* School Enrolled Header Card (Overview Style) */}
-                <div className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[220px] select-none">
-                  {/* Left side: Illustration */}
-                  <div className="flex-1 flex justify-center sm:justify-start">
-                    <svg viewBox="0 0 200 150" className="h-44 sm:h-52 w-auto object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="50" y="45" width="100" height="65" rx="2" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                      <path d="M45 45 L100 20 L155 45 Z" fill="#800020" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
-                      <circle cx="100" cy="35" r="6" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
-                      <line x1="100" y1="35" x2="100" y2="31" stroke="#3F3D56" strokeWidth="1"/>
-                      <line x1="100" y1="35" x2="103" y2="35" stroke="#3F3D56" strokeWidth="1"/>
-                      <rect x="62" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
-                      <rect x="128" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
-                      <path d="M90 110 V85 C90 80 110 80 110 85 V110 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
-                      <rect x="78" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
-                      <rect x="110" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
-                      <line x1="100" y1="20" x2="100" y2="5" stroke="#3F3D56" strokeWidth="1.5"/>
-                      <path d="M100 5 L115 10 L100 15 Z" fill="#002f6c"/>
-                    </svg>
-                  </div>
-                  {/* Right side: Live Schools Count Stats */}
-                  <div className="flex-1 flex flex-col items-center justify-center text-center pr-2 sm:pr-8">
-                    {isFetchingSchoolsCount ? (
-                      <span className="material-icons animate-spin text-4xl text-[#002f6c] select-none">sync</span>
-                    ) : (
-                      <span className="text-5xl sm:text-6xl font-semibold text-zinc-900 tracking-tight leading-none">
-                        {schoolsCount}
-                      </span>
-                    )}
-                    <span className="text-sm sm:text-base font-semibold text-zinc-500 mt-2">
-                      Schools Enrolled
-                    </span>
-                  </div>
-                </div>
-
-                {/* 4-Box Grid (Overview Style) */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
-                  {[
-                    {
-                      title: "School Visits and Demonstrations",
-                      icon: "hail",
-                      color: "text-amber-500 bg-amber-50 border-amber-100",
-                      description: "Track and log school visitation notes and scout demonstrations.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="75" y="30" width="75" height="50" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <path d="M75 55 h75" stroke="#E6E6E6" strokeWidth="1"/>
-                          <path d="M85 70 L105 50 L125 65 L145 42" stroke="#002f6c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <circle cx="145" cy="42" r="3" fill="#800020"/>
-                          <circle cx="50" cy="65" r="8" fill="#3F3D56"/>
-                          <path d="M50 73c-7 0-12 5-12 12v15h24V85c0-7-5-12-12-12z" fill="#3F3D56"/>
-                          <path d="M44 100h12v15H44z" fill="#3F3D56"/>
+                {activeSchoolModule === null ? (
+                  <>
+                    {/* School Enrolled Header Card (Overview Style) */}
+                    <div className="bg-[#F7F6F3] rounded-lg border border-zinc-200 p-6 flex flex-row items-center justify-between shadow-sm min-h-[220px] select-none">
+                      {/* Left side: Illustration */}
+                      <div className="flex-1 flex justify-center sm:justify-start">
+                        <svg viewBox="0 0 200 150" className="h-44 sm:h-52 w-auto object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="50" y="45" width="100" height="65" rx="2" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                          <path d="M45 45 L100 20 L155 45 Z" fill="#800020" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                          <circle cx="100" cy="35" r="6" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <line x1="100" y1="35" x2="100" y2="31" stroke="#3F3D56" strokeWidth="1"/>
+                          <line x1="100" y1="35" x2="103" y2="35" stroke="#3F3D56" strokeWidth="1"/>
+                          <rect x="62" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <rect x="128" y="60" width="10" height="35" fill="#E6E6E6" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <path d="M90 110 V85 C90 80 110 80 110 85 V110 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2"/>
+                          <rect x="78" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <rect x="110" y="60" width="12" height="15" rx="1" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <line x1="100" y1="20" x2="100" y2="5" stroke="#3F3D56" strokeWidth="1.5"/>
+                          <path d="M100 5 L115 10 L100 15 Z" fill="#002f6c"/>
                         </svg>
-                      )
-                    },
-                    {
-                      title: "Daily Class Register",
-                      icon: "fact_check",
-                      color: "text-emerald-500 bg-emerald-50 border-emerald-100",
-                      description: "Mark attendee rosters and manage daily session logs.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="60" y="25" width="80" height="100" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
-                          <rect x="90" y="15" width="20" height="10" rx="1" fill="#3F3D56"/>
-                          <line x1="75" y1="45" x2="125" y2="45" stroke="#E6E6E6" strokeWidth="2"/>
-                          <line x1="75" y1="65" x2="125" y2="65" stroke="#E6E6E6" strokeWidth="2"/>
-                          <line x1="75" y1="85" x2="125" y2="85" stroke="#E6E6E6" strokeWidth="2"/>
-                          <line x1="75" y1="105" x2="125" y2="105" stroke="#E6E6E6" strokeWidth="2"/>
-                          <circle cx="75" cy="45" r="4" fill="#002f6c"/>
-                          <circle cx="75" cy="65" r="4" fill="#800020"/>
-                          <circle cx="75" cy="85" r="4" fill="#002f6c"/>
-                          <circle cx="75" cy="105" r="4" fill="#E6E6E6"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Student Enrolment",
-                      icon: "person_add",
-                      color: "text-blue-500 bg-blue-50 border-blue-100",
-                      description: "Register new praveshika or komal/dhruv padh candidates.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="100" cy="55" r="30" fill="#E6E6E6" opacity="0.5"/>
-                          <path d="M100 25 L145 42 L100 59 L55 42 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
-                          <rect x="80" y="55" width="40" height="20" fill="#800020" stroke="#3F3D56" strokeWidth="2"/>
-                          <path d="M100 42 L125 55 L125 70" fill="none" stroke="#800020" strokeWidth="1.5" strokeLinecap="round"/>
-                          <circle cx="125" cy="70" r="2.5" fill="#800020"/>
-                          <circle cx="100" cy="98" r="8" fill="#3F3D56"/>
-                          <path d="M100 106c-8 0-14 6-14 14v10h28v-10c0-8-6-14-14-14z" fill="#3F3D56"/>
-                        </svg>
-                      )
-                    },
-                    {
-                      title: "Uniform Distribution",
-                      icon: "checkroom",
-                      color: "text-rose-500 bg-rose-50 border-rose-100",
-                      description: "Monitor distribution logs of uniforms and state scarfs.",
-                      svg: (
-                        <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M100 35 C100 25 110 25 110 30 C110 35 100 35 100 42" fill="none" stroke="#3F3D56" strokeWidth="2" strokeLinecap="round"/>
-                          <path d="M70 50 L100 45 L130 50 L145 65 L130 70 L125 65 V110 H75 V65 L70 70 L55 65 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
-                          <path d="M95 46 L100 65 L105 46 Z" fill="#800020"/>
-                          <path d="M97 65 L100 95 L103 65 Z" fill="#002f6c"/>
-                        </svg>
-                      )
-                    },
-                  ].map((box, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => {
-                        setSelectedModule(box);
-                      }}
-                      className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
-                    >
-                      {/* Top right corner arrow */}
-                      <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
-                        north_east
-                      </span>
-
-                      {/* SVG Illustration Placeholder */}
-                      <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
-                        {box.svg}
                       </div>
-
-                      {/* Title */}
-                      <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
-                        {box.title}
-                      </span>
+                      {/* Right side: Live Schools Count Stats */}
+                      <div className="flex-1 flex flex-col items-center justify-center text-center pr-2 sm:pr-8">
+                        {isFetchingSchoolsCount ? (
+                          <span className="material-icons animate-spin text-4xl text-[#002f6c] select-none">sync</span>
+                        ) : (
+                          <span className="text-5xl sm:text-6xl font-semibold text-zinc-900 tracking-tight leading-none">
+                            {schoolsCount}
+                          </span>
+                        )}
+                        <span className="text-sm sm:text-base font-semibold text-zinc-500 mt-2">
+                          Schools Enrolled
+                        </span>
+                      </div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* 4-Box Grid (Overview Style) */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
+                      {[
+                        {
+                          title: "School Visits and Demonstrations",
+                          icon: "hail",
+                          color: "text-amber-500 bg-amber-50 border-amber-100",
+                          description: "Track and log school visitation notes and scout demonstrations.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="75" y="30" width="75" height="50" rx="3" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <path d="M75 55 h75" stroke="#E6E6E6" strokeWidth="1"/>
+                              <path d="M85 70 L105 50 L125 65 L145 42" stroke="#002f6c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <circle cx="145" cy="42" r="3" fill="#800020"/>
+                              <circle cx="50" cy="65" r="8" fill="#3F3D56"/>
+                              <path d="M50 73c-7 0-12 5-12 12v15h24V85c0-7-5-12-12-12z" fill="#3F3D56"/>
+                              <path d="M44 100h12v15H44z" fill="#3F3D56"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          title: "Daily Class Register",
+                          icon: "fact_check",
+                          color: "text-emerald-500 bg-emerald-50 border-emerald-100",
+                          description: "Mark attendee rosters and manage daily session logs.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="60" y="25" width="80" height="100" rx="4" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2"/>
+                              <rect x="90" y="15" width="20" height="10" rx="1" fill="#3F3D56"/>
+                              <line x1="75" y1="45" x2="125" y2="45" stroke="#E6E6E6" strokeWidth="2"/>
+                              <line x1="75" y1="65" x2="125" y2="65" stroke="#E6E6E6" strokeWidth="2"/>
+                              <line x1="75" y1="85" x2="125" y2="85" stroke="#E6E6E6" strokeWidth="2"/>
+                              <line x1="75" y1="105" x2="125" y2="105" stroke="#E6E6E6" strokeWidth="2"/>
+                              <circle cx="75" cy="45" r="4" fill="#002f6c"/>
+                              <circle cx="75" cy="65" r="4" fill="#800020"/>
+                              <circle cx="75" cy="85" r="4" fill="#002f6c"/>
+                              <circle cx="75" cy="105" r="4" fill="#E6E6E6"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          title: "Student Enrolment",
+                          icon: "person_add",
+                          color: "text-blue-500 bg-blue-50 border-blue-100",
+                          description: "Register new praveshika or komal/dhruv padh candidates.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="100" cy="55" r="30" fill="#E6E6E6" opacity="0.5"/>
+                              <path d="M100 25 L145 42 L100 59 L55 42 Z" fill="#002f6c" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                              <rect x="80" y="55" width="40" height="20" fill="#800020" stroke="#3F3D56" strokeWidth="2"/>
+                              <path d="M100 42 L125 55 L125 70" fill="none" stroke="#800020" strokeWidth="1.5" strokeLinecap="round"/>
+                              <circle cx="125" cy="70" r="2.5" fill="#800020"/>
+                              <circle cx="100" cy="98" r="8" fill="#3F3D56"/>
+                              <path d="M100 106c-8 0-14 6-14 14v10h28v-10c0-8-6-14-14-14z" fill="#3F3D56"/>
+                            </svg>
+                          )
+                        },
+                        {
+                          title: "Uniform Distribution",
+                          icon: "checkroom",
+                          color: "text-rose-500 bg-rose-50 border-rose-100",
+                          description: "Monitor distribution logs of uniforms and state scarfs.",
+                          svg: (
+                            <svg viewBox="0 0 200 150" className="w-auto h-12 sm:h-14 object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M100 35 C100 25 110 25 110 30 C110 35 100 35 100 42" fill="none" stroke="#3F3D56" strokeWidth="2" strokeLinecap="round"/>
+                              <path d="M70 50 L100 45 L130 50 L145 65 L130 70 L125 65 V110 H75 V65 L70 70 L55 65 Z" fill="#FFFFFF" stroke="#3F3D56" strokeWidth="2" strokeLinejoin="round"/>
+                              <path d="M95 46 L100 65 L105 46 Z" fill="#800020"/>
+                              <path d="M97 65 L100 95 L103 65 Z" fill="#002f6c"/>
+                            </svg>
+                          )
+                        },
+                      ].map((box, idx) => (
+                        <div 
+                          key={idx}
+                          onClick={() => {
+                            const moduleKeys = ["visits", "register", "enrolment", "uniforms"];
+                            setActiveSchoolModule(moduleKeys[idx]);
+                            setShowAddForm(false);
+                          }}
+                          className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none hover:border-[#002f6c]/55 hover:shadow transition-all group min-h-[120px] sm:min-h-[135px] relative"
+                        >
+                          {/* Top right corner arrow */}
+                          <span className="material-symbols-outlined text-[14px] text-zinc-400 absolute top-2.5 right-2.5 select-none group-hover:text-[#002f6c] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                            north_east
+                          </span>
+
+                          {/* SVG Illustration Placeholder */}
+                          <div className="flex-1 flex items-center justify-center w-full mb-2 group-hover:scale-105 transition-transform duration-200">
+                            {box.svg}
+                          </div>
+
+                          {/* Title */}
+                          <span className="text-[11px] sm:text-xs font-bold text-zinc-800 group-hover:text-[#002f6c] transition-colors">
+                            {box.title}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Navigation Top Bar */}
+                    <div className="flex items-center justify-between bg-[#F7F6F3] border border-zinc-200 rounded-lg p-3 select-none">
+                      <button 
+                        onClick={() => setActiveSchoolModule(null)}
+                        className="flex items-center gap-1 text-xs font-bold text-zinc-700 hover:text-[#002f6c] transition-colors"
+                      >
+                        <span className="material-icons text-sm">arrow_back</span>
+                        Back to Menu
+                      </button>
+                      <h3 className="text-xs font-black text-zinc-800 uppercase tracking-wider">
+                        {activeSchoolModule === "visits" && "School Visits & Demonstrations"}
+                        {activeSchoolModule === "register" && "Daily Class Register"}
+                        {activeSchoolModule === "enrolment" && "Student Enrolment"}
+                        {activeSchoolModule === "uniforms" && "Uniform Distribution"}
+                      </h3>
+                      <button
+                        onClick={() => setShowAddForm(!showAddForm)}
+                        className="flex items-center gap-1 py-1 px-3 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-[10px] font-bold shadow-sm transition-colors uppercase tracking-wider"
+                      >
+                        <span className="material-icons text-xs font-bold">{showAddForm ? "close" : "add"}</span>
+                        {showAddForm ? "Cancel" : "Add Record"}
+                      </button>
+                    </div>
+
+                    {/* ──── MODULE 1: School Visits ──── */}
+                    {activeSchoolModule === "visits" && (
+                      <div className="space-y-4 text-left">
+                        {showAddForm && (
+                          <form onSubmit={handleAddVisit} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                            <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">Record New School Visit</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">School Name</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={visitSchoolName} 
+                                  onChange={(e) => setVisitSchoolName(e.target.value)}
+                                  placeholder="e.g. Govt High School" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">District</label>
+                                <input 
+                                  type="text" 
+                                  value={visitDistrict} 
+                                  onChange={(e) => setVisitDistrict(e.target.value)}
+                                  placeholder="e.g. Hyderabad" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">Principal Name</label>
+                                <input 
+                                  type="text" 
+                                  value={visitPrincipal} 
+                                  onChange={(e) => setVisitPrincipal(e.target.value)}
+                                  placeholder="e.g. Dr. Ram" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">Phone Number</label>
+                                <input 
+                                  type="tel" 
+                                  value={visitPhone} 
+                                  onChange={(e) => setVisitPhone(e.target.value)}
+                                  placeholder="e.g. +91 98765 43210" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">School Address</label>
+                              <textarea 
+                                value={visitAddress} 
+                                onChange={(e) => setVisitAddress(e.target.value)}
+                                placeholder="Enter school street and village details..." 
+                                className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900 h-16"
+                              />
+                            </div>
+
+                            <div className="flex gap-6 pt-1 select-none">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={visitDemo} 
+                                  onChange={(e) => setVisitDemo(e.target.checked)}
+                                  className="h-4 w-4 text-[#002f6c] focus:ring-[#002f6c] border-zinc-300 rounded cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-zinc-700">Demonstration Done</span>
+                              </label>
+
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={visitVisited} 
+                                  onChange={(e) => setVisitVisited(e.target.checked)}
+                                  className="h-4 w-4 text-[#002f6c] focus:ring-[#002f6c] border-zinc-300 rounded cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-zinc-700">School Visited</span>
+                              </label>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                              <button 
+                                type="button" 
+                                onClick={() => setShowAddForm(false)}
+                                className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" 
+                                className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                              >
+                                Save Visit Log
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* List display */}
+                        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4">
+                          <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">Visits History ({visitsList.length})</h4>
+                          {visitsList.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-400 text-xs font-medium">No school visit logs registered yet. Click Add Record to insert one.</div>
+                          ) : (
+                            <div className="space-y-3">
+                              {visitsList.map((item) => (
+                                <div key={item.id} className="border border-zinc-150 rounded-lg p-3 bg-zinc-50/50 flex flex-col md:flex-row md:items-start justify-between gap-3 text-xs">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-black text-zinc-900">{item.schoolName}</span>
+                                      {item.district && <span className="bg-zinc-200 text-zinc-700 px-1.5 py-0.5 rounded text-[10px] font-bold">{item.district}</span>}
+                                    </div>
+                                    <p className="text-zinc-500 font-medium">{item.address}</p>
+                                    <div className="text-[10px] text-zinc-655 font-bold flex gap-4 pt-1">
+                                      {item.principalName && <span>Principal: {item.principalName}</span>}
+                                      {item.phone && <span>Phone: {item.phone}</span>}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-row md:flex-col items-center md:items-end gap-2 md:gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-zinc-200/60 justify-between select-none">
+                                    <div className="flex gap-1.5">
+                                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${item.demonstration ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-zinc-100 text-zinc-600 border border-zinc-200"}`}>
+                                        Demo: {item.demonstration ? "Done" : "Not Done"}
+                                      </span>
+                                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${item.visited ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-zinc-100 text-zinc-600 border border-zinc-200"}`}>
+                                        Visited: {item.visited ? "Yes" : "No"}
+                                      </span>
+                                    </div>
+                                    <span className="text-[10px] text-zinc-400 font-bold">{item.createdAt}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ──── MODULE 2: Daily Class Register ──── */}
+                    {activeSchoolModule === "register" && (
+                      <div className="space-y-4 text-left">
+                        {showAddForm && (
+                          <form onSubmit={handleAddRegister} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                            <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">Add Class Register Log</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">School Name</label>
+                                <select 
+                                  required 
+                                  value={regSchoolName} 
+                                  onChange={(e) => setRegSchoolName(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                >
+                                  <option value="">-- Select Enrolled School --</option>
+                                  {registeredSchools.map((sch) => (
+                                    <option key={sch.id} value={sch.name}>{sch.name}</option>
+                                  ))}
+                                  <option value="Other Manual School">Other Manual School Entry</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">Date</label>
+                                <input 
+                                  type="date" 
+                                  required 
+                                  value={regDate} 
+                                  onChange={(e) => setRegDate(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">Topic Covered</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={regTopic} 
+                                  onChange={(e) => setRegTopic(e.target.value)}
+                                  placeholder="e.g. Praveshika Syllabus Part-1" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Attendee / Student Count</label>
+                                <input 
+                                  type="number" 
+                                  required 
+                                  min="0" 
+                                  value={regAttendance} 
+                                  onChange={(e) => setRegAttendance(e.target.value)}
+                                  placeholder="e.g. 24" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                              <button 
+                                type="button" 
+                                onClick={() => setShowAddForm(false)}
+                                className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" 
+                                className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                              >
+                                Save Entry
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* List display */}
+                        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4">
+                          <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">Class Logs ({registersList.length})</h4>
+                          {registersList.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-400 text-xs font-medium">No registers logged yet. Click Add Record to start.</div>
+                          ) : (
+                            <div className="space-y-3">
+                              {registersList.map((item) => (
+                                <div key={item.id} className="border border-zinc-150 rounded-lg p-3 bg-zinc-50/50 flex items-center justify-between gap-3 text-xs">
+                                  <div className="space-y-1">
+                                    <span className="font-black text-zinc-900">{item.schoolName}</span>
+                                    <p className="text-zinc-650 font-bold text-[11px]">{item.topicCovered}</p>
+                                    <span className="text-[10px] text-zinc-450 block font-semibold">Date: {item.date}</span>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-black text-[10px] border border-emerald-250 select-none">
+                                      {item.attendanceCount} Students
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ──── MODULE 3: Student Enrolment ──── */}
+                    {activeSchoolModule === "enrolment" && (
+                      <div className="space-y-4 text-left">
+                        {showAddForm && (
+                          <form onSubmit={handleAddStudent} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                            <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">Enroll New Student</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">Student Name</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={studName} 
+                                  onChange={(e) => setStudName(e.target.value)}
+                                  placeholder="e.g. Amit Kumar" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">Age</label>
+                                <input 
+                                  type="number" 
+                                  required 
+                                  min="4" 
+                                  max="25" 
+                                  value={studAge} 
+                                  onChange={(e) => setStudAge(e.target.value)}
+                                  placeholder="e.g. 14" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">School Name</label>
+                                <select 
+                                  required 
+                                  value={studSchool} 
+                                  onChange={(e) => setStudSchool(e.target.value)}
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                >
+                                  <option value="">-- Select Enrolled School --</option>
+                                  {registeredSchools.map((sch) => (
+                                    <option key={sch.id} value={sch.name}>{sch.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-zinc-650 uppercase tracking-wide mb-1">Valid ID (Aadhaar / Card ID)</label>
+                                <input 
+                                  type="text" 
+                                  required 
+                                  value={studId} 
+                                  onChange={(e) => setStudId(e.target.value)}
+                                  placeholder="e.g. 1234-5678-9012" 
+                                  className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                              <button 
+                                type="button" 
+                                onClick={() => setShowAddForm(false)}
+                                className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit" 
+                                className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                              >
+                                Enrol Student
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {/* List display */}
+                        <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4">
+                          <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">Enrolled Students ({enrolmentsList.length})</h4>
+                          {enrolmentsList.length === 0 ? (
+                            <div className="py-8 text-center text-zinc-400 text-xs font-medium">No students enrolled yet. Click Add Record to register.</div>
+                          ) : (
+                            <div className="space-y-3">
+                              {enrolmentsList.map((item) => (
+                                <div key={item.id} className="border border-zinc-150 rounded-lg p-3 bg-zinc-50/50 flex items-center justify-between gap-3 text-xs">
+                                  <div className="space-y-1">
+                                    <span className="font-black text-zinc-900">{item.studentName}</span>
+                                    <p className="text-zinc-500 font-semibold">{item.schoolName}</p>
+                                    <span className="text-[10px] text-zinc-450 block font-semibold">Valid ID: {item.validId}</span>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 font-bold text-[10px] border border-blue-200 select-none">
+                                      Age: {item.age}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ──── MODULE 4: Uniform Distribution ──── */}
+                    {activeSchoolModule === "uniforms" && (
+                      <div className="space-y-4 text-left">
+                        {/* School Selector Dropdown - MANDATORY FIRST STEP */}
+                        <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm space-y-3">
+                          <label className="block text-[10px] font-bold text-zinc-700 uppercase tracking-wider select-none">Select School for Uniforms</label>
+                          <select 
+                            value={distSchool} 
+                            onChange={(e) => {
+                              setDistSchool(e.target.value);
+                            }}
+                            className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900 font-bold"
+                          >
+                            <option value="">-- Choose Registered School --</option>
+                            {registeredSchools.map((sch) => (
+                              <option key={sch.id} value={sch.name}>{sch.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {distSchool ? (
+                          <>
+                            {/* Mode selector: Bulk vs Individual */}
+                            <div className="flex border border-zinc-200 rounded-lg p-1 bg-zinc-100 select-none">
+                              <button
+                                onClick={() => setDistType("bulk")}
+                                className={`flex-1 text-center py-2 text-xs font-bold rounded-md transition-colors ${distType === "bulk" ? "bg-white text-[#002f6c] shadow-sm" : "text-zinc-650 hover:bg-zinc-200/50"}`}
+                              >
+                                Bulk Distribution
+                              </button>
+                              <button
+                                onClick={() => setDistType("individual")}
+                                className={`flex-1 text-center py-2 text-xs font-bold rounded-md transition-colors ${distType === "individual" ? "bg-white text-[#002f6c] shadow-sm" : "text-zinc-650 hover:bg-zinc-200/50"}`}
+                              >
+                                Individual Distribution
+                              </button>
+                            </div>
+
+                            {/* Show Form when showAddForm is active */}
+                            {showAddForm && (
+                              <form onSubmit={handleAddDistribution} className="bg-white border border-zinc-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                                <h4 className="text-xs font-bold text-zinc-800 border-b border-zinc-150 pb-2 uppercase tracking-wide">
+                                  {distType === "bulk" ? "Record Bulk Distribution" : "Record Individual Distribution"}
+                                </h4>
+
+                                {distType === "bulk" ? (
+                                  /* Bulk distribution form */
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                      <div>
+                                        <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Male Uniforms Qty</label>
+                                        <input 
+                                          type="number" 
+                                          required 
+                                          min="0"
+                                          value={bulkMaleCount} 
+                                          onChange={(e) => setBulkMaleCount(e.target.value)}
+                                          placeholder="e.g. 50" 
+                                          className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Female Uniforms Qty</label>
+                                        <input 
+                                          type="number" 
+                                          required 
+                                          min="0"
+                                          value={bulkFemaleCount} 
+                                          onChange={(e) => setBulkFemaleCount(e.target.value)}
+                                          placeholder="e.g. 40" 
+                                          className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Total Amount taken</label>
+                                        <input 
+                                          type="number" 
+                                          required 
+                                          min="0" 
+                                          value={bulkAmount} 
+                                          onChange={(e) => setBulkAmount(e.target.value)}
+                                          placeholder="e.g. 25000" 
+                                          className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  /* Individual distribution form */
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      <div>
+                                        <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Student Name</label>
+                                        <input 
+                                          type="text" 
+                                          required 
+                                          value={indStudentName} 
+                                          onChange={(e) => setIndStudentName(e.target.value)}
+                                          placeholder="e.g. Rahul Reddy" 
+                                          className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Class / Standard</label>
+                                        <input 
+                                          type="text" 
+                                          required 
+                                          value={indClass} 
+                                          onChange={(e) => setIndClass(e.target.value)}
+                                          placeholder="e.g. Class 8-B" 
+                                          className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1 font-semibold select-none">Gender</label>
+                                        <select 
+                                          value={indGender} 
+                                          onChange={(e) => setIndGender(e.target.value)}
+                                          className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                        >
+                                          <option value="Male">Male</option>
+                                          <option value="Female">Female</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="block text-[10px] font-bold text-zinc-655 uppercase tracking-wide mb-1">Amount Taken</label>
+                                        <input 
+                                          type="number" 
+                                          required 
+                                          min="0" 
+                                          value={indAmount} 
+                                          onChange={(e) => setIndAmount(e.target.value)}
+                                          placeholder="e.g. 350" 
+                                          className="w-full px-3 py-2 border border-zinc-300 rounded text-xs focus:ring-1 focus:ring-[#002f6c] focus:border-[#002f6c] bg-white text-zinc-900"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="flex justify-end gap-3 pt-2 border-t border-zinc-100">
+                                  <button 
+                                    type="button" 
+                                    onClick={() => setShowAddForm(false)}
+                                    className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded text-xs font-bold hover:bg-zinc-50 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button 
+                                    type="submit" 
+                                    className="px-4 py-2 bg-[#002f6c] hover:bg-[#002352] text-white rounded text-xs font-bold shadow-sm transition-colors"
+                                  >
+                                    Save Distribution Record
+                                  </button>
+                                </div>
+                              </form>
+                            )}
+
+                            {/* List display matching the selected school */}
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4">
+                              <h4 className="text-xs font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">
+                                Distributions - {distSchool} ({distributionsList.filter(item => item.schoolName === distSchool).length})
+                              </h4>
+                              {distributionsList.filter(item => item.schoolName === distSchool).length === 0 ? (
+                                <div className="py-8 text-center text-zinc-400 text-xs font-medium">No uniform distribution records registered for this school yet.</div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {distributionsList.filter(item => item.schoolName === distSchool).map((item) => (
+                                    <div key={item.id} className="border border-zinc-150 rounded-lg p-3 bg-zinc-50/50 flex items-center justify-between gap-3 text-xs">
+                                      {item.distributionType === "bulk" ? (
+                                        <div className="space-y-1">
+                                          <span className="font-black text-zinc-900 uppercase text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-1 rounded select-none">Bulk Register</span>
+                                          <div className="pt-1 text-zinc-750 font-bold flex gap-4">
+                                            <span>Male: {item.maleCount} uniforms</span>
+                                            <span>Female: {item.femaleCount} uniforms</span>
+                                          </div>
+                                          <span className="text-[10px] text-zinc-400 block font-semibold">Logged: {item.createdAt}</span>
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-1">
+                                          <span className="font-black text-zinc-900 uppercase text-[10px] bg-blue-50 text-blue-800 border border-blue-200 px-1 rounded select-none font-semibold">Individual Register</span>
+                                          <p className="pt-1 text-zinc-900 font-black">{item.studentName} ({item.class})</p>
+                                          <span className="text-[10px] text-zinc-400 block font-semibold">Gender: {item.gender} | Logged: {item.createdAt}</span>
+                                        </div>
+                                      )}
+                                      <div className="text-right shrink-0">
+                                        <span className="font-black text-xs text-zinc-900 block font-bold">₹{item.amount}</span>
+                                        <span className="text-[9px] font-bold text-zinc-400 font-semibold">Total Charged</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="bg-zinc-50 border border-dashed border-zinc-200 rounded-lg py-12 text-center select-none text-zinc-400 text-xs font-semibold">
+                            Please select a registered school from the dropdown to continue.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
