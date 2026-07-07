@@ -94,4 +94,104 @@ model TimeTable {
   createdAt    DateTime @default(now())
 }
 
+model SchoolVisit {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  schoolName    String
+  district      String?
+  demonstration Boolean
+  visited       Boolean
+  principalName String?
+  phone         String?
+  address       String?
+  createdAt     DateTime @default(now())
+}
+
+model DailyRegister {
+  id              Int      @id @default(autoincrement())
+  employeeEmail   String
+  schoolName      String
+  date            String
+  topicCovered    String
+  attendanceCount Int
+  createdAt       DateTime @default(now())
+}
+
+model StudentEnrolment {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  studentName   String
+  age           Int
+  schoolName    String
+  validId       String
+  createdAt     DateTime @default(now())
+}
+
+model UniformDistribution {
+  id               Int      @id @default(autoincrement())
+  employeeEmail    String
+  schoolName       String
+  distributionType String   // "bulk" or "individual"
+  maleCount        Int?
+  femaleCount      Int?
+  studentName      String?
+  class            String?
+  gender           String?
+  amount           Float
+  createdAt        DateTime @default(now())
+}
+
+model Mou {
+  id              Int      @id @default(autoincrement())
+  employeeEmail   String
+  school          String
+  principal       String
+  dateInitiated   String
+  studentStrength Int
+  status          String
+  signedDate      String?
+  nextFollowUp    String?
+  staff           String
+  createdAt       DateTime @default(now())
+}
+
+model OfficeCall {
+  id            Int      @id @default(autoincrement())
+  employeeEmail String
+  date          String
+  school        String
+  principal     String
+  phone         String
+  purpose       String
+  response      String
+  meetingFixed  Boolean
+  followUpReq   Boolean
+  createdAt     DateTime @default(now())
+}
+
+model HomeCall {
+  id              Int      @id @default(autoincrement())
+  employeeEmail   String
+  date            String
+  school          String
+  personContacted String
+  purpose         String
+  response        String
+  followUp        Boolean
+  staff           String
+  createdAt       DateTime @default(now())
+}
+
+model PublicRelation {
+  id             Int      @id @default(autoincrement())
+  employeeEmail  String
+  date           String
+  personBodyMet  String
+  category       String
+  purpose        String
+  outcome        String
+  staff          String
+  createdAt      DateTime @default(now())
+}
+
 

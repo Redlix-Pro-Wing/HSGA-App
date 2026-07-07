@@ -57,7 +57,19 @@ export default function AdminPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Tab Navigation state
-  const [activeTab, setActiveTab] = useState<"overview" | "add-employee" | "schools" | "settings" | "timetable">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "add-employee" | "schools" | "settings" | "timetable" | "schools-registers" | "calls-registers">("overview");
+
+  // Registers list states
+  const [visitsList, setVisitsList] = useState<any[]>([]);
+  const [registersList, setRegistersList] = useState<any[]>([]);
+  const [enrolmentsList, setEnrolmentsList] = useState<any[]>([]);
+  const [distributionsList, setDistributionsList] = useState<any[]>([]);
+  const [mouList, setMouList] = useState<any[]>([]);
+  const [officeCallsList, setOfficeCallsList] = useState<any[]>([]);
+  const [homeCallsList, setHomeCallsList] = useState<any[]>([]);
+  const [prList, setPrList] = useState<any[]>([]);
+  const [activeAdminSchoolModule, setActiveAdminSchoolModule] = useState<"visits" | "register" | "enrolment" | "uniforms">("visits");
+  const [activeAdminCallModule, setActiveAdminCallModule] = useState<"mou" | "office" | "home" | "pr">("mou");
 
   // Schools state
   const [schools, setSchools] = useState<any[]>([]);
@@ -600,6 +612,36 @@ export default function AdminPage() {
     window.addEventListener("click", handleClose);
     return () => window.removeEventListener("click", handleClose);
   }, [showSchoolExportMenu]);
+
+  // Load registers when switching tabs
+  useEffect(() => {
+    if (email && (activeTab === "schools-registers" || activeTab === "calls-registers")) {
+      const fetchRegistersData = async () => {
+        try {
+          const fetchMod = async (mod: string, setter: any) => {
+            const res = await fetch(`/api/admin/data/${mod}`);
+            if (res.ok) {
+              const data = await res.json();
+              setter(data);
+            }
+          };
+          await Promise.all([
+            fetchMod("visits", setVisitsList),
+            fetchMod("registers", setRegistersList),
+            fetchMod("enrolments", setEnrolmentsList),
+            fetchMod("distributions", setDistributionsList),
+            fetchMod("mou", setMouList),
+            fetchMod("officecalls", setOfficeCallsList),
+            fetchMod("homecalls", setHomeCallsList),
+            fetchMod("pr", setPrList),
+          ]);
+        } catch (err) {
+          console.error("Error fetching registers data for admin:", err);
+        }
+      };
+      fetchRegistersData();
+    }
+  }, [email, activeTab]);
 
   // Load admin profile and employee list on mount
   useEffect(() => {
@@ -1594,6 +1636,40 @@ export default function AdminPage() {
               <span className="material-icons text-lg shrink-0">domain</span>
               <span className="hidden group-hover:inline-block transition-all duration-300 whitespace-nowrap overflow-hidden text-xs">
                 School List
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("schools-registers");
+                setError(null);
+                setSuccess(null);
+              }}
+              title="Schools Registers"
+              className={`w-full flex items-center justify-center group-hover:justify-start gap-4 px-3 py-2.5 rounded-md text-sm font-semibold transition-colors cursor-pointer ${activeTab === "schools-registers"
+                  ? "bg-[#002f6c]/10 text-[#002f6c]"
+                  : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-50"
+                }`}
+            >
+              <span className="material-icons text-lg shrink-0">school</span>
+              <span className="hidden group-hover:inline-block transition-all duration-300 whitespace-nowrap overflow-hidden text-xs">
+                Schools Registers
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("calls-registers");
+                setError(null);
+                setSuccess(null);
+              }}
+              title="Call Registers"
+              className={`w-full flex items-center justify-center group-hover:justify-start gap-4 px-3 py-2.5 rounded-md text-sm font-semibold transition-colors cursor-pointer ${activeTab === "calls-registers"
+                  ? "bg-[#002f6c]/10 text-[#002f6c]"
+                  : "text-zinc-650 hover:text-zinc-950 hover:bg-zinc-50"
+                }`}
+            >
+              <span className="material-icons text-lg shrink-0">call</span>
+              <span className="hidden group-hover:inline-block transition-all duration-300 whitespace-nowrap overflow-hidden text-xs">
+                Call Registers
               </span>
             </button>
             <button
@@ -2981,6 +3057,448 @@ export default function AdminPage() {
                           </div>
                         </div>
                       )}
+
+                      {/* TAB CONTENT: Schools Registers (Admin View) */}
+                      {activeTab === "schools-registers" && (
+                        <div className="space-y-6 text-left">
+                          {/* Module Selector Header */}
+                          <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-4 flex flex-wrap gap-2 items-center justify-between select-none">
+                            <div className="flex flex-wrap gap-1.5">
+                              {[
+                                { key: "visits", label: "School Visits", icon: "tour" },
+                                { key: "register", label: "Class Registers", icon: "menu_book" },
+                                { key: "enrolment", label: "Student Enrolments", icon: "assignment_ind" },
+                                { key: "uniforms", label: "Uniform Distributions", icon: "checkroom" },
+                              ].map((item) => (
+                                <button
+                                  key={item.key}
+                                  onClick={() => setActiveAdminSchoolModule(item.key as any)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                                    activeAdminSchoolModule === item.key
+                                      ? "bg-[#002f6c] text-white shadow-sm"
+                                      : "text-zinc-650 hover:bg-zinc-100"
+                                  }`}
+                                >
+                                  <span className="material-icons text-sm">{item.icon}</span>
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              onClick={async () => {
+                                setError(null);
+                                setSuccess("Refreshing registers data...");
+                                try {
+                                  const fetchMod = async (mod: string, setter: any) => {
+                                    const res = await fetch(`/api/admin/data/${mod}`);
+                                    if (res.ok) setter(await res.json());
+                                  };
+                                  await Promise.all([
+                                    fetchMod("visits", setVisitsList),
+                                    fetchMod("registers", setRegistersList),
+                                    fetchMod("enrolments", setEnrolmentsList),
+                                    fetchMod("distributions", setDistributionsList),
+                                  ]);
+                                  setSuccess("Registers data refreshed successfully!");
+                                } catch (err) {
+                                  setError("Failed to refresh registers data.");
+                                }
+                              }}
+                              className="flex items-center gap-1 py-1 px-3 border border-zinc-300 rounded hover:bg-zinc-50 text-zinc-650 text-xs font-bold transition-colors select-none"
+                            >
+                              <span className="material-icons text-sm">refresh</span>
+                              Refresh Data
+                            </button>
+                          </div>
+
+                          {/* ──── ADMIN SUB-MODULE 1: School Visits ──── */}
+                          {activeAdminSchoolModule === "visits" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-5 space-y-4">
+                              <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-100 pb-2 uppercase tracking-wide">All School Visits Logs ({visitsList.length})</h3>
+                              {visitsList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-405 text-sm font-semibold">No school visits logged by employees yet.</div>
+                              ) : (
+                                <div className="space-y-4">
+                                  {visitsList.map((item) => (
+                                    <div key={item.id} className="border border-zinc-150 rounded-lg p-4 bg-zinc-50/50 flex flex-col md:flex-row md:items-start justify-between gap-4 text-xs">
+                                      <div className="space-y-1.5">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <span className="font-extrabold text-sm text-zinc-900">{item.schoolName}</span>
+                                          {item.district && <span className="bg-[#002f6c]/10 text-[#002f6c] px-2 py-0.5 rounded text-[10px] font-bold">{item.district}</span>}
+                                        </div>
+                                        {item.address && <p className="text-zinc-550 font-medium">{item.address}</p>}
+                                        <div className="text-[10px] text-zinc-600 font-semibold flex flex-wrap gap-4 pt-1">
+                                          {item.principalName && <span>Principal: <strong className="text-zinc-800">{item.principalName}</strong></span>}
+                                          {item.phone && <span>Phone: <strong className="text-zinc-800">{item.phone}</strong></span>}
+                                          <span className="bg-[#800020]/10 px-2 py-0.5 rounded text-[#800020] text-[9px] font-bold">Logged by: {item.employeeEmail}</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col items-start md:items-end gap-1.5 shrink-0 select-none">
+                                        <div className="flex gap-2">
+                                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold ${item.demonstration ? "bg-emerald-50 text-emerald-700 border border-emerald-250" : "bg-zinc-100 text-zinc-600 border border-zinc-200"}`}>
+                                            Demo: {item.demonstration ? "Done" : "Not Done"}
+                                          </span>
+                                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold ${item.visited ? "bg-blue-50 text-blue-700 border border-blue-255" : "bg-zinc-100 text-zinc-600 border border-zinc-200"}`}>
+                                            Visited: {item.visited ? "Yes" : "No"}
+                                          </span>
+                                        </div>
+                                        <span className="text-[10px] text-zinc-400 font-bold">Logged: {new Date(item.createdAt).toLocaleDateString()}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN SUB-MODULE 2: Daily Class Registers ──── */}
+                          {activeAdminSchoolModule === "register" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-5 space-y-4">
+                              <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Daily Class Register Logs ({registersList.length})</h3>
+                              {registersList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No class logs recorded by employees yet.</div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {registersList.map((item) => (
+                                    <div key={item.id} className="border border-zinc-150 rounded-lg p-4 bg-zinc-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+                                      <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-extrabold text-sm text-zinc-900">{item.schoolName}</span>
+                                          <span className="bg-zinc-200 text-zinc-700 px-1.5 py-0.5 rounded text-[9px] font-mono">Date: {item.date}</span>
+                                        </div>
+                                        <p className="text-[#002f6c] font-black text-xs">{item.topicCovered}</p>
+                                        <div className="text-[10px] text-zinc-500 font-semibold pt-1">
+                                          Logged by: <strong className="text-zinc-755">{item.employeeEmail}</strong>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-extrabold text-xs border border-emerald-255 select-none">
+                                          {item.attendanceCount} Attendees
+                                        </span>
+                                        <span className="text-[10px] text-zinc-400 font-bold block mt-1">Logged: {new Date(item.createdAt).toLocaleDateString()}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN SUB-MODULE 3: Student Enrolments ──── */}
+                          {activeAdminSchoolModule === "enrolment" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-5 space-y-4">
+                              <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Student Enrolments ({enrolmentsList.length})</h3>
+                              {enrolmentsList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No student enrolments registered yet.</div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {enrolmentsList.map((item) => (
+                                    <div key={item.id} className="border border-zinc-150 rounded-lg p-4 bg-zinc-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+                                      <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-extrabold text-sm text-zinc-900">{item.studentName}</span>
+                                          <span className="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-extrabold">Age: {item.age}</span>
+                                        </div>
+                                        <p className="text-zinc-650 font-bold">{item.schoolName}</p>
+                                        <div className="text-[10px] text-zinc-500 font-semibold pt-0.5 flex flex-wrap gap-4">
+                                          <span>Valid ID: <strong className="text-zinc-800 font-mono">{item.validId}</strong></span>
+                                          <span>Logged by: <strong className="text-zinc-700">{item.employeeEmail}</strong></span>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <span className="text-[10px] text-zinc-400 font-bold block">Logged: {new Date(item.createdAt).toLocaleDateString()}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN SUB-MODULE 4: Uniform Distributions ──── */}
+                          {activeAdminSchoolModule === "uniforms" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-5 space-y-4">
+                              <h3 className="text-sm font-bold text-zinc-800 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Uniform Distributions Logs ({distributionsList.length})</h3>
+                              {distributionsList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No uniform distributions logged yet.</div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {distributionsList.map((item) => (
+                                    <div key={item.id} className="border border-zinc-150 rounded-lg p-4 bg-zinc-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-extrabold text-sm text-zinc-900">{item.schoolName}</span>
+                                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                                            item.distributionType === "bulk" ? "bg-amber-50 text-amber-800 border border-amber-250" : "bg-blue-50 text-blue-800 border border-blue-250"
+                                          }`}>
+                                            {item.distributionType}
+                                          </span>
+                                        </div>
+                                        {item.distributionType === "bulk" ? (
+                                          <div className="text-zinc-700 font-bold flex gap-4 text-[11px]">
+                                            <span>Male count: {item.maleCount} uniforms</span>
+                                            <span>Female count: {item.femaleCount} uniforms</span>
+                                          </div>
+                                        ) : (
+                                          <p className="text-zinc-900 font-extrabold text-xs">
+                                            Student: {item.studentName} ({item.class}) | Gender: {item.gender}
+                                          </p>
+                                        )}
+                                        <div className="text-[10px] text-zinc-500 font-semibold pt-0.5">
+                                          Logged by: <strong className="text-zinc-700">{item.employeeEmail}</strong>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <span className="font-extrabold text-sm text-zinc-900 block">₹{item.amount}</span>
+                                        <span className="text-[9px] font-semibold text-zinc-450 block mb-1">Total Charged</span>
+                                        <span className="text-[10px] text-zinc-450 font-bold">Logged: {new Date(item.createdAt).toLocaleDateString()}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* TAB CONTENT: Call Registers (Admin View) */}
+                      {activeTab === "calls-registers" && (
+                        <div className="space-y-6 text-left">
+                          {/* Module Selector Header */}
+                          <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-4 flex flex-wrap gap-2 items-center justify-between select-none">
+                            <div className="flex flex-wrap gap-1.5">
+                              {[
+                                { key: "mou", label: "MoU Register", icon: "history_edu" },
+                                { key: "office", label: "Office Calls", icon: "call" },
+                                { key: "home", label: "Home Calls", icon: "contact_phone" },
+                                { key: "pr", label: "Public Relations", icon: "campaign" },
+                              ].map((item) => (
+                                <button
+                                  key={item.key}
+                                  onClick={() => setActiveAdminCallModule(item.key as any)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                                    activeAdminCallModule === item.key
+                                      ? "bg-[#002f6c] text-white shadow-sm"
+                                      : "text-zinc-650 hover:bg-zinc-100"
+                                  }`}
+                                >
+                                  <span className="material-icons text-sm">{item.icon}</span>
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              onClick={async () => {
+                                setError(null);
+                                setSuccess("Refreshing registers data...");
+                                try {
+                                  const fetchMod = async (mod: string, setter: any) => {
+                                    const res = await fetch(`/api/admin/data/${mod}`);
+                                    if (res.ok) setter(await res.json());
+                                  };
+                                  await Promise.all([
+                                    fetchMod("mou", setMouList),
+                                    fetchMod("officecalls", setOfficeCallsList),
+                                    fetchMod("homecalls", setHomeCallsList),
+                                    fetchMod("pr", setPrList),
+                                  ]);
+                                  setSuccess("Registers data refreshed successfully!");
+                                } catch (err) {
+                                  setError("Failed to refresh registers data.");
+                                }
+                              }}
+                              className="flex items-center gap-1 py-1 px-3 border border-zinc-300 rounded hover:bg-zinc-50 text-zinc-655 text-xs font-bold transition-colors select-none"
+                            >
+                              <span className="material-icons text-sm">refresh</span>
+                              Refresh Data
+                            </button>
+                          </div>
+
+                          {/* ──── ADMIN CALL SUB-MODULE 1: MoU Register ──── */}
+                          {activeAdminCallModule === "mou" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All signed Memorandums of Understanding ({mouList.length})</h3>
+                              {mouList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No MoU logs logged yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">School</th>
+                                      <th className="px-3 py-2.5">Principal</th>
+                                      <th className="px-3 py-2.5">Initiated</th>
+                                      <th className="px-3 py-2.5">Strength</th>
+                                      <th className="px-3 py-2.5">Status</th>
+                                      <th className="px-3 py-2.5">Signed Date</th>
+                                      <th className="px-3 py-2.5">Follow-up</th>
+                                      <th className="px-3 py-2.5">Staff Assigned</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {mouList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.school}</td>
+                                        <td className="px-3 py-3">{item.principal}</td>
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.dateInitiated}</td>
+                                        <td className="px-3 py-3 text-center">{item.studentStrength}</td>
+                                        <td className="px-3 py-3">
+                                          <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-black ${
+                                            item.status === "Signed" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                                            item.status === "In Progress" ? "bg-blue-50 text-blue-700 border border-blue-200" :
+                                            item.status === "Terminated" ? "bg-rose-50 text-rose-700 border border-rose-200" :
+                                            "bg-amber-50 text-amber-700 border border-amber-200"
+                                          }`}>
+                                            {item.status}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.signedDate || "-"}</td>
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.nextFollowUp || "-"}</td>
+                                        <td className="px-3 py-3">{item.staff}</td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN CALL SUB-MODULE 2: Office Calls ──── */}
+                          {activeAdminCallModule === "office" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Office Call Logs ({officeCallsList.length})</h3>
+                              {officeCallsList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No office call records logged yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">School</th>
+                                      <th className="px-3 py-2.5">Principal</th>
+                                      <th className="px-3 py-2.5">Phone</th>
+                                      <th className="px-3 py-2.5">Purpose</th>
+                                      <th className="px-3 py-2.5">Response</th>
+                                      <th className="px-3 py-2.5">Meeting Fixed</th>
+                                      <th className="px-3 py-2.5">Follow-up</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {officeCallsList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.school}</td>
+                                        <td className="px-3 py-3">{item.principal}</td>
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.phone}</td>
+                                        <td className="px-3 py-3">{item.purpose}</td>
+                                        <td className="px-3 py-3">{item.response}</td>
+                                        <td className="px-3 py-3">
+                                          <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.meetingFixed ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"}`}>
+                                            {item.meetingFixed ? "Yes" : "No"}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-3">
+                                          <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.followUpReq ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"}`}>
+                                            {item.followUpReq ? "Yes" : "No"}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN CALL SUB-MODULE 3: Home Calls ──── */}
+                          {activeAdminCallModule === "home" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Home Call Logs ({homeCallsList.length})</h3>
+                              {homeCallsList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No home calls logged yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">School</th>
+                                      <th className="px-3 py-2.5">Person Contacted</th>
+                                      <th className="px-3 py-2.5">Purpose</th>
+                                      <th className="px-3 py-2.5">Response</th>
+                                      <th className="px-3 py-2.5">Follow-up</th>
+                                      <th className="px-3 py-2.5">Staff</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {homeCallsList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.school}</td>
+                                        <td className="px-3 py-3">{item.personContacted}</td>
+                                        <td className="px-3 py-3">{item.purpose}</td>
+                                        <td className="px-3 py-3">{item.response}</td>
+                                        <td className="px-3 py-3">
+                                          <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold ${item.followUp ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-zinc-100 text-zinc-500 border border-zinc-200"}`}>
+                                            {item.followUp ? "Yes" : "No"}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-3">{item.staff}</td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ──── ADMIN CALL SUB-MODULE 4: Public Relations ──── */}
+                          {activeAdminCallModule === "pr" && (
+                            <div className="bg-white border border-zinc-200 rounded-lg shadow-sm p-4 overflow-x-auto">
+                              <h3 className="text-sm font-bold text-zinc-800 mb-3 border-b border-zinc-100 pb-2 uppercase tracking-wide">All Public Relations Engagements ({prList.length})</h3>
+                              {prList.length === 0 ? (
+                                <div className="py-12 text-center text-zinc-400 text-sm font-medium">No PR activities recorded yet.</div>
+                              ) : (
+                                <table className="min-w-full divide-y divide-zinc-200 text-left text-xs text-zinc-700 select-none">
+                                  <thead className="bg-zinc-50 text-[10px] uppercase font-extrabold text-zinc-550 tracking-wider">
+                                    <tr>
+                                      <th className="px-3 py-2.5">Date</th>
+                                      <th className="px-3 py-2.5">Person / Body Met</th>
+                                      <th className="px-3 py-2.5">Category</th>
+                                      <th className="px-3 py-2.5">Purpose</th>
+                                      <th className="px-3 py-2.5">Outcome</th>
+                                      <th className="px-3 py-2.5">Staff</th>
+                                      <th className="px-3 py-2.5">Logged by</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-zinc-200 bg-white font-medium">
+                                    {prList.map((item) => (
+                                      <tr key={item.id} className="hover:bg-zinc-50/50">
+                                        <td className="px-3 py-3 whitespace-nowrap">{item.date}</td>
+                                        <td className="px-3 py-3 font-bold text-zinc-900">{item.personBodyMet}</td>
+                                        <td className="px-3 py-3">
+                                          <span className="inline-flex px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-bold uppercase">
+                                            {item.category}
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-3">{item.purpose}</td>
+                                        <td className="px-3 py-3">{item.outcome}</td>
+                                        <td className="px-3 py-3">{item.staff}</td>
+                                        <td className="px-3 py-3 font-mono text-[9px] text-[#002f6c]">{item.employeeEmail}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </main>
       </div>
@@ -2989,8 +3507,9 @@ export default function AdminPage() {
             {[
               { key: "overview", icon: "dashboard", label: "Overview" },
               { key: "add-employee", icon: "person_add", label: "Add Master" },
-              { key: "schools", icon: "domain", label: "School List" },
-              { key: "timetable", icon: "calendar_today", label: "Time Table" },
+              { key: "schools", icon: "domain", label: "Schools" },
+              { key: "schools-registers", icon: "school", label: "Sch Reg" },
+              { key: "calls-registers", icon: "call", label: "Call Reg" },
               { key: "settings", icon: "settings", label: "Settings" },
             ].map(({ key, icon, label }) => (
               <button
