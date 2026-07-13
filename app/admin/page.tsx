@@ -303,19 +303,49 @@ function AdminPageContent() {
   const [isFetchingEmployees, setIsFetchingEmployees] = useState(false);
   const [viewingEmployeeProfile, setViewingEmployeeProfile] = useState<any | null>(null);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+  const [employeeActivities, setEmployeeActivities] = useState<Record<string, any[]> | null>(null);
+  const [isFetchingActivities, setIsFetchingActivities] = useState(false);
+  const [activeActivityTab, setActiveActivityTab] = useState<string>("attendance");
 
   const handleViewEmployeeDetails = async (empId: string) => {
     setIsFetchingProfile(true);
+    setIsFetchingActivities(true);
     try {
       const res = await fetch(`/api/employee/profile?id=${encodeURIComponent(empId)}`);
       if (!res.ok) throw new Error("Failed to fetch employee details.");
       const data = await res.json();
       setViewingEmployeeProfile(data);
+
+      // Fetch all data modules in parallel
+      const modules = [
+        "visits", "registers", "enrolments", "distributions", "mou",
+        "officecalls", "homecalls", "pr", "videos", "finance",
+        "problems", "documents", "social", "attendance"
+      ];
+
+      const activityData: Record<string, any[]> = {};
+      await Promise.all(
+        modules.map(async (mod) => {
+          try {
+            const modRes = await fetch(`/api/employee/data/${mod}?email=${encodeURIComponent(data.email)}`);
+            if (modRes.ok) {
+              activityData[mod] = await modRes.json();
+            } else {
+              activityData[mod] = [];
+            }
+          } catch (e) {
+            console.error(`Failed to fetch activities for ${mod}:`, e);
+            activityData[mod] = [];
+          }
+        })
+      );
+      setEmployeeActivities(activityData);
     } catch (err) {
       console.error("View employee details error:", err);
       alert("Error fetching employee profile details.");
     } finally {
       setIsFetchingProfile(false);
+      setIsFetchingActivities(false);
     }
   };
 
@@ -1298,6 +1328,8 @@ function AdminPageContent() {
     setSuccess(null);
     setActiveTab("overview");
     setAddedEmployee(null);
+    setEmployeeActivities(null);
+    setActiveActivityTab("attendance");
     try {
       await fetch("/api/admin/logout", { method: "POST" });
     } catch (err) {
@@ -2418,6 +2450,656 @@ function AdminPageContent() {
                         <p className="text-center text-[10px] text-zinc-400 leading-relaxed">
                           This card certifies that the individual is a registered HSGA Telangana staff member. PVC CR80 format ready.
                         </p>
+                      </div>
+                    </div>
+
+                    {/* Submissions & Activity Log Card (Full-width) */}
+                    <div className="bg-white border border-zinc-200 shadow-sm rounded-lg p-6 space-y-6 select-none mt-6">
+                      <div className="pb-4 border-b border-zinc-100 flex items-center justify-between flex-wrap gap-4">
+                        <div>
+                          <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
+                            <span className="material-icons text-[#002f6c] text-xl select-none">assignment</span>
+                            Activity &amp; Submission Logs
+                          </h2>
+                          <p className="text-xs text-zinc-500 mt-0.5">
+                            Filled data, registers, and submittals for this employee
+                          </p>
+                        </div>
+                        {isFetchingActivities && (
+                          <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-semibold bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-200">
+                            <span className="material-icons animate-spin text-sm text-[#002f6c]">sync</span>
+                            Refreshing activities...
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sub Tab Navigation */}
+                      <div className="flex flex-wrap gap-1 border-b border-zinc-100 pb-2">
+                        {[
+                          { id: "attendance", label: "Attendance", icon: "fingerprint" },
+                          { id: "visits", label: "School Visits", icon: "location_on" },
+                          { id: "registers", label: "Daily Registers", icon: "menu_book" },
+                          { id: "enrolments", label: "Enrolments", icon: "school" },
+                          { id: "distributions", label: "Distributions", icon: "checkroom" },
+                          { id: "mou", label: "MOUs", icon: "draw" },
+                          { id: "calls", label: "Calls", icon: "phone" },
+                          { id: "media", label: "PR & Media", icon: "share" },
+                          { id: "admin_records", label: "Finance & Support", icon: "description" }
+                        ].map(t => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setActiveActivityTab(t.id)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                              activeActivityTab === t.id
+                                ? "bg-[#002f6c] text-white shadow-sm"
+                                : "hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900"
+                            }`}
+                          >
+                            <span className="material-icons text-sm select-none">{t.icon}</span>
+                            {t.label}
+                            {employeeActivities && (
+                              <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
+                                activeActivityTab === t.id
+                                  ? "bg-white/20 text-white"
+                                  : "bg-zinc-100 text-zinc-700 border border-zinc-200"
+                              }`}>
+                                {t.id === "calls"
+                                  ? (employeeActivities.officecalls?.length || 0) + (employeeActivities.homecalls?.length || 0)
+                                  : t.id === "media"
+                                    ? (employeeActivities.pr?.length || 0) + (employeeActivities.videos?.length || 0) + (employeeActivities.social?.length || 0)
+                                    : t.id === "admin_records"
+                                      ? (employeeActivities.finance?.length || 0) + (employeeActivities.problems?.length || 0) + (employeeActivities.documents?.length || 0)
+                                      : employeeActivities[t.id]?.length || 0
+                                }
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Sub Tab Content */}
+                      <div className="pt-2">
+                        {isFetchingActivities ? (
+                          <div className="py-12 flex flex-col items-center justify-center gap-2 text-zinc-400">
+                            <span className="material-icons animate-spin text-3xl select-none">refresh</span>
+                            <span className="text-sm font-semibold">Loading submissions...</span>
+                          </div>
+                        ) : !employeeActivities ? (
+                          <div className="py-12 text-center text-zinc-400">
+                            <p className="text-sm font-semibold">No activity logs loaded.</p>
+                          </div>
+                        ) : (
+                          (() => {
+                            const renderEmptyState = (moduleLabel: string) => (
+                              <div className="py-12 flex flex-col items-center justify-center gap-3 text-zinc-400 border border-dashed border-zinc-200 rounded-lg bg-zinc-50/50">
+                                <span className="material-icons text-4xl select-none">folder_open</span>
+                                <p className="text-sm font-semibold">No {moduleLabel} submissions found</p>
+                                <p className="text-xs text-zinc-400">Filled entries appear here once the employee submits them in the portal.</p>
+                              </div>
+                            );
+
+                            switch (activeActivityTab) {
+                              case "attendance": {
+                                const logs = employeeActivities.attendance || [];
+                                if (logs.length === 0) return renderEmptyState("attendance");
+                                return (
+                                  <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                    <table className="min-w-full text-xs text-left">
+                                      <thead className="bg-[#002f6c] text-white text-[10px] font-bold uppercase tracking-wider select-none">
+                                        <tr>
+                                          <th className="px-4 py-2.5">Date</th>
+                                          <th className="px-4 py-2.5">Slot</th>
+                                          <th className="px-4 py-2.5">Session</th>
+                                          <th className="px-4 py-2.5">Status</th>
+                                          <th className="px-4 py-2.5">Punch In</th>
+                                          <th className="px-4 py-2.5">Punch Out</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                        {logs.map((log: any) => (
+                                          <tr key={log.id} className="hover:bg-zinc-50/30">
+                                            <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                            <td className="px-4 py-3 font-medium">{log.slotNum}</td>
+                                            <td className="px-4 py-3">{log.sessionName}</td>
+                                            <td className="px-4 py-3">
+                                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                log.status === "Present" ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800"
+                                              }`}>
+                                                {log.status}
+                                              </span>
+                                            </td>
+                                            <td className="px-4 py-3 font-mono text-[#002f6c]">{log.punchIn || "N/A"}</td>
+                                            <td className="px-4 py-3 font-mono text-[#800020]">{log.punchOut || "N/A"}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                );
+                              }
+                              case "visits": {
+                                const logs = employeeActivities.visits || [];
+                                if (logs.length === 0) return renderEmptyState("school visits");
+                                return (
+                                  <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                    <table className="min-w-full text-xs text-left">
+                                      <thead className="bg-[#002f6c] text-white text-[10px] font-bold uppercase tracking-wider select-none">
+                                        <tr>
+                                          <th className="px-4 py-2.5">School Name</th>
+                                          <th className="px-4 py-2.5">District</th>
+                                          <th className="px-4 py-2.5">Visited</th>
+                                          <th className="px-4 py-2.5">Demonstration</th>
+                                          <th className="px-4 py-2.5">Principal</th>
+                                          <th className="px-4 py-2.5">Phone</th>
+                                          <th className="px-4 py-2.5">Submitted On</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                        {logs.map((log: any) => (
+                                          <tr key={log.id} className="hover:bg-zinc-50/30">
+                                            <td className="px-4 py-3 font-semibold text-zinc-900">{log.schoolName}</td>
+                                            <td className="px-4 py-3">{log.district || "N/A"}</td>
+                                            <td className="px-4 py-3">
+                                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                log.visited ? "bg-emerald-50 text-emerald-800" : "bg-zinc-100 text-zinc-700"
+                                              }`}>
+                                                {log.visited ? "Yes" : "No"}
+                                              </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                log.demonstration ? "bg-blue-50 text-blue-800" : "bg-zinc-100 text-zinc-700"
+                                              }`}>
+                                                {log.demonstration ? "Yes" : "No"}
+                                              </span>
+                                            </td>
+                                            <td className="px-4 py-3">{log.principalName || "N/A"}</td>
+                                            <td className="px-4 py-3 font-mono">{log.phone || "N/A"}</td>
+                                            <td className="px-4 py-3 text-zinc-500">{new Date(log.createdAt).toLocaleDateString()}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                );
+                              }
+                              case "registers": {
+                                const logs = employeeActivities.registers || [];
+                                if (logs.length === 0) return renderEmptyState("daily registers");
+                                return (
+                                  <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                    <table className="min-w-full text-xs text-left">
+                                      <thead className="bg-[#002f6c] text-white text-[10px] font-bold uppercase tracking-wider select-none">
+                                        <tr>
+                                          <th className="px-4 py-2.5">Date</th>
+                                          <th className="px-4 py-2.5">School Name</th>
+                                          <th className="px-4 py-2.5">Topic Covered</th>
+                                          <th className="px-4 py-2.5">Attendance Count</th>
+                                          <th className="px-4 py-2.5">Submitted On</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                        {logs.map((log: any) => (
+                                          <tr key={log.id} className="hover:bg-zinc-50/30">
+                                            <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                            <td className="px-4 py-3 font-medium text-zinc-900">{log.schoolName}</td>
+                                            <td className="px-4 py-3">{log.topicCovered}</td>
+                                            <td className="px-4 py-3 font-bold text-zinc-900">{log.attendanceCount}</td>
+                                            <td className="px-4 py-3 text-zinc-500">{new Date(log.createdAt).toLocaleDateString()}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                );
+                              }
+                              case "enrolments": {
+                                const logs = employeeActivities.enrolments || [];
+                                if (logs.length === 0) return renderEmptyState("student enrolments");
+                                return (
+                                  <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                    <table className="min-w-full text-xs text-left">
+                                      <thead className="bg-[#002f6c] text-white text-[10px] font-bold uppercase tracking-wider select-none">
+                                        <tr>
+                                          <th className="px-4 py-2.5">Student Name</th>
+                                          <th className="px-4 py-2.5">Age</th>
+                                          <th className="px-4 py-2.5">School Name</th>
+                                          <th className="px-4 py-2.5">Valid ID</th>
+                                          <th className="px-4 py-2.5">Submitted On</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                        {logs.map((log: any) => (
+                                          <tr key={log.id} className="hover:bg-zinc-50/30">
+                                            <td className="px-4 py-3 font-semibold text-zinc-900">{log.studentName}</td>
+                                            <td className="px-4 py-3 font-medium">{log.age}</td>
+                                            <td className="px-4 py-3">{log.schoolName}</td>
+                                            <td className="px-4 py-3 font-mono">{log.validId}</td>
+                                            <td className="px-4 py-3 text-zinc-500">{new Date(log.createdAt).toLocaleDateString()}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                );
+                              }
+                              case "distributions": {
+                                const logs = employeeActivities.distributions || [];
+                                if (logs.length === 0) return renderEmptyState("uniform distributions");
+                                return (
+                                  <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                    <table className="min-w-full text-xs text-left">
+                                      <thead className="bg-[#002f6c] text-white text-[10px] font-bold uppercase tracking-wider select-none">
+                                        <tr>
+                                          <th className="px-4 py-2.5">School Name</th>
+                                          <th className="px-4 py-2.5">Type</th>
+                                          <th className="px-4 py-2.5">Male Count</th>
+                                          <th className="px-4 py-2.5">Female Count</th>
+                                          <th className="px-4 py-2.5">Individual Details</th>
+                                          <th className="px-4 py-2.5">Total Amount</th>
+                                          <th className="px-4 py-2.5">Submitted On</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                        {logs.map((log: any) => (
+                                          <tr key={log.id} className="hover:bg-zinc-50/30">
+                                            <td className="px-4 py-3 font-semibold text-zinc-900">{log.schoolName}</td>
+                                            <td className="px-4 py-3 uppercase font-medium">{log.distributionType}</td>
+                                            <td className="px-4 py-3">{log.maleCount !== null ? log.maleCount : "-"}</td>
+                                            <td className="px-4 py-3">{log.femaleCount !== null ? log.femaleCount : "-"}</td>
+                                            <td className="px-4 py-3 leading-tight">
+                                              {log.distributionType === "individual" ? (
+                                                <div>
+                                                  <p className="font-bold">{log.studentName}</p>
+                                                  <p className="text-[10px] text-zinc-500">Class: {log.class} | Gender: {log.gender}</p>
+                                                </div>
+                                              ) : "-"}
+                                            </td>
+                                            <td className="px-4 py-3 font-bold font-mono">₹{log.amount}</td>
+                                            <td className="px-4 py-3 text-zinc-500">{new Date(log.createdAt).toLocaleDateString()}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                );
+                              }
+                              case "mou": {
+                                const logs = employeeActivities.mou || [];
+                                if (logs.length === 0) return renderEmptyState("MOU contracts");
+                                return (
+                                  <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                    <table className="min-w-full text-xs text-left">
+                                      <thead className="bg-[#002f6c] text-white text-[10px] font-bold uppercase tracking-wider select-none">
+                                        <tr>
+                                          <th className="px-4 py-2.5">School Name</th>
+                                          <th className="px-4 py-2.5">Principal</th>
+                                          <th className="px-4 py-2.5">Date Initiated</th>
+                                          <th className="px-4 py-2.5">Strength</th>
+                                          <th className="px-4 py-2.5">Status</th>
+                                          <th className="px-4 py-2.5">Signed Date</th>
+                                          <th className="px-4 py-2.5">Next Follow-Up</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                        {logs.map((log: any) => (
+                                          <tr key={log.id} className="hover:bg-zinc-50/30">
+                                            <td className="px-4 py-3 font-semibold text-zinc-900">{log.school}</td>
+                                            <td className="px-4 py-3">{log.principal}</td>
+                                            <td className="px-4 py-3 font-mono">{log.dateInitiated}</td>
+                                            <td className="px-4 py-3 font-medium">{log.studentStrength}</td>
+                                            <td className="px-4 py-3">
+                                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                log.status === "Signed" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"
+                                              }`}>
+                                                {log.status}
+                                              </span>
+                                            </td>
+                                            <td className="px-4 py-3 font-mono">{log.signedDate || "-"}</td>
+                                            <td className="px-4 py-3 font-mono">{log.nextFollowUp || "-"}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                );
+                              }
+                              case "calls": {
+                                const officeLogs = employeeActivities.officecalls || [];
+                                const homeLogs = employeeActivities.homecalls || [];
+                                if (officeLogs.length === 0 && homeLogs.length === 0) return renderEmptyState("communication calls");
+                                return (
+                                  <div className="space-y-6">
+                                    {officeLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">Office Calls</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">School</th>
+                                                <th className="px-4 py-2">Principal Name</th>
+                                                <th className="px-4 py-2">Phone</th>
+                                                <th className="px-4 py-2">Purpose</th>
+                                                <th className="px-4 py-2">Response</th>
+                                                <th className="px-4 py-2">Meeting Fixed</th>
+                                                <th className="px-4 py-2">Follow-up Req</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {officeLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 font-medium text-zinc-900">{log.school}</td>
+                                                  <td className="px-4 py-3">{log.principal}</td>
+                                                  <td className="px-4 py-3 font-mono">{log.phone}</td>
+                                                  <td className="px-4 py-3">{log.purpose}</td>
+                                                  <td className="px-4 py-3">{log.response}</td>
+                                                  <td className="px-4 py-3">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                      log.meetingFixed ? "bg-emerald-50 text-emerald-800" : "bg-zinc-100 text-zinc-700"
+                                                    }`}>
+                                                      {log.meetingFixed ? "Yes" : "No"}
+                                                    </span>
+                                                  </td>
+                                                  <td className="px-4 py-3">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                      log.followUpReq ? "bg-amber-50 text-amber-800" : "bg-zinc-100 text-zinc-700"
+                                                    }`}>
+                                                      {log.followUpReq ? "Yes" : "No"}
+                                                    </span>
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {homeLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">Home Visits / Calls</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">School</th>
+                                                <th className="px-4 py-2">Person Contacted</th>
+                                                <th className="px-4 py-2">Purpose</th>
+                                                <th className="px-4 py-2">Response</th>
+                                                <th className="px-4 py-2">Follow-up</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {homeLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 font-medium text-zinc-900">{log.school}</td>
+                                                  <td className="px-4 py-3">{log.personContacted}</td>
+                                                  <td className="px-4 py-3">{log.purpose}</td>
+                                                  <td className="px-4 py-3">{log.response}</td>
+                                                  <td className="px-4 py-3">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                      log.followUp ? "bg-amber-50 text-amber-800" : "bg-zinc-100 text-zinc-700"
+                                                    }`}>
+                                                      {log.followUp ? "Yes" : "No"}
+                                                    </span>
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              case "media": {
+                                const prLogs = employeeActivities.pr || [];
+                                const videoLogs = employeeActivities.videos || [];
+                                const socialLogs = employeeActivities.social || [];
+                                if (prLogs.length === 0 && videoLogs.length === 0 && socialLogs.length === 0) return renderEmptyState("PR & Media");
+                                return (
+                                  <div className="space-y-6">
+                                    {prLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">PR Activities</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">Person Met</th>
+                                                <th className="px-4 py-2">Category</th>
+                                                <th className="px-4 py-2">Purpose</th>
+                                                <th className="px-4 py-2">Outcome</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {prLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 font-medium text-zinc-900">{log.personBodyMet}</td>
+                                                  <td className="px-4 py-3 font-mono text-[10px]">{log.category}</td>
+                                                  <td className="px-4 py-3">{log.purpose}</td>
+                                                  <td className="px-4 py-3">{log.outcome}</td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {videoLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">Videos Produced</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">School</th>
+                                                <th className="px-4 py-2">Title</th>
+                                                <th className="px-4 py-2">Platform</th>
+                                                <th className="px-4 py-2">Views</th>
+                                                <th className="px-4 py-2">Likes</th>
+                                                <th className="px-4 py-2">Link</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {videoLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 font-medium text-zinc-900">{log.school}</td>
+                                                  <td className="px-4 py-3 font-bold">{log.title}</td>
+                                                  <td className="px-4 py-3 uppercase font-medium">{log.platform}</td>
+                                                  <td className="px-4 py-3">{log.views}</td>
+                                                  <td className="px-4 py-3">{log.likes}</td>
+                                                  <td className="px-4 py-3">
+                                                    <a href={log.link} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline flex items-center gap-1 font-bold">
+                                                      Open <span className="material-icons text-xs">open_in_new</span>
+                                                    </a>
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {socialLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">Social Media Publications</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">Platform</th>
+                                                <th className="px-4 py-2">Post Title</th>
+                                                <th className="px-4 py-2">Reach</th>
+                                                <th className="px-4 py-2">Likes</th>
+                                                <th className="px-4 py-2">Link</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {socialLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 uppercase font-medium">{log.platform}</td>
+                                                  <td className="px-4 py-3 font-bold">{log.postTitle}</td>
+                                                  <td className="px-4 py-3">{log.reach}</td>
+                                                  <td className="px-4 py-3">{log.likes}</td>
+                                                  <td className="px-4 py-3">
+                                                    <a href={log.link} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline flex items-center gap-1 font-bold">
+                                                      Open <span className="material-icons text-xs">open_in_new</span>
+                                                    </a>
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              case "admin_records": {
+                                const financeLogs = employeeActivities.finance || [];
+                                const problemLogs = employeeActivities.problems || [];
+                                const docLogs = employeeActivities.documents || [];
+                                if (financeLogs.length === 0 && problemLogs.length === 0 && docLogs.length === 0) return renderEmptyState("Admin records");
+                                return (
+                                  <div className="space-y-6">
+                                    {financeLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">Financial Records</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">Head (Category)</th>
+                                                <th className="px-4 py-2">Type</th>
+                                                <th className="px-4 py-2">Amount</th>
+                                                <th className="px-4 py-2">Receipt</th>
+                                                <th className="px-4 py-2">Remarks</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {financeLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 font-medium text-zinc-900">{log.head}</td>
+                                                  <td className="px-4 py-3 uppercase">
+                                                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                                      log.type.toLowerCase() === "expense" ? "bg-amber-50 text-amber-800 border border-amber-200" : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                                    }`}>
+                                                      {log.type}
+                                                    </span>
+                                                  </td>
+                                                  <td className="px-4 py-3 font-bold font-mono">₹{log.amount}</td>
+                                                  <td className="px-4 py-3">
+                                                    {log.billUrl ? (
+                                                      <a href={log.billUrl} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline flex items-center gap-1 font-bold">
+                                                        View Receipt <span className="material-icons text-xs">open_in_new</span>
+                                                      </a>
+                                                    ) : "N/A"}
+                                                  </td>
+                                                  <td className="px-4 py-3 text-zinc-500 leading-tight max-w-[200px] truncate" title={log.remarks}>{log.remarks || "-"}</td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {problemLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">Reported Issues &amp; Support Requests</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">Category</th>
+                                                <th className="px-4 py-2">Description</th>
+                                                <th className="px-4 py-2">Support Required</th>
+                                                <th className="px-4 py-2">Status</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {problemLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 font-medium text-zinc-900">{log.category}</td>
+                                                  <td className="px-4 py-3 leading-tight max-w-xs truncate" title={log.description}>{log.description}</td>
+                                                  <td className="px-4 py-3 leading-tight max-w-xs truncate" title={log.supportRequired}>{log.supportRequired}</td>
+                                                  <td className="px-4 py-3">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold ${
+                                                      log.status.toLowerCase() === "resolved" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"
+                                                    }`}>
+                                                      {log.status}
+                                                    </span>
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {docLogs.length > 0 && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-bold text-zinc-800 tracking-wide uppercase">Uploaded Documents</h3>
+                                        <div className="overflow-x-auto border border-zinc-100 rounded-md">
+                                          <table className="min-w-full text-xs text-left">
+                                            <thead className="bg-[#002f6c]/10 text-[#002f6c] text-[10px] font-bold uppercase select-none">
+                                              <tr>
+                                                <th className="px-4 py-2">Date</th>
+                                                <th className="px-4 py-2">Title</th>
+                                                <th className="px-4 py-2">Category</th>
+                                                <th className="px-4 py-2">Document Link</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-200 bg-white text-zinc-700">
+                                              {docLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-zinc-50/30">
+                                                  <td className="px-4 py-3 font-semibold">{log.date}</td>
+                                                  <td className="px-4 py-3 font-bold text-zinc-950">{log.title}</td>
+                                                  <td className="px-4 py-3">{log.category}</td>
+                                                  <td className="px-4 py-3 font-mono">
+                                                    {log.link ? (
+                                                      <a href={log.link} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline flex items-center gap-1 font-bold">
+                                                        Open File <span className="material-icons text-xs">open_in_new</span>
+                                                      </a>
+                                                    ) : "N/A"}
+                                                  </td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              default:
+                                return null;
+                            }
+                          })()
+                        )}
                       </div>
                     </div>
                   </div>
