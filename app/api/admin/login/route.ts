@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
 
 export async function POST(request: Request) {
@@ -41,6 +42,15 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    const cookieStore = await cookies();
+    cookieStore.set("admin_session", targetEmail, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24, // 1 day
+      path: "/",
+    });
 
     return NextResponse.json({
       success: true,

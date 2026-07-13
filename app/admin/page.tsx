@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface GoogleCredentialResponse {
   credential: string;
@@ -184,7 +185,9 @@ function AttendanceRegistersPanel() {
   );
 }
 
-export default function AdminPage() {
+function AdminPageContent() {
+  const searchParams = useSearchParams();
+  const [isPasscodeValid, setIsPasscodeValid] = useState<boolean | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(true);
   const [formEmail, setFormEmail] = useState("");
@@ -377,10 +380,24 @@ export default function AdminPage() {
     }
   }, [handleCredentialResponse]);
 
-  // Synchronize local session storage
+  // Synchronize local session storage and passcode validation
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedEmail = localStorage.getItem("adminEmail");
+      const isAlreadyValidated = sessionStorage.getItem("adminRouteValidated") === "true";
+      
+      const queryPasscode = searchParams.get("passcode");
+      const correctPasscode = process.env.NEXT_PUBLIC_ADMIN_ROUTE_PASSCODE || "hsga-admin-secure-2026";
+
+      if (storedEmail || isAlreadyValidated || queryPasscode === correctPasscode) {
+        if (queryPasscode === correctPasscode) {
+          sessionStorage.setItem("adminRouteValidated", "true");
+        }
+        setIsPasscodeValid(true);
+      } else {
+        setIsPasscodeValid(false);
+      }
+
       setTimeout(() => {
         setEmail(storedEmail);
         setIsChecking(false);
@@ -396,7 +413,7 @@ export default function AdminPage() {
         document.body.appendChild(script);
       }
     }
-  }, [initializeGoogleSignIn]);
+  }, [initializeGoogleSignIn, searchParams]);
 
   // Poll for google SDK availability once GSI loads and the sign-in element renders
   useEffect(() => {
@@ -1271,16 +1288,47 @@ export default function AdminPage() {
     }
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("adminEmail");
+      sessionStorage.removeItem("adminRouteValidated");
     }
     setEmail(null);
     setError(null);
     setSuccess(null);
     setActiveTab("overview");
     setAddedEmployee(null);
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Failed to sign out from server:", err);
+    }
   };
+
+  // Intercept all API calls to log out on 401 Unauthorized
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const originalFetch = window.fetch;
+      window.fetch = async (input, init) => {
+        const res = await originalFetch(input, init);
+        if (res.status === 401) {
+          const urlStr = typeof input === "string" 
+            ? input 
+            : input instanceof URL 
+              ? input.toString() 
+              : (input as Request).url;
+          
+          if (urlStr.includes("/api/admin/")) {
+            handleSignOut();
+          }
+        }
+        return res;
+      };
+      return () => {
+        window.fetch = originalFetch;
+      };
+    }
+  }, []);
 
   if (isChecking) {
     return (
@@ -1300,6 +1348,31 @@ export default function AdminPage() {
             <div className="absolute top-0 bottom-0 left-0 w-1/2 bg-[#002f6c] rounded-full animate-line-loader" />
           </div>
           <p className="text-xs font-bold text-[#002f6c] tracking-wide select-none">Checking credentials...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If the passcode is invalid or missing, show Access Denied
+  if (isPasscodeValid === false) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#0f172a] text-zinc-100 font-sans antialiased items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[#1e293b]/80 backdrop-blur-md border border-[#334155] shadow-2xl rounded-2xl p-8 text-center flex flex-col items-center">
+          <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/30 rounded-full flex items-center justify-center mb-6 animate-bounce">
+            <span className="material-icons text-rose-500 text-3xl select-none">gpp_bad</span>
+          </div>
+          <h1 className="text-2xl font-black text-white tracking-tight mb-2">Access Denied</h1>
+          <p className="text-sm text-zinc-400 leading-relaxed mb-8">
+            You do not have permission to access the administrator gateway. Please verify your routing credentials or contact the system administrator.
+          </p>
+          <div className="w-full pt-6 border-t border-[#334155] flex flex-col gap-3">
+            <Link
+              href="/"
+              className="w-full py-2.5 px-4 bg-[#002f6c] hover:bg-[#002352] text-white font-bold text-sm rounded-lg transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-[#002f6c]/50 text-center"
+            >
+              Return Home
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -4559,4 +4632,21 @@ export default function AdminPage() {
           )}
       </div>
       );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#e8eaf6]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-40 h-1 bg-zinc-300 rounded-full overflow-hidden relative">
+            <div className="absolute top-0 bottom-0 left-0 w-1/2 bg-[#002f6c] rounded-full animate-pulse" />
+          </div>
+          <p className="text-xs font-bold text-[#002f6c] tracking-wide select-none">Loading portal...</p>
+        </div>
+      </div>
+    }>
+      <AdminPageContent />
+    </Suspense>
+  );
 }

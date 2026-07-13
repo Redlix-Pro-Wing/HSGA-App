@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { verifyAdminSession } from "@/app/lib/auth";
 
 export async function GET() {
   try {
+    const adminEmail = await verifyAdminSession();
+    if (!adminEmail) {
+      return NextResponse.json({ error: "Unauthorized access. Invalid session." }, { status: 401 });
+    }
     const entries = await prisma.timeTable.findMany({
       orderBy: { id: "asc" },
     });
@@ -16,6 +21,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await verifyAdminSession();
+    if (!adminEmail) {
+      return NextResponse.json({ error: "Unauthorized access. Invalid session." }, { status: 401 });
+    }
+
     const body = await request.json();
     const { employeeName } = body;
 
@@ -40,6 +50,11 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const adminEmail = await verifyAdminSession();
+    if (!adminEmail) {
+      return NextResponse.json({ error: "Unauthorized access. Invalid session." }, { status: 401 });
+    }
+
     const body = await request.json();
     const { id, employeeName, ...slots } = body;
 
@@ -96,6 +111,11 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const adminEmail = await verifyAdminSession();
+    if (!adminEmail) {
+      return NextResponse.json({ error: "Unauthorized access. Invalid session." }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 

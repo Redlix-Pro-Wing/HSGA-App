@@ -160,10 +160,7 @@ export default function Home() {
     const lowerUsername = username.toLowerCase();
     if (lowerUsername === "webstrixx@gmail.com" || lowerUsername === "office.hsga@gmail.com") {
       setIsLoading(false);
-      setSuccess("Administrator account detected. Redirecting to admin portal...");
-      setTimeout(() => {
-        router.push("/admin");
-      }, 1000);
+      setError("Please use the secure administrator portal to log in.");
       return;
     }
 

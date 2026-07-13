@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { verifyAdminSession } from "@/app/lib/auth";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ module: string }> }
 ) {
   try {
+    const adminEmail = await verifyAdminSession();
+    if (!adminEmail) {
+      return NextResponse.json({ error: "Unauthorized access. Invalid session." }, { status: 401 });
+    }
+
     const { module } = await params;
     let data: any[] = [];
     if (module === "visits") {

@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { verifyAdminSession } from "@/app/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email")?.toLowerCase().trim() || "webstrixx@gmail.com";
+    const adminEmail = await verifyAdminSession();
+    if (!adminEmail) {
+      return NextResponse.json({ error: "Unauthorized access. Invalid session." }, { status: 401 });
+    }
 
     const admin = await prisma.admin.upsert({
-      where: { email },
+      where: { email: adminEmail },
       update: {},
       create: {
-        email,
+        email: adminEmail,
         password: "password123",
-        name: email === "webstrixx@gmail.com" ? "State Admin" : "Office Admin",
+        name: adminEmail === "webstrixx@gmail.com" ? "State Admin" : "Office Admin",
         designation: "State Commissioner",
         phone: "+91 99999 99999",
       },
@@ -32,9 +35,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await verifyAdminSession();
+    if (!adminEmail) {
+      return NextResponse.json({ error: "Unauthorized access. Invalid session." }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { name, designation, phone, currentPassword, newPassword, email } = body;
-    const targetEmail = email?.toLowerCase().trim() || "webstrixx@gmail.com";
+    const { name, designation, phone, currentPassword, newPassword } = body;
+    const targetEmail = adminEmail;
 
     const admin = await prisma.admin.findUnique({
       where: { email: targetEmail },
