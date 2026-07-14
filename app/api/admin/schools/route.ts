@@ -27,13 +27,21 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     
-    // Strict validation list of all fields that must be filled
+    // Strict validation only for name and district
+    if (!body.name || typeof body.name !== "string" || body.name.trim() === "") {
+      return NextResponse.json({ error: "Field 'name' is required." }, { status: 400 });
+    }
+    if (!body.district || typeof body.district !== "string" || body.district.trim() === "") {
+      return NextResponse.json({ error: "Field 'district' is required." }, { status: 400 });
+    }
+
     const stringFields = [
       "name", "address", "district", "principalName", "principalPhone",
       "scoutInchargeName", "scoutInchargePhone", "petName", "petPhone",
       "scoutingStarted", "scoutMasterName", "praveshikaExamDate", 
       "komalPadhExamDate", "dhruvPadhExamDate", "guruPadhExamDate", 
-      "rajyaPuraskar"
+      "rajyaPuraskar", "state", "districtCode", "collegeSchoolCode", "year",
+      "studentUniqueCode", "schoolCode"
     ];
 
     const intFields = [
@@ -41,43 +49,19 @@ export async function POST(request: Request) {
       "komalPadhRegisteredStudents", "dhruvPadhRegisteredStudents", "guruPadhRegisteredStudents"
     ];
 
-    // Check string fields
-    for (const field of stringFields) {
-      if (!body[field] || typeof body[field] !== "string" || body[field].trim() === "") {
-        return NextResponse.json(
-          { error: `Field '${field}' is required and cannot be empty.` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Check integer fields
-    const parsedData: Record<string, any> = {};
-    for (const field of intFields) {
-      const val = body[field];
-      if (val === undefined || val === null || val === "") {
-        return NextResponse.json(
-          { error: `Field '${field}' is required.` },
-          { status: 400 }
-        );
-      }
-      const parsed = parseInt(String(val), 10);
-      if (isNaN(parsed) || parsed < 0) {
-        return NextResponse.json(
-          { error: `Field '${field}' must be a valid non-negative number.` },
-          { status: 400 }
-        );
-      }
-      parsedData[field] = parsed;
-    }
-
-    // Prepare complete data payload
     const dataPayload: any = {};
     stringFields.forEach((field) => {
-      dataPayload[field] = body[field].trim();
+      dataPayload[field] = typeof body[field] === "string" ? body[field].trim() : (body[field] || "");
     });
+
     intFields.forEach((field) => {
-      dataPayload[field] = parsedData[field];
+      const val = body[field];
+      if (val === undefined || val === null || val === "") {
+        dataPayload[field] = 0;
+      } else {
+        const parsed = parseInt(String(val), 10);
+        dataPayload[field] = isNaN(parsed) ? 0 : parsed;
+      }
     });
 
     const newSchool = await prisma.school.create({
@@ -108,14 +92,21 @@ export async function PUT(request: Request) {
     if (!id) {
       return NextResponse.json({ error: "ID is required to update a school." }, { status: 400 });
     }
+
+    if (!body.name || typeof body.name !== "string" || body.name.trim() === "") {
+      return NextResponse.json({ error: "Field 'name' is required." }, { status: 400 });
+    }
+    if (!body.district || typeof body.district !== "string" || body.district.trim() === "") {
+      return NextResponse.json({ error: "Field 'district' is required." }, { status: 400 });
+    }
     
-    // Strict validation list of all fields that must be filled
     const stringFields = [
       "name", "address", "district", "principalName", "principalPhone",
       "scoutInchargeName", "scoutInchargePhone", "petName", "petPhone",
       "scoutingStarted", "scoutMasterName", "praveshikaExamDate", 
       "komalPadhExamDate", "dhruvPadhExamDate", "guruPadhExamDate", 
-      "rajyaPuraskar"
+      "rajyaPuraskar", "state", "districtCode", "collegeSchoolCode", "year",
+      "studentUniqueCode", "schoolCode"
     ];
 
     const intFields = [
@@ -123,43 +114,19 @@ export async function PUT(request: Request) {
       "komalPadhRegisteredStudents", "dhruvPadhRegisteredStudents", "guruPadhRegisteredStudents"
     ];
 
-    // Check string fields
-    for (const field of stringFields) {
-      if (!body[field] || typeof body[field] !== "string" || body[field].trim() === "") {
-        return NextResponse.json(
-          { error: `Field '${field}' is required and cannot be empty.` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Check integer fields
-    const parsedData: Record<string, any> = {};
-    for (const field of intFields) {
-      const val = body[field];
-      if (val === undefined || val === null || val === "") {
-        return NextResponse.json(
-          { error: `Field '${field}' is required.` },
-          { status: 400 }
-        );
-      }
-      const parsed = parseInt(String(val), 10);
-      if (isNaN(parsed) || parsed < 0) {
-        return NextResponse.json(
-          { error: `Field '${field}' must be a valid non-negative number.` },
-          { status: 400 }
-        );
-      }
-      parsedData[field] = parsed;
-    }
-
-    // Prepare complete data payload
     const dataPayload: any = {};
     stringFields.forEach((field) => {
-      dataPayload[field] = body[field].trim();
+      dataPayload[field] = typeof body[field] === "string" ? body[field].trim() : (body[field] || "");
     });
+
     intFields.forEach((field) => {
-      dataPayload[field] = parsedData[field];
+      const val = body[field];
+      if (val === undefined || val === null || val === "") {
+        dataPayload[field] = 0;
+      } else {
+        const parsed = parseInt(String(val), 10);
+        dataPayload[field] = isNaN(parsed) ? 0 : parsed;
+      }
     });
 
     const updatedSchool = await prisma.school.update({

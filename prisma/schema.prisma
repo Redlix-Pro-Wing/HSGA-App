@@ -39,28 +39,36 @@ model Employee {
 model School {
   id                               Int      @id @default(autoincrement())
   name                             String
-  address                          String
+  address                          String?
   district                         String
-  principalName                    String
-  principalPhone                   String
-  scoutInchargeName                String
-  scoutInchargePhone               String
-  petName                          String
-  petPhone                         String
-  scoutingStarted                  String   // Month & Year input
-  uniformsDistributed              Int
-  scarfsDistributed                Int
-  scoutMasterName                  String
-  praveshikaRegisteredStudents     Int
-  praveshikaExamDate               String
-  komalPadhRegisteredStudents      Int
-  komalPadhExamDate                String
-  dhruvPadhRegisteredStudents      Int
-  dhruvPadhExamDate                String
-  guruPadhRegisteredStudents       Int
-  guruPadhExamDate                 String
-  rajyaPuraskar                    String
+  principalName                    String?
+  principalPhone                   String?
+  scoutInchargeName                String?
+  scoutInchargePhone               String?
+  petName                          String?
+  petPhone                         String?
+  scoutingStarted                  String?   // Month & Year input
+  uniformsDistributed              Int?     @default(0)
+  scarfsDistributed                Int?     @default(0)
+  scoutMasterName                  String?
+  praveshikaRegisteredStudents     Int?     @default(0)
+  praveshikaExamDate               String?
+  komalPadhRegisteredStudents      Int?     @default(0)
+  komalPadhExamDate                String?
+  dhruvPadhRegisteredStudents      Int?     @default(0)
+  dhruvPadhExamDate                String?
+  guruPadhRegisteredStudents       Int?     @default(0)
+  guruPadhExamDate                 String?
+  rajyaPuraskar                    String?
   createdAt                        DateTime @default(now())
+
+  // New columns from the imported schools txt
+  state                            String?
+  districtCode                     String?
+  collegeSchoolCode                String?
+  year                             String?
+  studentUniqueCode                String?
+  schoolCode                       String?
 }
 
 model TimeTable {

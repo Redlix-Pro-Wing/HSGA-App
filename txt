@@ -1,0 +1,102 @@
+STATE	District Code	District Name	College/School	College/School Code	Year	Student Unique Code	School code
+STATE	04	HYDERABAD	AMS(C)	001	24	0001-0200	TG04C001
+STATE	04	HYDERABAD	Gitanjali Devashray(S)	001	25	0001	TG04S001
+STATE	04	HYDERABAD	Walkertown School(S)	002	25	0001	TG04S002
+STATE	04	HYDERABAD	Lotus National School (S)	003	25	0001	TG04S003
+STATE	04	HYDERABAD	Shivaji Vidya Peeth School(S)	004	25	0001	TG04S004
+STATE	04	HYDERABAD	Sri Sai chaitanya school(S)	005	25	0001	TG04S005
+STATE	04	HYDERABAD	Marica High School(S)	006	25	0001	TG04S006
+STATE	04	HYDERABAD					
+STATE	04	HYDERABAD		008		0001	
+STATE	04	HYDERABAD		009		0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001	
+STATE	04	HYDERABAD				0001		TG16xxxx25xxxx						
+							
+STATE	District Code	District Name	College/School	College/School Code	Year	Student Unique Code	School Code
+TG	16	MEDAK	Geetha High School	001	2026	001	TG16S001
+	TG17xxxx25xxxx						
+							
+STATE	District Code	District Name	College/School	College/School Code	Year	Student Unique Code	School Code
+TG	17	Medchal	CMR(C)	001	25	0001	TG17C001
+TG	17	Medchal	CMR Kompally (S)	001	25	0001	TG17S001
+TG	17	Medchal	CMR Suraram(S)	002	25	0001	TG17S002
+TG	17	Medchal	Holy Angels High School(S)	003	25	0001	TG17S003
+TG	17	Medchal	SR Prime School Keesara(S)	004	25	0001	TG17S004
+TG	17	Medchal	Springfields school 	005	25	0001	TG17S005
+TG	17	Medchal	Jolly Buds High schools	006	26	0001	TG17S006
+TG	17	Medchal	Frobel's Garden High School	007	26	0001	TG17S007
+TG	17	Medchal	CMR Medchal School	008	26	0001	TG17S008
+TG	17	Medchal	Vibha International School	009	26	0001	TG17S009
+TG	17	Medchal	North City High School	010	26	0001	TG17S010
+TG	17	Medchal	Lotus National school Nagaram	011	26	0001	TG17S011
+TG	17	Medchal					
+TG	17	Medchal					
+TG	17	Medchal					
+TG	17	Medchal					
+TG	17	Medchal					
+TG	17	Medchal					
+TG	17	Medchal					
+	TG26xxxx25xxxx							QR Code
+								
+STATE	District Code	District Name	College/School	College/School Code	Year	Student Unique Code	School Code	Column 9
+TG	26	Ranga Reddy	Sentia The Global School(S)	001	25	0001	TG26S001	
+TG	26	Ranga Reddy	Academic Heights Public School(S)	002	25	0001	TG26S002	
+TG	26	Ranga Reddy	Meluha International School (S)	003	26	0001	TG26S003	
+TG	26	Ranga Reddy	Blooming Dales High School 	004	26	0001	TG26S004	
+TG	26	Ranga Reddy	GOWTHAM WORLD SCHOOL	005	26	0001	TG26S005	
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+TG	26	Ranga Reddy						
+
+	TG27xxx25xxxx						
+							
+STATE	District Code	District Name	College/School	College/School Code	Year	Student Unique Code	School Code
+TG	27	Sangareddy	JVHS	001	24	0001	TG27S001
+TG	27	Sangareddy	St. Mary's PSM High School	002	25	0001	TG27S002
+TG	27	Sangareddy	St. Anthony's School	003	25	0001	TG27S003
+TG	27	Sangareddy	St.Peters High School	004	25	0001	TG27S004
+TG	27	Sangareddy	St.Xavier’s High School	005	25	0001	TG27S005
+TG	27	Sangareddy	St Josephs High School	006	25	0001	TG27S006
+TG	27	Sangareddy	MNR School of Excellence	007	26	0001	TG27S007
+TG	27	Sangareddy	Adarsh Vidyalaya high school	008	26	0001	TG27S008
+TG	27	Sangareddy					
+TG	27	Sangareddy					
+TG	27	Sangareddy					
+TG	27	Sangareddy					
+TG	27	Sangareddy					
+TG	27	Sangareddy					
+TG	27	Sangareddy					
+TG	27	Sangareddy					
+
+	TG33xxxx25xxxx						
+							
+STATE	District Code	District Name	College/School	College/School Code	Year	Student Unique Code	School Code
+TG	33	Yadadri Bhuvanagiri	Anna Memorial High School	001	25	0001	TG33S001
+TG							
