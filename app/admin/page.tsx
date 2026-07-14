@@ -706,7 +706,7 @@ function AdminPageContent() {
   const handleExportSchoolsCSV = () => {
     if (schools.length === 0) return;
     const headers = [
-      "Name of the School", "Address", "District", "Principal Name", "Principal Ph.No",
+      "School ID", "Name of the School", "Address", "District ID", "District", "Principal Name", "Principal Ph.No",
       "Scout Incharge Name", "Scout Incharge Ph. No", "PET Name", "PET Ph. No",
       "Scouting Started", "No. of Uniforms Distributed", "No. of Scarfs Distributed",
       "Scout Master Name", "Praveshika Registered Students", "Praveshika Exam Date",
@@ -714,12 +714,12 @@ function AdminPageContent() {
       "Dhruv Padh Exam Date", "Guru Padh Registered Students", "Guru Padh Exam Date", "Rajya Puraskar"
     ];
     const rows = schools.map(sch => [
-      sch.name, sch.address, sch.district, sch.principalName, sch.principalPhone,
-      sch.scoutInchargeName, sch.scoutInchargePhone, sch.petName, sch.petPhone,
-      sch.scoutingStarted, sch.uniformsDistributed, sch.scarfsDistributed,
-      sch.scoutMasterName, sch.praveshikaRegisteredStudents, sch.praveshikaExamDate,
-      sch.komalPadhRegisteredStudents, sch.komalPadhExamDate, sch.dhruvPadhRegisteredStudents,
-      sch.dhruvPadhExamDate, sch.guruPadhRegisteredStudents, sch.guruPadhExamDate, sch.rajyaPuraskar
+      sch.schoolCode || "", sch.name, sch.address || "", sch.districtCode || "", sch.district, sch.principalName || "", sch.principalPhone || "",
+      sch.scoutInchargeName || "", sch.scoutInchargePhone || "", sch.petName || "", sch.petPhone || "",
+      sch.scoutingStarted || "", sch.uniformsDistributed ?? 0, sch.scarfsDistributed ?? 0,
+      sch.scoutMasterName || "", sch.praveshikaRegisteredStudents ?? 0, sch.praveshikaExamDate || "",
+      sch.komalPadhRegisteredStudents ?? 0, sch.komalPadhExamDate || "", sch.dhruvPadhRegisteredStudents ?? 0,
+      sch.dhruvPadhExamDate || "", sch.guruPadhRegisteredStudents ?? 0, sch.guruPadhExamDate || "", sch.rajyaPuraskar || ""
     ]);
     const csvContent = [headers, ...rows].map(e => e.map(val => `"${String(val ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -770,22 +770,24 @@ function AdminPageContent() {
               <thead>
                 <tr>
                   <th style="width: 5%;">S.No</th>
+                  <th style="width: 15%;">School ID</th>
                   <th style="width: 25%;">School Name</th>
+                  <th style="width: 10%;">District ID</th>
                   <th style="width: 15%;">District</th>
-                  <th style="width: 20%;">Principal Contact</th>
-                  <th style="width: 20%;">Scout Incharge</th>
-                  <th style="width: 15%;">Scouting Started</th>
+                  <th style="width: 15%;">Principal Contact</th>
+                  <th style="width: 15%;">Scout Incharge</th>
                 </tr>
               </thead>
               <tbody>
                 ${schools.map((sch, index) => `
                   <tr>
                     <td style="font-weight: bold; text-align: center;">${index + 1}</td>
+                    <td style="font-weight: 500; color: #374151;">${sch.schoolCode || "-"}</td>
                     <td style="font-weight: 600; color: #111827;">${sch.name}</td>
+                    <td style="font-weight: 500; color: #374151;">${sch.districtCode || "-"}</td>
                     <td>${sch.district}</td>
-                    <td>${sch.principalName} (${sch.principalPhone})</td>
-                    <td>${sch.scoutInchargeName} (${sch.scoutInchargePhone})</td>
-                    <td>${sch.scoutingStarted}</td>
+                    <td>${sch.principalName ? `${sch.principalName} (${sch.principalPhone || ''})` : "-"}</td>
+                    <td>${sch.scoutInchargeName ? `${sch.scoutInchargeName} (${sch.scoutInchargePhone || ''})` : "-"}</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -3524,8 +3526,10 @@ function AdminPageContent() {
                                     <thead className="bg-zinc-50 text-xs font-bold text-zinc-500 uppercase tracking-wider select-none">
                                       <tr className="divide-x divide-zinc-200">
                                         <th className="px-4 py-3">S.No</th>
+                                        <th className="px-4 py-3">School ID</th>
                                         <th className="px-4 py-3">Name of the School</th>
                                         <th className="px-4 py-3">Address</th>
+                                        <th className="px-4 py-3">District ID</th>
                                         <th className="px-4 py-3">District</th>
                                         <th className="px-4 py-3">Principal Name</th>
                                         <th className="px-4 py-3">Principal Ph.No</th>
@@ -3553,8 +3557,10 @@ function AdminPageContent() {
                                       {filteredSchools.map((sch, index) => (
                                         <tr key={sch.id} className="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
                                           <td className="px-4 py-3.5 font-bold text-zinc-900 text-xs text-center">{index + 1}</td>
+                                          <td className="px-4 py-3.5 font-medium text-zinc-800">{sch.schoolCode || "-"}</td>
                                           <td className="px-4 py-3.5 font-semibold text-zinc-950 max-w-[250px] truncate" title={sch.name}>{sch.name}</td>
                                           <td className="px-4 py-3.5 text-zinc-600 max-w-[200px] truncate" title={sch.address}>{sch.address}</td>
+                                          <td className="px-4 py-3.5 font-medium text-zinc-800">{sch.districtCode || "-"}</td>
                                           <td className="px-4 py-3.5 text-zinc-600">{sch.district}</td>
                                           <td className="px-4 py-3.5 font-medium text-zinc-800">{sch.principalName}</td>
                                           <td className="px-4 py-3.5 text-zinc-600">{sch.principalPhone}</td>
