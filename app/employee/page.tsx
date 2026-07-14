@@ -355,9 +355,8 @@ export default function EmployeeDashboard() {
       loadSessionAttendance();
 
       const loadAllSchools = async () => {
-
         try {
-          const res = await fetch("/api/admin/schools");
+          const res = await fetch("/api/employee/schools");
           if (res.ok) {
             const data = await res.json();
             setRegisteredSchools(data);
@@ -376,7 +375,7 @@ export default function EmployeeDashboard() {
       const loadSchoolsCount = async () => {
         setIsFetchingSchoolsCount(true);
         try {
-          const res = await fetch("/api/admin/schools");
+          const res = await fetch("/api/employee/schools");
           if (res.ok) {
             const data = await res.json();
             setSchoolsCount(data.length);
